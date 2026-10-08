@@ -6,6 +6,8 @@ class PredictionConfig(AppConfig):
     name = 'prediction'
     
     def ready(self):
+        from . import steps  # noqa: F401  (registers one prediction step per model)
+
         # Import all modules under ai_models (recursively) so that model adapter
         # decorators run. We prefer `app.ai_models` (package under the Django
         # project) and fall back to a top-level `ai_models` package for
