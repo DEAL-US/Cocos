@@ -4,8 +4,8 @@ import json
 from django.core.files.base import ContentFile
 from django.test import TestCase
 
-from core.models import File, ProcessGroup, Task
-from core.steps import Busy, Started, get_step
+from core.models import File, FileGene, ProcessGroup, Task
+from core.steps import Busy, Started, StepError, get_step
 from core.testing import ASSEMBLY_FASTA, BAKTA_JSON, FakeBioService, FlowTestMixin
 
 
@@ -128,3 +128,43 @@ class AnnotationStepTests(StepExecutionTestCase):
 
         with task.output_file('annotation').file.open('rb') as f:
             self.assertEqual(json.load(f), {'features': BAKTA_JSON['features']})
+
+
+class GeneExtractionStepTests(StepExecutionTestCase):
+    def annotation(self, payload=None, raw=None):
+        content = raw if raw is not None else json.dumps(BAKTA_JSON if payload is None else payload).encode()
+        return self.make_file(File.FileType.JSON, content, 'annotation.json')
+
+    def test_links_the_genes_to_the_annotation_file(self):
+        annotation = self.annotation()
+        task = self.make_task('extract_bakta_json', {'annotation': annotation})
+
+        task.get_step().process(task)
+
+        self.assertEqual(task.output_file('genes'), annotation)
+        self.assertEqual(FileGene.objects.filter(file=annotation).count(), len(BAKTA_JSON['features']))
+        self.assertFalse(FileGene.objects.filter(file=annotation, nt__isnull=False).exists())
+
+    def test_complete_version_stores_sequences(self):
+        annotation = self.annotation()
+        task = self.make_task('extract_bakta_json', {'annotation': annotation}, {'complete_version': True})
+
+        task.get_step().process(task)
+
+        first = FileGene.objects.filter(file=annotation).order_by('id').first()
+        self.assertEqual(first.nt, BAKTA_JSON['features'][0]['nt'])
+
+    def test_failures_raise_a_step_error_and_keep_the_file(self):
+        cases = [
+            ('invalid json', {'raw': b'{not json'}, 'Error decoding JSON file.'),
+            ('unparseable features', {'payload': {'features': ['not a feature']}}, 'Error parsing features. Try again later.'),
+        ]
+        for label, kwargs, message in cases:
+            with self.subTest(label):
+                annotation = self.annotation(**kwargs)
+                task = self.make_task('extract_bakta_json', {'annotation': annotation})
+                with self.assertRaisesMessage(StepError, message):
+                    task.get_step().process(task)
+                self.assertTrue(File.objects.filter(pk=annotation.pk).exists())
+                self.assertFalse(FileGene.objects.filter(file=annotation).exists())
+                self.assertFalse(task.task_outputs.exists())

@@ -5,10 +5,10 @@ There is one gene extraction step per registered parser that declares what it co
 import json
 
 from core.models import File
-from core.steps import Busy, DataKind, ExternalStep, LocalStep, Port, Started, register_step, register_step_provider
+from core.steps import Busy, DataKind, ExternalStep, LocalStep, Port, Started, StepError, register_step, register_step_provider
 
 from . import bio_api_client
-from .parsers import PARSERS
+from .parsers import PARSERS, parse_file
 from .utils import get_result_filename_stem
 
 FASTQ = File.FileType.FASTQ
@@ -150,6 +150,19 @@ class GeneExtractionStep(LocalStep):
         self.consumes = (Port('annotation', parser.consumes_kind, parser.consumes_format),)
         self.produces = (Port('genes', DataKind.GENE_SET, parser.consumes_format),)
         self.default_parameters = dict(parser.default_options)
+
+    def process(self, task):
+        file = task.input_file('annotation')
+        try:
+            data = PARSERS[self.parser_name].read(file)
+        except ValueError:
+            raise StepError('Error decoding JSON file.')
+        try:
+            parse_file(self.parser_name, data, file, user=task.process.user, options=task.parameters)
+        except Exception:
+            raise StepError('Error parsing features. Try again later.')
+        # The genes are linked to the annotation file itself.
+        task.add_output('genes', file)
 
 
 @register_step_provider

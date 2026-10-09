@@ -1,3 +1,5 @@
+import json
+
 from core.models import File, FileGene, Gene
 from core.steps import DataKind
 from django.db import transaction
@@ -36,6 +38,10 @@ class BaseParser():
     consumes_format = None
     default_options = {}
 
+    def read(self, file):
+        """Read a stored File into the data `parse` expects. Raise ValueError if it cannot be read."""
+        raise NotImplementedError
+
     def parse(self, data, file, user=None, options=None):
         """Parse data and persist results.
 
@@ -52,6 +58,13 @@ class BaktaJsonParser(BaseParser):
     consumes_kind = DataKind.ANNOTATED_GENOME
     consumes_format = File.FileType.JSON
     default_options = {'complete_version': False}
+
+    def read(self, file):
+        try:
+            with file.file.open('rb') as stored_file:
+                return json.load(stored_file)
+        except (json.JSONDecodeError, UnicodeDecodeError) as error:
+            raise ValueError(f'Invalid JSON: {error}')
 
     def parse(self, data, file, user=None, options=None):
         """
