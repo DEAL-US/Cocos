@@ -199,7 +199,7 @@ class BatchNotificationTests(OrchestrationTestCase):
             (TaskNotification.EVENT_FAILED, 'Error decoding JSON file.'),
         ])
 
-    def test_prediction_requests_notify_their_start_once(self):
+    def test_prediction_requests_notify_their_start_and_end_once(self):
         MODEL_REGISTRY.update({'fake_a': ConstantModel, 'fake_b': ConstantModel})
         self.addCleanup(MODEL_REGISTRY.pop, 'fake_a', None)
         self.addCleanup(MODEL_REGISTRY.pop, 'fake_b', None)
@@ -213,5 +213,7 @@ class BatchNotificationTests(OrchestrationTestCase):
             for index, model in ((2, 'fake_a'), (3, 'fake_b'))
         ])
 
-        self.assertEqual(self.events(process)[before:],
-                         [(TaskNotification.EVENT_STARTED, 'The prediction task has started and is now running.')])
+        self.assertEqual(self.events(process)[before:], [
+            (TaskNotification.EVENT_STARTED, 'The prediction task has started and is now running.'),
+            (TaskNotification.EVENT_COMPLETED, 'The prediction task has completed successfully. You can now access your results.'),
+        ])

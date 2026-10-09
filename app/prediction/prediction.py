@@ -104,6 +104,7 @@ def prepare_prediction_csv(matrix):
     return models, rows
 
 def create_prediction_csv(task, models, rows):
+    """Store the combined CSV of a prediction. `task` is a PredictionTask or a PredictionRun."""
     if not task:
         raise ValueError('Missing prediction task.')
 

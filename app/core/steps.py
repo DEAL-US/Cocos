@@ -72,6 +72,12 @@ class Step:
     def output_port(self, role):
         return _find_port(self.produces, role, self.key)
 
+    def on_task_started(self, task):
+        """Hook called when a task of this step starts running."""
+
+    def on_task_finished(self, task):
+        """Hook called when a task of this step completes or fails."""
+
     def build_parameters(self, overrides=None):
         """Return the step parameters: defaults updated with `overrides`. Unknown names are rejected."""
         overrides = dict(overrides or {})

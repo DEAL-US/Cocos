@@ -88,6 +88,7 @@ def start_task(task, job_id=None):
     task.external_job_id = job_id
     task.save(update_fields=['status', 'started_at', 'external_job_id', 'updated_at'])
     _notify_started(task)
+    task.get_step().on_task_started(task)
 
 
 def complete_task(task):
@@ -95,6 +96,7 @@ def complete_task(task):
     task.finished_at = timezone.now()
     task.save(update_fields=['status', 'finished_at', 'updated_at'])
     _notify_if_batch_done(task)
+    task.get_step().on_task_finished(task)
     if task.plan_node:
         orchestration.advance_plan(task.process)
 
@@ -109,6 +111,7 @@ def fail_task(task, message):
         _notify_if_batch_done(task)
     else:
         notify_user_conversion_failed(task.process.user, task, message)
+    task.get_step().on_task_finished(task)
 
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=1, max_retries=MAX_TRIES)

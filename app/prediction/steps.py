@@ -8,6 +8,7 @@ from core.steps import DataKind, LocalStep, Port, StepError, register_step_provi
 
 from .models import PredictionTask
 from .prediction import NO_RESULT, get_prediction
+from .runs import finish_run_if_done, mark_run_started
 from .registry import get_model_supported_antibiotics, get_model_supported_organisms, list_registered_models
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,14 @@ class ModelPredictionStep(LocalStep):
     @property
     def supported_organisms(self):
         return get_model_supported_organisms(self.model_name)
+
+    def on_task_started(self, task):
+        if task.run_id:
+            mark_run_started(task.run_id)
+
+    def on_task_finished(self, task):
+        if task.run_id:
+            finish_run_if_done(task.run_id, task)
 
     def process(self, task):
         """Predict every antibiotic of the task; antibiotics that fail get NO_RESULT."""
