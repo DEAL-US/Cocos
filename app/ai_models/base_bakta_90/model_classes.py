@@ -8,7 +8,7 @@ from prediction.input_utils import (
     get_model_weights_path,
 )
 from prediction.model_interface import ModelInterface
-from prediction.registry import register_model
+from prediction.registry import ANY_ORGANISM, register_model
 
 # --- Model definition ---
 class BaselineMLP(nn.Module):
@@ -41,6 +41,8 @@ class BaseBakta90Adapter(ModelInterface):
     """
     Adapter class from BaselineMLP to the ModelInterface expected by the framework.
     """
+    supported_organisms = ANY_ORGANISM
+
     def __init__(self, antibiotic: str, model_name: str | None = None):
         self.model_name = model_name or "base_bakta_90"
         self.antibiotic = antibiotic

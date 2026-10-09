@@ -13,7 +13,7 @@ from core.steps import (
     list_steps,
     register_step,
 )
-from prediction.registry import MODEL_ANTIBIOTICS, MODEL_REGISTRY
+from prediction.registry import ANY_ORGANISM, MODEL_ANTIBIOTICS, MODEL_REGISTRY
 
 FASTQ, FASTA, JSON = File.FileType.FASTQ, File.FileType.FASTA, File.FileType.JSON
 
@@ -133,6 +133,7 @@ class PredictionStepsTests(SimpleTestCase):
         self.assertEqual(step.consumes, ports(('genes', DataKind.GENE_SET, JSON)))
         self.assertEqual(step.produces, ports(('predictions', DataKind.RESISTANCE_PREDICTION, File.FileType.CSV)))
         self.assertEqual(step.supported_antibiotics, ['amikacin'])
+        self.assertIs(step.supported_organisms, ANY_ORGANISM)
         self.assertEqual(step.build_parameters({'antibiotics': ['amikacin']}), {'antibiotics': ['amikacin']})
 
     def test_default_parameters_are_not_shared_between_calls(self):

@@ -2,7 +2,7 @@
 from core.models import File
 from core.steps import DataKind, LocalStep, Port, register_step_provider
 
-from .registry import get_model_supported_antibiotics, list_registered_models
+from .registry import get_model_supported_antibiotics, get_model_supported_organisms, list_registered_models
 
 PREDICTION_STEP_PREFIX = 'predict_'
 
@@ -22,6 +22,10 @@ class ModelPredictionStep(LocalStep):
     @property
     def supported_antibiotics(self):
         return get_model_supported_antibiotics(self.model_name)
+
+    @property
+    def supported_organisms(self):
+        return get_model_supported_organisms(self.model_name)
 
 
 @register_step_provider
