@@ -2,7 +2,7 @@ from django.test import SimpleTestCase
 
 from core import steps as step_registry
 from conversion.parsers import PARSERS, BaseParser, register_parser
-from core.models import File
+from core.models import File, TaskStatus
 from core.steps import (
     DataKind,
     ExternalStep,
@@ -79,6 +79,24 @@ class ConversionStepsTests(SimpleTestCase):
         self.assertEqual(step.output_port('assembly').kind, DataKind.ASSEMBLY)
         with self.assertRaises(KeyError):
             step.input_port('reads')
+
+
+class ExternalStatusTests(SimpleTestCase):
+    def test_service_statuses_map_to_task_statuses_per_step(self):
+        running, completed, failed = TaskStatus.RUNNING, TaskStatus.COMPLETED, TaskStatus.FAILED
+        cases = {
+            'assembly_ont': {'pending': running, 'running': running, 'assembled': completed,
+                             'completed': completed, 'failed': failed},
+            'assembly_illumina_annotated': {'running': running, 'assembled': running, 'annotation_pending': running,
+                                            'annotated': completed, 'failed': failed},
+            'bakta_annotation': {'annotation_pending': running, 'running': running, 'annotated': completed,
+                                 'failed': failed},
+        }
+        for key, mapping in cases.items():
+            step = get_step(key)
+            for external_status, expected in mapping.items():
+                with self.subTest(step=key, status=external_status):
+                    self.assertEqual(step.task_status(external_status), expected)
 
 
 class GeneExtractionStepsTests(SimpleTestCase):

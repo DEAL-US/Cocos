@@ -21,6 +21,11 @@ class AssemblyStep(ExternalStep):
     technology = ''
     annotate = False
 
+    @property
+    def finished_status(self):
+        # With auto-annotation the job reports 'assembled' first and only finishes when annotated.
+        return 'annotated' if self.annotate else 'assembled'
+
 
 @register_step
 class AssemblyONT(AssemblyStep):
@@ -62,6 +67,7 @@ class BaktaAnnotation(ExternalStep):
     key = 'bakta_annotation'
     label = 'Annotation'
     category = 'annotation'
+    finished_status = 'annotated'
     consumes = (Port('assembly', DataKind.ASSEMBLY, FASTA),)
     produces = (ANNOTATION_OUTPUT,)
     default_parameters = {'threads': 4}

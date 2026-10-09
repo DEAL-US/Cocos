@@ -39,8 +39,23 @@ class UnknownStepError(KeyError):
     pass
 
 
+class StepError(Exception):
+    """An expected failure of a step; its message is shown to the user."""
+
+
+@dataclass(frozen=True)
+class Started:
+    """An external job was accepted by the service."""
+    job_id: str
+
+
+@dataclass(frozen=True)
+class Busy:
+    """The external service could not accept the job now; try again later."""
+
+
 class Step:
-    """Base class for every step. Subclasses only declare metadata here."""
+    """Base class for every step: metadata, plus how it runs (see LocalStep and ExternalStep)."""
     key: str = ''
     label: str = ''
     category: str = ''
@@ -70,10 +85,44 @@ class Step:
 class LocalStep(Step):
     """A step that runs inside the application."""
 
+    def process(self, task):
+        """Do the whole work: read the task inputs and store its outputs. Raise StepError on failure."""
+        raise NotImplementedError
+
 
 class ExternalStep(Step):
-    """A step that runs as a job in an external service (the bio service)."""
+    """A step that runs as a job in an external service (the bio service).
+
+    `process` submits the job and returns at once; the job is then polled with `job_status`,
+    and `collect` stores the outputs once the service reports `finished_status`.
+    """
     is_external = True
+    finished_status = 'completed'
+
+    def process(self, task):
+        """Submit the job. Return Started(job_id), or Busy if the service cannot take it now."""
+        raise NotImplementedError
+
+    def job_status(self, job_id):
+        """Return (status, http_code) of the job in the external service."""
+        raise NotImplementedError
+
+    def collect(self, task):
+        """Download the job results and store them as the task outputs."""
+        raise NotImplementedError
+
+    def task_status(self, external_status):
+        """Map a status reported by the service to the TaskStatus of a task of this step.
+
+        Only `finished_status` (or a generic 'completed') finishes the task: intermediate
+        statuses, such as 'assembled' in an assembly that also annotates, mean it is running.
+        """
+        TaskStatus = core_models.TaskStatus
+        if external_status == 'failed':
+            return TaskStatus.FAILED
+        if external_status in (self.finished_status, 'completed'):
+            return TaskStatus.COMPLETED
+        return TaskStatus.RUNNING
 
 
 def _find_port(ports, role, step_key):
