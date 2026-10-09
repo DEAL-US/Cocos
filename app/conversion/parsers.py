@@ -1,4 +1,5 @@
-from core.models import FileGene, Gene
+from core.models import File, FileGene, Gene
+from core.steps import DataKind
 from django.db import transaction
 
 # --- Registry for parsers ---
@@ -29,6 +30,12 @@ def parse_file(parser, data, file, user=None, options=None):
 
 # --- Base Parser, extend this for specific file types or parsing ---
 class BaseParser():
+    # Parsers that declare what they consume become gene extraction steps (see conversion.steps).
+    label = ''
+    consumes_kind = None
+    consumes_format = None
+    default_options = {}
+
     def parse(self, data, file, user=None, options=None):
         """Parse data and persist results.
 
@@ -41,7 +48,11 @@ class BaseParser():
 # --- Example parser for Bakta JSON feature files ---
 @register_parser('bakta_json')
 class BaktaJsonParser(BaseParser):
-    
+    label = 'Bakta JSON'
+    consumes_kind = DataKind.ANNOTATED_GENOME
+    consumes_format = File.FileType.JSON
+    default_options = {'complete_version': False}
+
     def parse(self, data, file, user=None, options=None):
         """
         Parse a Bakta JSON feature file and create Gene, and FileGene entries.

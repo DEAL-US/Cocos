@@ -1,6 +1,7 @@
 from django.test import SimpleTestCase
 
 from core import steps as step_registry
+from conversion.parsers import PARSERS, BaseParser, register_parser
 from core.models import File
 from core.steps import (
     DataKind,
@@ -33,7 +34,7 @@ class ConversionStepsTests(SimpleTestCase):
             ('assembly_ont_annotated', 'Assembly + Annotation · ONT', 'assembly', True, ports(reads), ports(assembly, annotation)),
             ('assembly_illumina_annotated', 'Assembly + Annotation · Illumina', 'assembly', True, ports(*pair), ports(assembly, annotation)),
             ('bakta_annotation', 'Annotation', 'annotation', True, ports(assembly), ports(annotation)),
-            ('bakta_gene_extraction', 'Gene extraction', 'extraction', False, ports(annotation), ports(('genes', DataKind.GENE_SET, JSON))),
+            ('extract_bakta_json', 'Gene extraction · Bakta JSON', 'extraction', False, ports(annotation), ports(('genes', DataKind.GENE_SET, JSON))),
         ]
         for key, label, category, is_external, consumes, produces in cases:
             with self.subTest(key):
@@ -57,7 +58,7 @@ class ConversionStepsTests(SimpleTestCase):
 
     def test_steps_chain_from_reads_to_genes(self):
         """Each step's output feeds the next one: reads -> assembly -> annotation -> genes -> prediction."""
-        chain = [get_step('assembly_ont'), get_step('bakta_annotation'), get_step('bakta_gene_extraction')]
+        chain = [get_step('assembly_ont'), get_step('bakta_annotation'), get_step('extract_bakta_json')]
         for producer, consumer in zip(chain, chain[1:]):
             with self.subTest(f'{producer.key} -> {consumer.key}'):
                 produced = {(port.kind, port.format) for port in producer.produces}
@@ -69,7 +70,7 @@ class ConversionStepsTests(SimpleTestCase):
         self.assertEqual(annotation.build_parameters({'threads': 8}), {'threads': 8})
         with self.assertRaisesRegex(ValueError, 'complete_version'):
             annotation.build_parameters({'complete_version': True})
-        self.assertEqual(get_step('bakta_gene_extraction').build_parameters({'complete_version': True}),
+        self.assertEqual(get_step('extract_bakta_json').build_parameters({'complete_version': True}),
                          {'complete_version': True})
 
     def test_port_lookup_by_role(self):
@@ -78,6 +79,33 @@ class ConversionStepsTests(SimpleTestCase):
         self.assertEqual(step.output_port('assembly').kind, DataKind.ASSEMBLY)
         with self.assertRaises(KeyError):
             step.input_port('reads')
+
+
+class GeneExtractionStepsTests(SimpleTestCase):
+    def register_parser_temporarily(self, name, cls):
+        register_parser(name)(cls)
+        self.addCleanup(PARSERS.pop, name, None)
+
+    def test_one_extraction_step_per_parser_that_declares_its_input(self):
+        class TsvParser(BaseParser):
+            label = 'AMR TSV'
+            consumes_kind = DataKind.ANNOTATED_GENOME
+            consumes_format = File.FileType.CSV
+            default_options = {'min_identity': 90}
+
+        class UndeclaredParser(BaseParser):
+            pass
+
+        self.register_parser_temporarily('test_tsv', TsvParser)
+        self.register_parser_temporarily('test_undeclared', UndeclaredParser)
+
+        step = get_step('extract_test_tsv')
+        self.assertEqual((step.parser_name, step.label, step.category), ('test_tsv', 'Gene extraction · AMR TSV', 'extraction'))
+        self.assertEqual(step.consumes, ports(('annotation', DataKind.ANNOTATED_GENOME, File.FileType.CSV)))
+        self.assertEqual(step.produces, ports(('genes', DataKind.GENE_SET, File.FileType.CSV)))
+        self.assertEqual(step.build_parameters(), {'min_identity': 90})
+        with self.assertRaises(UnknownStepError):
+            get_step('extract_test_undeclared')
 
 
 class PredictionStepsTests(SimpleTestCase):
@@ -103,7 +131,7 @@ class PredictionStepsTests(SimpleTestCase):
         self.assertIsInstance(step, LocalStep)
         self.assertEqual((step.model_name, step.label, step.category), ('late_model', 'late_model', 'prediction'))
         self.assertEqual(step.consumes, ports(('genes', DataKind.GENE_SET, JSON)))
-        self.assertEqual(step.produces, ports(('predictions', DataKind.RESISTANCE_PREDICTION, None)))
+        self.assertEqual(step.produces, ports(('predictions', DataKind.RESISTANCE_PREDICTION, File.FileType.CSV)))
         self.assertEqual(step.supported_antibiotics, ['amikacin'])
         self.assertEqual(step.build_parameters({'antibiotics': ['amikacin']}), {'antibiotics': ['amikacin']})
 

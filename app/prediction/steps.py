@@ -11,7 +11,7 @@ class ModelPredictionStep(LocalStep):
     """Predict antibiotic resistance with one registered model."""
     category = 'prediction'
     consumes = (Port('genes', DataKind.GENE_SET, File.FileType.JSON),)
-    produces = (Port('predictions', DataKind.RESISTANCE_PREDICTION, None),)
+    produces = (Port('predictions', DataKind.RESISTANCE_PREDICTION, File.FileType.CSV),)
     default_parameters = {'antibiotics': []}
 
     def __init__(self, model_name):

@@ -1,6 +1,11 @@
-"""Conversion steps run on the bio service (assembly, annotation) or locally (gene extraction)."""
+"""Conversion steps run on the bio service (assembly, annotation) or locally (gene extraction).
+
+There is one gene extraction step per registered parser that declares what it consumes.
+"""
 from core.models import File
-from core.steps import DataKind, ExternalStep, LocalStep, Port, register_step
+from core.steps import DataKind, ExternalStep, LocalStep, Port, register_step, register_step_provider
+
+from .parsers import PARSERS
 
 FASTQ = File.FileType.FASTQ
 FASTA = File.FileType.FASTA
@@ -62,12 +67,28 @@ class BaktaAnnotation(ExternalStep):
     default_parameters = {'threads': 4}
 
 
-@register_step
-class BaktaGeneExtraction(LocalStep):
-    """Extract the genes of a Bakta JSON and link them to the file."""
-    key = 'bakta_gene_extraction'
-    label = 'Gene extraction'
+GENE_EXTRACTION_STEP_PREFIX = 'extract_'
+
+
+class GeneExtractionStep(LocalStep):
+    """Extract the genes of an annotation with a registered parser and link them to the file."""
     category = 'extraction'
-    consumes = (Port('annotation', DataKind.ANNOTATED_GENOME, JSON),)
-    produces = (Port('genes', DataKind.GENE_SET, JSON),)
-    default_parameters = {'complete_version': False}
+
+    def __init__(self, parser_name, parser):
+        self.parser_name = parser_name
+        self.key = f'{GENE_EXTRACTION_STEP_PREFIX}{parser_name}'
+        self.label = f'Gene extraction · {parser.label}'
+        self.consumes = (Port('annotation', parser.consumes_kind, parser.consumes_format),)
+        # The genes are linked to the parsed file itself, so the output keeps its format.
+        self.produces = (Port('genes', DataKind.GENE_SET, parser.consumes_format),)
+        self.default_parameters = dict(parser.default_options)
+
+
+@register_step_provider
+def gene_extraction_steps():
+    steps = (
+        GeneExtractionStep(name, parser)
+        for name, parser in PARSERS.items()
+        if getattr(parser, 'consumes_kind', None) is not None
+    )
+    return {step.key: step for step in steps}

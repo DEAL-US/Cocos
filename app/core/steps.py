@@ -26,8 +26,8 @@ class DataKind(StrEnum):
 class Port:
     """An input or output of a step.
 
-    `format` is a File.FileType, or None when the data is not stored as a file
-    (e.g. prediction results, which are stored in the task).
+    `role` names it within the step (e.g. 'r1' and 'r2' are both reads, but not interchangeable),
+    `kind` says what the data represents and `format` (a File.FileType) how it is stored.
     """
     role: str
     kind: DataKind
