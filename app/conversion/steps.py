@@ -79,7 +79,6 @@ class GeneExtractionStep(LocalStep):
         self.key = f'{GENE_EXTRACTION_STEP_PREFIX}{parser_name}'
         self.label = f'Gene extraction · {parser.label}'
         self.consumes = (Port('annotation', parser.consumes_kind, parser.consumes_format),)
-        # The genes are linked to the parsed file itself, so the output keeps its format.
         self.produces = (Port('genes', DataKind.GENE_SET, parser.consumes_format),)
         self.default_parameters = dict(parser.default_options)
 

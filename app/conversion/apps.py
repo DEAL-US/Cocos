@@ -7,7 +7,7 @@ class ConversionConfig(AppConfig):
     name = 'conversion'
 
     def ready(self):
-        from . import steps  # noqa: F401  (registers the conversion steps)
+        from . import steps
 
         # In DEBUG purge Celery queues and related Redis keys to keep
         # development runs clean (originally in converter.apps)
