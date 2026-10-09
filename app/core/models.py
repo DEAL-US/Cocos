@@ -4,6 +4,7 @@ import re
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.validators import RegexValidator
 
 # TASKS
 class TaskStatus(models.TextChoices):
@@ -241,10 +242,18 @@ class File(models.Model):
     class Meta:
         db_table = 'model_file'
 
+NCBI_TAXON_CURIE = RegexValidator(r'^NCBITaxon:\d+$', 'Use an NCBI Taxonomy CURIE such as NCBITaxon:562.')
+
 class ProcessGroup(models.Model):
-    """Grouping of conversion tasks under a name"""
+    """Grouping of the tasks run on a sample under a name.
+
+    `plan` lists the steps to run as nodes {'id', 'step', 'parameters', 'after': [node ids]}.
+    """
     name = models.CharField(max_length=255)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='process_groups')
+    # Blank means other / unknown. The organisms offered to users come from the prediction models.
+    organism = models.CharField(max_length=32, blank=True, default='', validators=[NCBI_TAXON_CURIE])
+    plan = models.JSONField(default=list, blank=True)
 
     def __str__(self):
         return self.name

@@ -137,3 +137,21 @@ class TaskFilesTests(TaskModelTestCase):
         task.add_input('reads', reads)
         reads.delete()
         self.assertFalse(TaskInput.objects.filter(task=task).exists())
+
+
+class ProcessGroupTests(TaskModelTestCase):
+    def test_organism_is_blank_or_an_ncbi_taxon_curie(self):
+        cases = [('', True), ('NCBITaxon:562', True), ('NCBITaxon:1773', True),
+                 ('562', False), ('Escherichia coli', False), ('NCBITaxon:abc', False)]
+        for organism, valid in cases:
+            with self.subTest(organism=organism):
+                process = ProcessGroup(name='p', user=self.user, organism=organism)
+                if valid:
+                    process.full_clean()
+                else:
+                    with self.assertRaises(ValidationError):
+                        process.full_clean()
+
+    def test_defaults(self):
+        self.process.refresh_from_db()
+        self.assertEqual((self.process.organism, self.process.plan), ('', []))
