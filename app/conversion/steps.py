@@ -2,10 +2,14 @@
 
 There is one gene extraction step per registered parser that declares what it consumes.
 """
-from core.models import File
-from core.steps import DataKind, ExternalStep, LocalStep, Port, register_step, register_step_provider
+import json
 
+from core.models import File
+from core.steps import Busy, DataKind, ExternalStep, LocalStep, Port, Started, register_step, register_step_provider
+
+from . import bio_api_client
 from .parsers import PARSERS
+from .utils import get_result_filename_stem
 
 FASTQ = File.FileType.FASTQ
 FASTA = File.FileType.FASTA
@@ -14,8 +18,48 @@ JSON = File.FileType.JSON
 ASSEMBLY_OUTPUT = Port('assembly', DataKind.ASSEMBLY, FASTA)
 ANNOTATION_OUTPUT = Port('annotation', DataKind.ANNOTATED_GENOME, JSON)
 
+# Statuses the bio service answers when it accepts a job; anything else (e.g. 'busy') means try later.
+ACCEPTED_STATUSES = {'pending', 'running', 'annotation_pending'}
 
-class AssemblyStep(ExternalStep):
+
+def _submission_result(response):
+    if response.get('status') in ACCEPTED_STATUSES and response.get('job_id'):
+        return Started(response['job_id'])
+    return Busy()
+
+
+class BioServiceStep(ExternalStep):
+    """A step run as a job in the bio service."""
+
+    def job_status(self, job_id):
+        return bio_api_client.get_job_status(job_id)
+
+    def _already_saved(self, task, role):
+        # collect() may be retried after a partial failure: keep what was already stored.
+        return task.task_outputs.filter(role=role).exists()
+
+    def save_assembly(self, task):
+        if self._already_saved(task, 'assembly'):
+            return
+        content = bio_api_client.download_assembly_fasta_result(task.external_job_id)
+        if not content:
+            raise ValueError('Downloaded FASTA content is empty')
+        filename = f"{get_result_filename_stem('assembly', task.external_job_id)}.fasta"
+        task.save_output('assembly', content, FASTA, filename)
+
+    def save_annotation(self, task):
+        if self._already_saved(task, 'annotation'):
+            return
+        payload = bio_api_client.download_bakta_json_result(task.external_job_id)
+        if isinstance(payload, list):
+            payload = {'features': payload}
+        elif not isinstance(payload, dict):
+            raise ValueError('Downloaded annotation payload has invalid format')
+        filename = f"{get_result_filename_stem('annotation', task.external_job_id)}.json"
+        task.save_output('annotation', json.dumps(payload).encode('utf-8'), JSON, filename)
+
+
+class AssemblyStep(BioServiceStep):
     """Assembly on the bio service. With `annotate`, the service also runs Bakta in the same job."""
     category = 'assembly'
     technology = ''
@@ -26,6 +70,11 @@ class AssemblyStep(ExternalStep):
         # With auto-annotation the job reports 'assembled' first and only finishes when annotated.
         return 'annotated' if self.annotate else 'assembled'
 
+    def collect(self, task):
+        self.save_assembly(task)
+        if self.annotate:
+            self.save_annotation(task)
+
 
 @register_step
 class AssemblyONT(AssemblyStep):
@@ -35,6 +84,9 @@ class AssemblyONT(AssemblyStep):
     consumes = (Port('reads', DataKind.READS, FASTQ),)
     produces = (ASSEMBLY_OUTPUT,)
 
+    def process(self, task):
+        return _submission_result(bio_api_client.sequence_ont(task.read_input('reads'), annotate=self.annotate))
+
 
 @register_step
 class AssemblyIllumina(AssemblyStep):
@@ -43,6 +95,10 @@ class AssemblyIllumina(AssemblyStep):
     technology = 'illumina'
     consumes = (Port('r1', DataKind.READS, FASTQ), Port('r2', DataKind.READS, FASTQ))
     produces = (ASSEMBLY_OUTPUT,)
+
+    def process(self, task):
+        response = bio_api_client.sequence_illumina(task.read_input('r1'), task.read_input('r2'), annotate=self.annotate)
+        return _submission_result(response)
 
 
 @register_step
@@ -62,7 +118,7 @@ class AssemblyIlluminaAnnotated(AssemblyIllumina):
 
 
 @register_step
-class BaktaAnnotation(ExternalStep):
+class BaktaAnnotation(BioServiceStep):
     """Bakta annotation of an assembly uploaded to the bio service."""
     key = 'bakta_annotation'
     label = 'Annotation'
@@ -71,6 +127,13 @@ class BaktaAnnotation(ExternalStep):
     consumes = (Port('assembly', DataKind.ASSEMBLY, FASTA),)
     produces = (ANNOTATION_OUTPUT,)
     default_parameters = {'threads': 4}
+
+    def process(self, task):
+        response = bio_api_client.annotate_from_fasta(task.read_input('assembly'), threads=task.parameters['threads'])
+        return _submission_result(response)
+
+    def collect(self, task):
+        self.save_annotation(task)
 
 
 GENE_EXTRACTION_STEP_PREFIX = 'extract_'

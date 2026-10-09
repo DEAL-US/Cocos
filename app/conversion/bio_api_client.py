@@ -53,9 +53,9 @@ def perform_bakta_annotation_from_job(job_id):
     response.raise_for_status()
     return response.json()
 
-def annotate_from_fasta(fasta_content):
+def annotate_from_fasta(fasta_content, threads=4):
     resp = requests.post(
-        f"{BASE}/annotation/bakta/upload?threads=4",
+        f"{BASE}/annotation/bakta/upload?threads={threads}",
         files={"assembly": ("sequences.fasta", fasta_content, "application/octet-stream")},
         timeout=30,
     )

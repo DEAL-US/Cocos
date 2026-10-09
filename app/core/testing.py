@@ -96,6 +96,7 @@ class FakeBioService:
         self.submissions.append({
             'endpoint': 'annotation/upload',
             'annotate': True,
+            'threads': parse_qs(urlparse(request.url).query).get('threads', [None])[0],
             'files': _multipart_parts(request),
         })
         if self.start_behavior == 'busy':
