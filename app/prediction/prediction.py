@@ -9,6 +9,9 @@ from core.models import File
 
 logger = logging.getLogger(__name__)
 
+# Value stored for a model/antibiotic pair that could not be predicted.
+NO_RESULT = 'NO_RESULT'
+
 # Prediction functions
 
 def get_prediction(model_name: str, antibiotic: str, file) -> float:
@@ -44,7 +47,7 @@ def get_prediction_matrix(model_names: list[str], antibiotics: list[str], file) 
                 value = get_prediction(model_name, antibiotic, file)
             except Exception:
                 logger.exception('Prediction failed for model=%s, antibiotic=%s', model_name, antibiotic)
-                value = 'NO_RESULT'
+                value = NO_RESULT
 
             row.append(value)
         data.append(row)
@@ -83,7 +86,7 @@ def prepare_prediction_csv(matrix):
         row_values = []
 
         for value in values:
-            if value in (None, 'NO_RESULT'):
+            if value in (None, NO_RESULT):
                 row_values.append('')
                 continue
 
