@@ -8,6 +8,7 @@ from core.models import File
 from core.steps import Busy, DataKind, ExternalStep, LocalStep, Port, Started, StepError, register_step, register_step_provider
 
 from . import bio_api_client
+from .models import ConversionTask
 from .parsers import PARSERS, parse_file
 from .utils import get_result_filename_stem
 
@@ -30,6 +31,7 @@ def _submission_result(response):
 
 class BioServiceStep(ExternalStep):
     """A step run as a job in the bio service."""
+    task_model = ConversionTask
 
     def job_status(self, job_id):
         return bio_api_client.get_job_status(job_id)
@@ -142,6 +144,7 @@ GENE_EXTRACTION_STEP_PREFIX = 'extract_'
 class GeneExtractionStep(LocalStep):
     """Extract the genes of an annotation with a registered parser and link them to the file."""
     category = 'extraction'
+    task_model = ConversionTask
 
     def __init__(self, parser_name, parser):
         self.parser_name = parser_name

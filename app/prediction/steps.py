@@ -6,6 +6,7 @@ import logging
 from core.models import File
 from core.steps import DataKind, LocalStep, Port, StepError, register_step_provider
 
+from .models import PredictionTask
 from .prediction import NO_RESULT, get_prediction
 from .registry import get_model_supported_antibiotics, get_model_supported_organisms, list_registered_models
 
@@ -17,6 +18,7 @@ PREDICTION_STEP_PREFIX = 'predict_'
 class ModelPredictionStep(LocalStep):
     """Predict antibiotic resistance with one registered model."""
     category = 'prediction'
+    task_model = PredictionTask
     consumes = (Port('genes', DataKind.GENE_SET, File.FileType.JSON),)
     produces = (Port('predictions', DataKind.RESISTANCE_PREDICTION, File.FileType.CSV),)
     default_parameters = {'antibiotics': []}

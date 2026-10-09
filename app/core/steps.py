@@ -63,6 +63,8 @@ class Step:
     produces: tuple[Port, ...] = ()
     default_parameters: dict = {}
     is_external = False
+    # Task subclass used for the tasks of this step; None means core.models.Task.
+    task_model = None
 
     def input_port(self, role):
         return _find_port(self.consumes, role, self.key)

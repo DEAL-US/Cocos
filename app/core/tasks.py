@@ -5,6 +5,8 @@ from celery import shared_task
 from celery.exceptions import MaxRetriesExceededError
 from django.utils import timezone
 
+# Module import: core.orchestration imports this module to launch tasks.
+from core import orchestration
 from core.models import Task, TaskStatus
 from core.steps import Busy, StepError
 from notifications.services import (
@@ -48,6 +50,8 @@ def complete_task(task):
         task.process.user, task,
         f"The {_label(task)} for the process {task.process.name} is complete. You can now access your results.",
     )
+    if task.plan_node:
+        orchestration.advance_plan(task.process)
 
 
 def fail_task(task, message):
