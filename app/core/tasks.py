@@ -8,11 +8,12 @@ from django.utils import timezone
 # Module import: core.orchestration imports this module to launch tasks.
 from core import orchestration
 from core.models import Task, TaskStatus
-from core.steps import Busy, StepError
+from core.steps import Busy, StepError, get_step
 from notifications.services import (
     notify_user_conversion_complete,
     notify_user_conversion_failed,
     notify_user_conversion_started,
+    notify_user_conversion_warning,
     notify_user_server_busy,
 )
 
@@ -27,29 +28,73 @@ def _get_task(task_id):
     return task.concrete if task else None
 
 
-def _label(task):
-    return task.get_step().label
+EXTRACTION_WARNING = ("Annotation succeeded, but automatic result upload failed. "
+                      "Try uploading the Bakta JSON manually from your downloads.")
 
 
+# --- Notifications: users are told when each request (a batch of plan nodes) starts and finishes,
+# and about every failure. Tasks outside a plan count as a batch of their own.
+def _batch(task):
+    if not task.plan_node:
+        return [], [task]
+    nodes = orchestration.batch_nodes(task.process, task.plan_node)
+    tasks_by_node = orchestration.latest_tasks(task.process)
+    return nodes, [tasks_by_node[node['id']] for node in nodes if node['id'] in tasks_by_node]
+
+
+def _batch_label(task, nodes):
+    return get_step(nodes[0]['step']).label if nodes else task.get_step().label
+
+
+def _is_prediction_batch(nodes):
+    return bool(nodes) and 'run' in nodes[0]
+
+
+def _notify_started(task):
+    nodes, tasks = _batch(task)
+    if any(other.pk != task.pk and other.started_at for other in tasks):
+        return
+    if _is_prediction_batch(nodes):
+        message = "The prediction task has started and is now running."
+    else:
+        message = f"The {_batch_label(task, nodes)} for the process {task.process.name} has started and is now running."
+    notify_user_conversion_started(task.process.user, task, message)
+
+
+def _notify_if_batch_done(task):
+    nodes, tasks = _batch(task)
+    if _is_prediction_batch(nodes):
+        return  # prediction requests finish with their PredictionRun
+    if nodes:
+        tasks_by_node = {other.plan_node: other for other in tasks}
+        done = all(
+            node['id'] in tasks_by_node and (
+                tasks_by_node[node['id']].status == TaskStatus.COMPLETED
+                or orchestration.is_soft_failure(tasks_by_node[node['id']], node))
+            for node in nodes
+        )
+        if not done:
+            return
+    notify_user_conversion_complete(
+        task.process.user, task,
+        f"The {_batch_label(task, nodes)} for the process {task.process.name} is complete. You can now access your results.",
+    )
+
+
+# --- Task lifecycle
 def start_task(task, job_id=None):
     task.status = TaskStatus.RUNNING
     task.started_at = timezone.now()
     task.external_job_id = job_id
     task.save(update_fields=['status', 'started_at', 'external_job_id', 'updated_at'])
-    notify_user_conversion_started(
-        task.process.user, task,
-        f"The {_label(task)} for the process {task.process.name} has started and is now running.",
-    )
+    _notify_started(task)
 
 
 def complete_task(task):
     task.status = TaskStatus.COMPLETED
     task.finished_at = timezone.now()
     task.save(update_fields=['status', 'finished_at', 'updated_at'])
-    notify_user_conversion_complete(
-        task.process.user, task,
-        f"The {_label(task)} for the process {task.process.name} is complete. You can now access your results.",
-    )
+    _notify_if_batch_done(task)
     if task.plan_node:
         orchestration.advance_plan(task.process)
 
@@ -59,7 +104,11 @@ def fail_task(task, message):
     task.status = TaskStatus.FAILED
     task.finished_at = timezone.now()
     task.save(update_fields=['status', 'finished_at', 'updated_at'])
-    notify_user_conversion_failed(task.process.user, task, message)
+    if task.plan_node and orchestration.is_soft_failure(task, orchestration.find_node(task.process, task.plan_node)):
+        notify_user_conversion_warning(task.process.user, task, EXTRACTION_WARNING)
+        _notify_if_batch_done(task)
+    else:
+        notify_user_conversion_failed(task.process.user, task, message)
 
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=1, max_retries=MAX_TRIES)

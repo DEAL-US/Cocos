@@ -7,6 +7,7 @@ from django.test import TestCase
 from core.models import File, FileGene, ProcessGroup, Task, TaskStatus
 from core.orchestration import PlanError, advance_plan, create_process, extend_plan, latest_tasks, retry_node
 from core.testing import BAKTA_JSON, FakeBioService, FlowTestMixin
+from notifications.models import TaskNotification
 from prediction.models import PredictionRun, PredictionTask
 from prediction.registry import MODEL_REGISTRY
 
@@ -149,3 +150,68 @@ class PlanValidationTests(OrchestrationTestCase):
                     create_process(self.user, 'p', nodes, inputs)
         self.assertFalse(ProcessGroup.objects.exists())
         self.assertFalse(Task.objects.exists())
+
+
+class BatchNotificationTests(OrchestrationTestCase):
+    def events(self, process):
+        return list(TaskNotification.objects.filter(task__process=process).order_by('id').values_list('event_type', 'message'))
+
+    def test_one_started_and_one_completed_per_request(self):
+        nodes = [{'id': 'n1', 'step': 'assembly_ont_annotated'}, {'id': 'n2', 'step': 'extract_bakta_json', 'after': ['n1']}]
+        with FakeBioService():
+            process = create_process(self.user, 'reads.fastq.gz', nodes, {'n1': {'reads': self.reads()}})
+            first_request = self.events(process)
+            extend_plan(process, [{'id': 'n3', 'step': 'bakta_annotation', 'after': ['n1']},
+                                  {'id': 'n4', 'step': 'extract_bakta_json', 'after': ['n3']}])
+
+        self.assertEqual(first_request, [
+            (TaskNotification.EVENT_STARTED, 'The Assembly + Annotation · ONT for the process reads.fastq.gz has started and is now running.'),
+            (TaskNotification.EVENT_COMPLETED, 'The Assembly + Annotation · ONT for the process reads.fastq.gz is complete. You can now access your results.'),
+        ])
+        self.assertEqual(self.events(process)[2:], [
+            (TaskNotification.EVENT_STARTED, 'The Annotation for the process reads.fastq.gz has started and is now running.'),
+            (TaskNotification.EVENT_COMPLETED, 'The Annotation for the process reads.fastq.gz is complete. You can now access your results.'),
+        ])
+
+    def test_failures_are_always_notified(self):
+        nodes = [{'id': 'n1', 'step': 'assembly_ont'}, {'id': 'n2', 'step': 'bakta_annotation', 'after': ['n1']}]
+        with FakeBioService(status_sequence=['running', 'failed']):
+            process = create_process(self.user, 'reads', nodes, {'n1': {'reads': self.reads()}})
+
+        self.assertEqual([event for event, _ in self.events(process)],
+                         [TaskNotification.EVENT_STARTED, TaskNotification.EVENT_FAILED])
+
+    def test_extraction_failing_after_annotation_only_warns(self):
+        nodes = [{'id': 'n1', 'step': 'assembly_ont_annotated'}, {'id': 'n2', 'step': 'extract_bakta_json', 'after': ['n1']}]
+        with FakeBioService(annotation_payload={'features': ['not a feature']}):
+            process = create_process(self.user, 'reads', nodes, {'n1': {'reads': self.reads()}})
+
+        self.assertEqual(self.statuses(process), {'n1': TaskStatus.COMPLETED, 'n2': TaskStatus.FAILED})
+        self.assertEqual([event for event, _ in self.events(process)],
+                         [TaskNotification.EVENT_STARTED, TaskNotification.EVENT_WARNING, TaskNotification.EVENT_COMPLETED])
+
+    def test_extraction_of_an_uploaded_file_fails(self):
+        process = create_process(self.user, 'bad.json', [{'id': 'n1', 'step': 'extract_bakta_json'}],
+                                 {'n1': {'annotation': self.bakta_json(b'{not json')}})
+
+        self.assertEqual(self.events(process), [
+            (TaskNotification.EVENT_STARTED, 'The Gene extraction · Bakta JSON for the process bad.json has started and is now running.'),
+            (TaskNotification.EVENT_FAILED, 'Error decoding JSON file.'),
+        ])
+
+    def test_prediction_requests_notify_their_start_once(self):
+        MODEL_REGISTRY.update({'fake_a': ConstantModel, 'fake_b': ConstantModel})
+        self.addCleanup(MODEL_REGISTRY.pop, 'fake_a', None)
+        self.addCleanup(MODEL_REGISTRY.pop, 'fake_b', None)
+        process = create_process(self.user, 'sample.json', [{'id': 'n1', 'step': 'extract_bakta_json'}],
+                                 {'n1': {'annotation': self.bakta_json()}})
+        run = PredictionRun.objects.create(process=process, selected_models=['fake_a', 'fake_b'], selected_antibiotics=['amikacin'])
+        before = len(self.events(process))
+
+        extend_plan(process, [
+            {'id': f'n{index}', 'step': f'predict_{model}', 'after': ['n1'], 'run': run.pk, 'parameters': {'antibiotics': ['amikacin']}}
+            for index, model in ((2, 'fake_a'), (3, 'fake_b'))
+        ])
+
+        self.assertEqual(self.events(process)[before:],
+                         [(TaskNotification.EVENT_STARTED, 'The prediction task has started and is now running.')])

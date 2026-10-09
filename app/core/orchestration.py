@@ -81,6 +81,18 @@ def find_node(process, node_id):
     raise PlanError(f"Process {process.pk} has no node {node_id!r}")
 
 
+def batch_nodes(process, node_id):
+    """Return the nodes added to the plan in the same request as `node_id`."""
+    batch = find_node(process, node_id)['batch']
+    return [node for node in process.plan if node['batch'] == batch]
+
+
+def is_soft_failure(task, node):
+    """A gene extraction that fails after a successful annotation only warns the user:
+    the annotation is still available to download."""
+    return task.status == TaskStatus.FAILED and bool(node['after']) and task.get_step().category == 'extraction'
+
+
 def latest_tasks(process):
     """Return {node id: last task of that node}."""
     tasks = Task.objects.filter(process=process).exclude(plan_node='').order_by('id')
