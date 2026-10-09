@@ -10,7 +10,8 @@ import copy
 from dataclasses import dataclass
 from enum import StrEnum
 
-from core.models import File
+# Module import: core.models imports this module at load time.
+from core import models as core_models
 
 
 class DataKind(StrEnum):
@@ -100,7 +101,7 @@ def validate_step(step):
         for port in ports:
             if not isinstance(port.kind, DataKind):
                 raise TypeError(f"Step {step.key}: port {port.role!r} has an unknown data kind")
-            if port.format is not None and port.format not in File.FileType.values:
+            if port.format is not None and port.format not in core_models.File.FileType.values:
                 raise TypeError(f"Step {step.key}: port {port.role!r} has an unknown format {port.format!r}")
 
 

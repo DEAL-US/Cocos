@@ -4,7 +4,11 @@ import re
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.files.base import ContentFile
 from django.core.validators import RegexValidator
+
+from core.steps import UnknownStepError, get_step
+from core.utils import upload_file
 
 # TASKS
 class TaskStatus(models.TextChoices):
@@ -39,7 +43,6 @@ class Task(models.Model):
     def clean(self):
         super().clean()
         if self.step:
-            from core.steps import UnknownStepError, get_step
             try:
                 get_step(self.step)
             except UnknownStepError:
@@ -47,7 +50,6 @@ class Task(models.Model):
 
     def get_step(self):
         """Return the step this task executes."""
-        from core.steps import get_step
         return get_step(self.step)
 
     # --- Files by role
@@ -59,9 +61,6 @@ class Task(models.Model):
 
     def save_output(self, role, content, file_type, filename):
         """Store `content` as a new file of the process owner and link it as an output."""
-        from django.core.files.base import ContentFile
-        from core.utils import upload_file
-
         file = upload_file(ContentFile(content, name=filename), self.process.user, file_type)
         self.add_output(role, file)
         return file

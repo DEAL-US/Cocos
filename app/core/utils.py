@@ -2,14 +2,15 @@ import os
 import tempfile
 import zipfile
 
-from core.models import File
+# Module import: core.models imports this module at load time.
+from core import models as core_models
 
 def upload_file(file, user, file_type):
     """Upload a file to the system, associating it with a user and file type."""
     if not file:
         raise ValueError("No file provided for upload.")
 
-    file_obj = File(user=user, file_type=file_type)
+    file_obj = core_models.File(user=user, file_type=file_type)
 
     file_obj.file.save(file.name, file, save=True)
 
