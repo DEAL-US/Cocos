@@ -15,7 +15,8 @@ class TaskStatus(models.TextChoices):
 class Task(models.Model):
     """Base task shared by conversion and prediction tasks (multi-table inheritance).
 
-    A task is one execution of a step (see core.steps): `step` is the step key.
+    A task is one execution of a step (see core.steps): `step` is the step key, and the
+    files it consumes and produces are linked with their role through TaskInput/TaskOutput.
     """
     status = models.CharField(max_length=50, choices=TaskStatus.choices, default=TaskStatus.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -31,6 +32,9 @@ class Task(models.Model):
     finished_at = models.DateTimeField(null=True, blank=True)
     tool_version = models.CharField(max_length=100, blank=True)
 
+    inputs = models.ManyToManyField('File', through='TaskInput', related_name='consumed_by_tasks', blank=True)
+    outputs = models.ManyToManyField('File', through='TaskOutput', related_name='produced_by_tasks', blank=True)
+
     def clean(self):
         super().clean()
         if self.step:
@@ -44,6 +48,32 @@ class Task(models.Model):
         """Return the step this task executes."""
         from core.steps import get_step
         return get_step(self.step)
+
+    # --- Files by role
+    def add_input(self, role, file):
+        return TaskInput.objects.create(task=self, file=file, role=role)
+
+    def add_output(self, role, file):
+        return TaskOutput.objects.create(task=self, file=file, role=role)
+
+    def save_output(self, role, content, file_type, filename):
+        """Store `content` as a new file of the process owner and link it as an output."""
+        from django.core.files.base import ContentFile
+        from core.utils import upload_file
+
+        file = upload_file(ContentFile(content, name=filename), self.process.user, file_type)
+        self.add_output(role, file)
+        return file
+
+    def input_file(self, role):
+        return _linked_file(self.task_inputs, role, self, 'input')
+
+    def output_file(self, role):
+        return _linked_file(self.task_outputs, role, self, 'output')
+
+    def read_input(self, role):
+        with self.input_file(role).file.open('rb') as f:
+            return f.read()
 
     @property
     def concrete(self):
@@ -61,6 +91,63 @@ class Task(models.Model):
         return f"Task(id={self.pk}, status={self.status})"
     class Meta:
         db_table = 'model_task'
+
+
+def _linked_file(links, role, task, direction):
+    link = links.select_related('file').filter(role=role).first()
+    if link is None:
+        raise ObjectDoesNotExist(f"Task {task.pk} has no {direction} with role {role!r}")
+    return link.file
+
+
+class TaskFileLink(models.Model):
+    """A file consumed or produced by a task, with the role it plays in the task's step."""
+    role = models.CharField(max_length=100)
+
+    def _port(self):
+        step = self.task.get_step()
+        return step.input_port(self.role) if self.direction == 'input' else step.output_port(self.role)
+
+    def clean(self):
+        super().clean()
+        if not self.task.step:
+            return
+        try:
+            port = self._port()
+        except KeyError:
+            raise ValidationError({'role': f"Step {self.task.step} has no {self.direction} {self.role!r}"})
+        if port.format and self.file.file_type != port.format:
+            raise ValidationError({'file': f"{self.direction.capitalize()} {self.role!r} must be a {port.format} file"})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.task} {self.direction} {self.role}: {self.file}"
+
+    class Meta:
+        abstract = True
+
+
+class TaskInput(TaskFileLink):
+    direction = 'input'
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='task_inputs')
+    file = models.ForeignKey('File', on_delete=models.CASCADE, related_name='task_inputs')
+
+    class Meta:
+        db_table = 'model_taskinput'
+        constraints = [models.UniqueConstraint(fields=['task', 'role'], name='unique_task_input_role')]
+
+
+class TaskOutput(TaskFileLink):
+    direction = 'output'
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='task_outputs')
+    file = models.ForeignKey('File', on_delete=models.CASCADE, related_name='task_outputs')
+
+    class Meta:
+        db_table = 'model_taskoutput'
+        constraints = [models.UniqueConstraint(fields=['task', 'role'], name='unique_task_output_role')]
 
 # GENE AND RELATED MODELS
 class GeneQuerySet(models.QuerySet):

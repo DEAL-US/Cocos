@@ -2,12 +2,12 @@ import shutil
 import tempfile
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 
 from conversion.models import ConversionTask
-from core.models import File, ProcessGroup, Task
+from core.models import File, ProcessGroup, Task, TaskInput, TaskOutput
 
 User = get_user_model()
 
@@ -72,3 +72,68 @@ class TaskStepTests(TaskModelTestCase):
         self.assertEqual((task.step, task.parameters, task.plan_node, task.tool_version), ('', {}, '', ''))
         self.assertIsNone(task.started_at)
         self.assertIsNone(task.finished_at)
+
+
+class TaskFilesTests(TaskModelTestCase):
+    def test_inputs_and_outputs_by_role(self):
+        task = self.make_task('assembly_illumina')
+        r1 = self.make_file(File.FileType.FASTQ, b'R1', 'r1')
+        r2 = self.make_file(File.FileType.FASTQ, b'R2', 'r2')
+        task.add_input('r1', r1)
+        task.add_input('r2', r2)
+
+        self.assertEqual(task.input_file('r2'), r2)
+        self.assertEqual(task.read_input('r1'), b'R1')
+        self.assertEqual(set(task.inputs.all()), {r1, r2})
+        self.assertEqual(list(r1.consumed_by_tasks.all()), [task])
+
+        assembly = task.save_output('assembly', b'>contig\nACGT\n', File.FileType.FASTA, 'contigs.fasta')
+        self.assertEqual((assembly.user, assembly.file_type), (self.user, File.FileType.FASTA))
+        self.assertEqual(task.output_file('assembly'), assembly)
+        self.assertEqual(list(assembly.produced_by_tasks.all()), [task])
+        with assembly.file.open('rb') as f:
+            self.assertEqual(f.read(), b'>contig\nACGT\n')
+
+    def test_missing_role_raises(self):
+        task = self.make_task('assembly_ont')
+        with self.assertRaises(ObjectDoesNotExist):
+            task.input_file('reads')
+        with self.assertRaises(ObjectDoesNotExist):
+            task.output_file('assembly')
+
+    def test_one_file_per_role(self):
+        task = self.make_task('assembly_ont')
+        task.add_input('reads', self.make_file(File.FileType.FASTQ, name='a'))
+        with self.assertRaises(ValidationError):
+            task.add_input('reads', self.make_file(File.FileType.FASTQ, name='b'))
+        self.assertEqual(TaskInput.objects.filter(task=task).count(), 1)
+
+    def test_role_must_be_declared_by_the_step(self):
+        task = self.make_task('assembly_ont')
+        cases = [
+            (lambda: task.add_input('r1', self.make_file(File.FileType.FASTQ)), 'unknown input role'),
+            (lambda: task.add_output('annotation', self.make_file(File.FileType.JSON)), 'output only of annotated assembly'),
+        ]
+        for action, label in cases:
+            with self.subTest(label):
+                with self.assertRaises(ValidationError):
+                    action()
+
+    def test_file_format_must_match_the_port(self):
+        task = self.make_task('bakta_annotation')
+        with self.assertRaises(ValidationError):
+            task.add_input('assembly', self.make_file(File.FileType.FASTQ))
+        task.add_input('assembly', self.make_file(File.FileType.FASTA))
+
+    def test_tasks_without_step_accept_any_role(self):
+        task = self.make_task()
+        task.add_input('anything', self.make_file(File.FileType.CSV))
+        task.add_output('whatever', self.make_file(File.FileType.JSON))
+        self.assertEqual(TaskOutput.objects.filter(task=task).count(), 1)
+
+    def test_deleting_a_file_removes_its_links(self):
+        task = self.make_task('assembly_ont')
+        reads = self.make_file(File.FileType.FASTQ)
+        task.add_input('reads', reads)
+        reads.delete()
+        self.assertFalse(TaskInput.objects.filter(task=task).exists())
