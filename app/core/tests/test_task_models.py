@@ -8,6 +8,7 @@ from django.test import TestCase, override_settings
 
 from conversion.models import ConversionTask
 from core.models import File, ProcessGroup, Task, TaskInput, TaskOutput
+from prediction.models import PredictionRun, PredictionTask
 
 User = get_user_model()
 
@@ -155,3 +156,27 @@ class ProcessGroupTests(TaskModelTestCase):
     def test_defaults(self):
         self.process.refresh_from_db()
         self.assertEqual((self.process.organism, self.process.plan), ('', []))
+
+
+class PredictionRunTests(TaskModelTestCase):
+    def test_run_groups_one_task_per_model(self):
+        run = PredictionRun.objects.create(process=self.process, selected_models=['a', 'b'], selected_antibiotics=['amikacin'])
+        for _ in ('a', 'b'):
+            PredictionTask.objects.create(process=self.process, run=run, results={'amikacin': 0.5})
+
+        self.assertEqual(run.status, 'pending')
+        self.assertEqual(run.tasks.count(), 2)
+        self.assertEqual([task.results for task in run.tasks.all()], [{'amikacin': 0.5}] * 2)
+        self.assertEqual(list(self.process.prediction_runs.all()), [run])
+
+    def test_run_needs_models_and_antibiotics(self):
+        with self.assertRaises(ValidationError):
+            PredictionRun.objects.create(process=self.process)
+
+    def test_output_csv_must_be_a_csv(self):
+        run = PredictionRun(process=self.process, selected_models=['a'], selected_antibiotics=['amikacin'],
+                            output_csv=self.make_file(File.FileType.JSON))
+        with self.assertRaises(ValidationError):
+            run.save()
+        run.output_csv = self.make_file(File.FileType.CSV)
+        run.save()
