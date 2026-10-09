@@ -17,8 +17,6 @@ class ConversionTask(Task):
         ASSEMBLY_ILLUMINA_ANNOTATED = 'assembly_illumina_annotated', 'Illumina Assembly with Annotation'
     
     task_ptr = models.OneToOneField(Task, on_delete=models.CASCADE, parent_link=True, primary_key=True, db_column='id')
-    # Allow blank so we can create a pending task before an external job id exists.
-    external_job_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
     input_files = models.ManyToManyField(File, related_name='input_conversion_tasks', blank=True)
     output_files = models.ManyToManyField(File, related_name='output_conversion_tasks', blank=True)
     task_type = models.CharField(max_length=50, choices=ConversionTaskType.choices)

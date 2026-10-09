@@ -18,6 +18,8 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     process = models.ForeignKey('ProcessGroup', on_delete=models.PROTECT, related_name='tasks')
+    # Allow blank so we can create a pending task before an external job id exists.
+    external_job_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
 
     @property
     def concrete(self):
