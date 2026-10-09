@@ -45,3 +45,30 @@ class TaskExternalJobTests(TaskModelTestCase):
     def test_tasks_without_external_job(self):
         self.assertIsNone(self.make_task().external_job_id)
         self.make_task()
+
+
+class TaskStepTests(TaskModelTestCase):
+    def test_step_must_be_registered(self):
+        cases = [('', False), ('assembly_ont', False), ('extract_bakta_json', False), ('no_such_step', True)]
+        for step, should_fail in cases:
+            with self.subTest(step=step):
+                task = Task(process=self.process, step=step)
+                if should_fail:
+                    with self.assertRaises(ValidationError):
+                        task.full_clean()
+                else:
+                    task.full_clean()
+
+    def test_subclasses_also_validate_the_step(self):
+        with self.assertRaises(ValidationError):
+            ConversionTask.objects.create(process=self.process, task_type='annotation', step='no_such_step')
+
+    def test_get_step_returns_the_registered_step(self):
+        self.assertEqual(self.make_task('bakta_annotation').get_step().key, 'bakta_annotation')
+
+    def test_new_fields_have_safe_defaults(self):
+        task = self.make_task()
+        task.refresh_from_db()
+        self.assertEqual((task.step, task.parameters, task.plan_node, task.tool_version), ('', {}, '', ''))
+        self.assertIsNone(task.started_at)
+        self.assertIsNone(task.finished_at)

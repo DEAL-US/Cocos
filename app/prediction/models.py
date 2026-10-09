@@ -15,6 +15,7 @@ class PredictionTask(Task):
 
     # Model-level validation
     def clean(self):
+        super().clean()
         if self.output_csv and self.output_csv.file_type != File.FileType.CSV:
             raise ValidationError({'output_csv': 'Output CSV must be a CSV file.'})
 

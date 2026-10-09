@@ -23,6 +23,7 @@ class ConversionTask(Task):
 
     # Model-level validation
     def clean(self):
+        super().clean()
         # Check that external_job_id is not null when status is not 'pending'
         if not self.external_job_id and self.status != TaskStatus.PENDING and self.status != TaskStatus.FAILED and self.task_type not in [self.ConversionTaskType.FROM_JSON]:
             raise ValidationError({'external_job_id': 'external_job_id can be null only when status is "pending" or "failed".'})

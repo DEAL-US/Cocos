@@ -13,13 +13,37 @@ class TaskStatus(models.TextChoices):
     FAILED = 'failed', 'Failed'
 
 class Task(models.Model):
-    """Base task shared by conversion and prediction tasks (multi-table inheritance)"""
+    """Base task shared by conversion and prediction tasks (multi-table inheritance).
+
+    A task is one execution of a step (see core.steps): `step` is the step key.
+    """
     status = models.CharField(max_length=50, choices=TaskStatus.choices, default=TaskStatus.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     process = models.ForeignKey('ProcessGroup', on_delete=models.PROTECT, related_name='tasks')
     # Allow blank so we can create a pending task before an external job id exists.
     external_job_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
+
+    step = models.CharField(max_length=100, blank=True)
+    parameters = models.JSONField(default=dict, blank=True)
+    plan_node = models.CharField(max_length=100, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    tool_version = models.CharField(max_length=100, blank=True)
+
+    def clean(self):
+        super().clean()
+        if self.step:
+            from core.steps import UnknownStepError, get_step
+            try:
+                get_step(self.step)
+            except UnknownStepError:
+                raise ValidationError({'step': f'Unknown step: {self.step}'})
+
+    def get_step(self):
+        """Return the step this task executes."""
+        from core.steps import get_step
+        return get_step(self.step)
 
     @property
     def concrete(self):
