@@ -19,13 +19,15 @@ class ConversionTask(Task):
     task_ptr = models.OneToOneField(Task, on_delete=models.CASCADE, parent_link=True, primary_key=True, db_column='id')
     input_files = models.ManyToManyField(File, related_name='input_conversion_tasks', blank=True)
     output_files = models.ManyToManyField(File, related_name='output_conversion_tasks', blank=True)
-    task_type = models.CharField(max_length=50, choices=ConversionTaskType.choices)
+    # Old task kind, removed in the contract migration; tasks that run a step leave it blank.
+    task_type = models.CharField(max_length=50, choices=ConversionTaskType.choices, blank=True)
 
     # Model-level validation
     def clean(self):
         super().clean()
-        # Check that external_job_id is not null when status is not 'pending'
-        if not self.external_job_id and self.status != TaskStatus.PENDING and self.status != TaskStatus.FAILED and self.task_type not in [self.ConversionTaskType.FROM_JSON]:
+        # Tasks that run on an external service need its job id once they are running or completed
+        needs_job = self.get_step().is_external if self.step else self.task_type != self.ConversionTaskType.FROM_JSON
+        if needs_job and not self.external_job_id and self.status not in (TaskStatus.PENDING, TaskStatus.FAILED):
             raise ValidationError({'external_job_id': 'external_job_id can be null only when status is "pending" or "failed".'})
 
     # Ensure model validation runs on save
