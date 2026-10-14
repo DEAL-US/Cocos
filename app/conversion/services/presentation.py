@@ -1,6 +1,5 @@
 from django.contrib.humanize.templatetags.humanize import naturaltime
 
-from ..models import ConversionTask
 from core.models import TaskStatus
 
 STATUS_BADGE_CLASSES = {
@@ -8,15 +7,6 @@ STATUS_BADGE_CLASSES = {
     TaskStatus.RUNNING: 'badge-soft badge-info',
     TaskStatus.COMPLETED: 'badge-soft badge-success',
     TaskStatus.FAILED: 'badge-soft badge-error',
-}
-
-PIPELINE_LABELS = {
-    ConversionTask.ConversionTaskType.ASSEMBLY_ONT_ANNOTATED: 'Assembly + Annotation · ONT',
-    ConversionTask.ConversionTaskType.ASSEMBLY_ILLUMINA_ANNOTATED: 'Assembly + Annotation · Illumina',
-    ConversionTask.ConversionTaskType.ASSEMBLY_ONT: 'Assembly · ONT',
-    ConversionTask.ConversionTaskType.ASSEMBLY_ILLUMINA: 'Assembly · Illumina',
-    ConversionTask.ConversionTaskType.ANNOTATION: 'Annotation',
-    ConversionTask.ConversionTaskType.FROM_JSON: 'From JSON',
 }
 
 def format_process_label(task):
@@ -32,11 +22,9 @@ def status_badge_class(status):
     return STATUS_BADGE_CLASSES.get(status, 'badge-soft badge-neutral')
 
 
-def pipeline_label(task_type):
-    return PIPELINE_LABELS.get(task_type, 'Process')
-
-def build_process_steps(assembly_task=None, annotation=None, json_task=None, is_auto_annotated=False):
-    if assembly_task is not None:
+def build_process_steps(assembly_status=None, annotation_status=None, json_status=None, is_auto_annotated=False):
+    """Progress steps of a process row, from the statuses shown for its assembly, annotation or JSON task."""
+    if assembly_status is not None:
         if is_auto_annotated:
             return [
                 {
@@ -45,11 +33,11 @@ def build_process_steps(assembly_task=None, annotation=None, json_task=None, is_
                 },
                 {
                     "label": "Assembled",
-                    "state": "complete" if assembly_task.status in (TaskStatus.RUNNING, TaskStatus.COMPLETED) else "current",
+                    "state": "complete" if assembly_status in (TaskStatus.RUNNING, TaskStatus.COMPLETED) else "current",
                 },
                 {
                     "label": "Annotated",
-                    "state": _task_step_state(assembly_task),
+                    "state": _step_state(assembly_status),
                 },
             ]
 
@@ -60,20 +48,20 @@ def build_process_steps(assembly_task=None, annotation=None, json_task=None, is_
             },
             {
                 "label": "Assembled",
-                "state": _task_step_state(assembly_task),
+                "state": _step_state(assembly_status),
             },
         ]
 
         steps.append(
                 {
                     "label": "Annotated",
-                    "state": _task_step_state(annotation) if annotation is not None else "pending",
+                    "state": _step_state(annotation_status) if annotation_status is not None else "pending",
                 }
             )
 
         return steps
 
-    if annotation is not None:
+    if annotation_status is not None:
         return [
             {
                 "label": "Started",
@@ -81,15 +69,15 @@ def build_process_steps(assembly_task=None, annotation=None, json_task=None, is_
             },
             {
                 "label": "Annotating",
-                "state": _task_step_state(annotation),
+                "state": _step_state(annotation_status),
             },
             {
                 "label": "Parsed",
-                "state": _task_step_state(annotation),
+                "state": _step_state(annotation_status),
             },
         ]
 
-    if json_task is not None:
+    if json_status is not None:
         return [
             {
                 "label": "Started",
@@ -97,17 +85,17 @@ def build_process_steps(assembly_task=None, annotation=None, json_task=None, is_
             },
             {
                 "label": "Parsed",
-                "state": _task_step_state(json_task),
+                "state": _step_state(json_status),
             },
         ]
 
     return []
 
-def _task_step_state(task):
-    if task.status == TaskStatus.COMPLETED:
+def _step_state(status):
+    if status == TaskStatus.COMPLETED:
         return "complete"
 
-    if task.status == TaskStatus.FAILED:
+    if status == TaskStatus.FAILED:
         return "error"
 
     return "current"

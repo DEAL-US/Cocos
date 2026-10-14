@@ -41,7 +41,7 @@ def start_assembly_task(request):
     fastq_2 = request.FILES.get('fastq_file_2')
 
     try:
-        task = start_assembly(
+        process = start_assembly(
             user=request.user,
             assembly_type=assembly_type,
             fastq=fastq,
@@ -56,7 +56,7 @@ def start_assembly_task(request):
     message = (f"Assembly task started for file {fastq.name}. You will be notified when it's complete.")
     messages.info(request, message)
 
-    return redirect('conversion:process_status', process_id=task.process.id)
+    return redirect('conversion:process_status', process_id=process.id)
 
 
 @login_required
@@ -77,10 +77,10 @@ def start_annotation_task(request):
 
     try:
         if source_task_id:
-            task = start_annotation_from_assembly_task(request.user, source_task_id, complete_version,)
+            process = start_annotation_from_assembly_task(request.user, source_task_id, complete_version,)
             message = (f'Annotation task started from previous assembly job {source_task_id}. You will be notified when it is complete.')
         else:
-            task = start_annotation_from_uploaded_fasta(request.user, fasta, complete_version)
+            process = start_annotation_from_uploaded_fasta(request.user, fasta, complete_version)
             message = (f'Annotation task started for file {fasta.name}. You will be notified when it is complete.')
 
     except ValueError as e:
@@ -89,7 +89,7 @@ def start_annotation_task(request):
 
     messages.info(request, message)
 
-    return redirect('conversion:process_status', process_id=task.process.id)
+    return redirect('conversion:process_status', process_id=process.id)
 
 @require_POST
 @login_required
@@ -100,7 +100,7 @@ def parse_feature_file(request):
     complete_version = request.POST.get('complete') == 'on'
 
     try:
-        task = start_json_processing(
+        process = start_json_processing(
             user=request.user,
             feature_file=feature_file,
             complete_version=complete_version,
@@ -112,5 +112,5 @@ def parse_feature_file(request):
 
     messages.info(request, f"JSON processing started for {feature_file.name}. You will be notified when it is complete.")
 
-    return redirect('conversion:process_status', process_id=task.process.id)
+    return redirect('conversion:process_status', process_id=process.id)
 

@@ -1,38 +1,30 @@
-from django.db import models
-
 from .models import PredictionTask
 from conversion.models import ConversionTask
 from core.models import File, TaskStatus
 from conversion.services.presentation import format_process_label
-from conversion.task_types import ANNOTATED_TYPES
 
 from .registry import get_model_supported_antibiotics
 from .tasks import predict
 
 
 def get_prediction_input_options(user):
-    tasks_json = ConversionTask.objects.filter(
-        models.Q(task_type=ConversionTask.ConversionTaskType.FROM_JSON) |
-        models.Q(task_type__in=ANNOTATED_TYPES),
+    """Genes produced by the user's completed gene extractions."""
+    extractions = ConversionTask.objects.filter(
         process__user=user,
         status=TaskStatus.COMPLETED,
-    ).order_by('-created_at')
+        task_outputs__role='genes',
+    ).select_related('process').order_by('-created_at')
     options = []
 
-    for task in tasks_json:
-
-        json_file = None
-        if task.task_type == ConversionTask.ConversionTaskType.FROM_JSON:
-            json_file = task.input_files.filter(file_type=File.FileType.JSON).first()
-        else:
-            json_file = task.output_files.filter(file_type=File.FileType.JSON).first()
+    for task in extractions:
+        genes_file = task.output_file('genes')
 
         # Files whose features could not be parsed have no genes to predict from.
-        if not json_file or not json_file.genes.exists():
+        if not genes_file.genes.exists():
             continue
 
         options.append({
-            'id': str(json_file.id),
+            'id': str(genes_file.id),
             'label': format_process_label(task),
         })
 
@@ -43,10 +35,8 @@ def get_valid_prediction_antibiotics(model_names, antibiotics):
             any(antibiotic in get_model_supported_antibiotics(model_name) for model_name in model_names)]
 
 def _get_source_task_for_prediction(file):
-    source_task = file.output_conversion_tasks.first()
-    if not source_task:
-        source_task = file.input_conversion_tasks.first()
-    return source_task
+    """The gene extraction that produced the genes of `file`."""
+    return ConversionTask.objects.filter(task_outputs__file=file, task_outputs__role='genes').select_related('process').first()
 
 def get_prediction_file(user, file_id):
     if not file_id:

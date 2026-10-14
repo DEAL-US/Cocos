@@ -54,7 +54,7 @@ class ConversionFlowMixin(FlowTestMixin):
         return ConversionTask.objects.filter(process=process).order_by('id')
 
     def process_outputs(self, process, file_type):
-        return File.objects.filter(output_conversion_tasks__process=process, file_type=file_type).distinct()
+        return File.objects.filter(produced_by_tasks__process=process, file_type=file_type).distinct()
 
     def events(self, process):
         return set(TaskNotification.objects.filter(task__process=process).values_list('event_type', flat=True))
@@ -431,11 +431,11 @@ class ProcessContractTests(ProcessContractMixin, TestCase):
         with FakeBioService():
             self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json('up.json')})
         process = self.latest_process()
-        self.assertRow(process, kind='json', pipeline_type='From JSON', status='completed', can_annotate=False,
+        self.assertRow(process, kind='json', pipeline_type='Gene extraction · Bakta JSON', status='completed', can_annotate=False,
                        can_retry_annotation=False, has_fasta=False, has_json=True, stage_class='process-stage-max',
                        steps=steps(('Started', 'complete'), ('Parsed', 'complete')))
         self.assertEqual(self.row_for(process)['input_filename'], 'up.json')
-        context = self.assertStatus(process, [('From JSON', 'completed')], process_kind='json', pipeline_badges=['From JSON'],
+        context = self.assertStatus(process, [('Gene extraction · Bakta JSON', 'completed')], process_kind='json', pipeline_badges=['Gene extraction · Bakta JSON'],
                                     latest_task_status='completed', fasta_download_task_id=None, assembly_task_id=None)
         self.assertEqual(json.loads(self.download('conversion:download_json', context['json_download_task_id'])), BAKTA_JSON)
         self.assertContains(self.client.get(reverse('conversion:process_status', args=[process.id])),

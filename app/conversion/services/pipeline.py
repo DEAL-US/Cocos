@@ -1,77 +1,62 @@
 import os
 
-from django.db.models import Prefetch
 from ..models import ConversionTask
-from core.models import File, ProcessGroup, TaskStatus
+from core.models import File, TaskStatus
+from core.orchestration import create_process, extend_plan, latest_tasks, retry_node
 from .presentation import format_process_label
-from ..task_types import ANNOTATED_TYPES
-from ..tasks import (
-    poll_annotation_start,
-    poll_assembly_start,
-    process_json,
-)
 from core.utils import upload_file
 
-ASSEMBLY_TYPES = {
-    'illumina': ConversionTask.ConversionTaskType.ASSEMBLY_ILLUMINA,
-    'ont': ConversionTask.ConversionTaskType.ASSEMBLY_ONT,
+ASSEMBLY_STEPS = {
+    'illumina': 'assembly_illumina',
+    'ont': 'assembly_ont',
 }
+
+GENE_EXTRACTION_STEP = 'extract_bakta_json'
+
+
+def _extraction_node(node_id, after, complete_version):
+    return {'id': node_id, 'step': GENE_EXTRACTION_STEP, 'after': after,
+            'parameters': {'complete_version': complete_version}}
+
+
+def _next_node_ids(process, count):
+    """Ids for new plan nodes, following the existing n1, n2... numbering."""
+    first = len(process.plan) + 1
+    return [f'n{first + offset}' for offset in range(count)]
+
+
+def _annotations_of(process):
+    """Annotation tasks of a process (the latest one of each plan node)."""
+    return [task for task in latest_tasks(process).values() if task.step == 'bakta_annotation']
+
 
 def get_assembly_tasks_can_be_annotated(user):
     """Return completed assembly jobs whose FASTA has not been annotated."""
 
-    annotation_tasks = ConversionTask.objects.filter(
-        process__user=user,
-        task_type=ConversionTask.ConversionTaskType.ANNOTATION,
-        status__in=(
-            TaskStatus.PENDING,
-            TaskStatus.RUNNING,
-            TaskStatus.COMPLETED,
-        ),
-    )
-
     assembly_tasks = (
         ConversionTask.objects
-        .filter(
-            process__user=user,
-            status=TaskStatus.COMPLETED,
-            task_type__in=(
-                ConversionTask.ConversionTaskType.ASSEMBLY_ILLUMINA,
-                ConversionTask.ConversionTaskType.ASSEMBLY_ONT,
-            ),
-        )
-        .exclude(output_files__input_conversion_tasks__in=annotation_tasks)
+        .filter(process__user=user, status=TaskStatus.COMPLETED, step__in=ASSEMBLY_STEPS.values())
         .select_related('process')
-        .prefetch_related(
-            Prefetch('output_files',
-                queryset=File.objects.filter(file_type=File.FileType.FASTA),
-                to_attr='fasta_outputs')
-        )
         .order_by('-updated_at', '-id')
     )
 
+    available = []
     for task in assembly_tasks:
-        output_file = task.fasta_outputs[0] if task.fasta_outputs else None
+        if any(annotation.status != TaskStatus.FAILED for annotation in _annotations_of(task.process)):
+            continue
 
-        task.source_filename = (os.path.basename(output_file.file.name) if output_file else 'Assembly output')
+        output_file = task.task_outputs.filter(role='assembly').select_related('file').first()
+        task.source_filename = (os.path.basename(output_file.file.file.name) if output_file else 'Assembly output')
         task.source_label = format_process_label(task)
+        available.append(task)
 
-    return list(assembly_tasks)
+    return available
 
-
-def _has_annotation_for_previous(previous_task):
-    """Check if the process of the given assembly task already has a non-failed annotation task."""
-    if not previous_task:
-        return False
-    return (ConversionTask.objects
-        .filter(process=previous_task.process, task_type__in=ANNOTATED_TYPES)
-        .exclude(status=TaskStatus.FAILED)
-        .exists())
 
 # Assembly
 def start_assembly(user, assembly_type, fastq, fastq_2=None, annotate=False, complete_version=False):
 
-    if assembly_type not in ASSEMBLY_TYPES:
+    if assembly_type not in ASSEMBLY_STEPS:
         raise ValueError("Invalid assembly type.")
 
     if not fastq:
@@ -84,28 +69,19 @@ def start_assembly(user, assembly_type, fastq, fastq_2=None, annotate=False, com
         raise ValueError("Second FASTQ file is only valid for Illumina assembly.")
 
     file_1 = upload_file(fastq, user=user, file_type=File.FileType.FASTQ)
-    file_2 = upload_file(fastq_2, user=user, file_type=File.FileType.FASTQ) if fastq_2 else None
+    if assembly_type == "illumina":
+        file_2 = upload_file(fastq_2, user=user, file_type=File.FileType.FASTQ)
+        reads = {'r1': file_1, 'r2': file_2}
+    else:
+        reads = {'reads': file_1}
 
-    process = ProcessGroup.objects.create(name=os.path.basename(fastq.name), user=user)
-    task = ConversionTask.objects.create(
-        external_job_id=None,
-        status=TaskStatus.PENDING,
-        task_type=f"assembly_{assembly_type}{'_annotated' if annotate else ''}",
-        process = process,
-    )
+    step = ASSEMBLY_STEPS[assembly_type]
+    if annotate:
+        nodes = [{'id': 'n1', 'step': f'{step}_annotated'}, _extraction_node('n2', ['n1'], complete_version)]
+    else:
+        nodes = [{'id': 'n1', 'step': step}]
 
-    task.input_files.add(file_1)
-    if file_2:
-        task.input_files.add(file_2)
-
-    poll_assembly_start.delay(
-        task_id=task.id,
-        assembly_type=assembly_type,
-        annotate=annotate,
-        complete_version=complete_version,
-    )
-
-    return task
+    return create_process(user, os.path.basename(fastq.name), nodes, {'n1': reads})
 
 
 # Annotation
@@ -114,54 +90,38 @@ def start_annotation_from_assembly_task(user, source_task_id, complete_version):
         process__user=user,
         id=source_task_id,
         status=TaskStatus.COMPLETED,
-        task_type__in=(ConversionTask.ConversionTaskType.ASSEMBLY_ILLUMINA, ConversionTask.ConversionTaskType.ASSEMBLY_ONT),
-    ).first()
+        step__in=ASSEMBLY_STEPS.values(),
+    ).select_related('process').first()
 
     if not source_task:
         raise ValueError('Selected assembly result is not available for annotation.')
 
-    if _has_annotation_for_previous(source_task):
+    process = source_task.process
+    annotations = _annotations_of(process)
+
+    if any(annotation.status != TaskStatus.FAILED for annotation in annotations):
         raise ValueError('This assembly result already has an annotation task.')
 
-    if source_task.process.user != user:
-        raise ValueError('You do not have permission to annotate this assembly result.')
-    
-    if source_task.status != TaskStatus.COMPLETED:
-        raise ValueError('Selected assembly result is not ready for annotation.')
+    if annotations:
+        # Retry the failed annotation with the same assembly; its gene extraction is already planned.
+        retry_node(process, annotations[0].plan_node)
+        return process
 
-    task = ConversionTask.objects.create(
-        status=TaskStatus.PENDING,
-        task_type=ConversionTask.ConversionTaskType.ANNOTATION,
-        process=source_task.process,
-    )
-    task.input_files.set(source_task.output_files.all())
-
-    poll_annotation_start.delay(
-        task_id=task.id,
-        complete_version=complete_version,
-    )
-
-    return task
+    annotation_id, extraction_id = _next_node_ids(process, 2)
+    extend_plan(process, [
+        {'id': annotation_id, 'step': 'bakta_annotation', 'after': [source_task.plan_node]},
+        _extraction_node(extraction_id, [annotation_id], complete_version),
+    ])
+    return process
 
 def start_annotation_from_uploaded_fasta(user, fasta, complete_version):
     if not fasta:
         raise ValueError('No FASTA file uploaded for annotation.')
-    
+
     file = upload_file(fasta, user=user, file_type=File.FileType.FASTA)
 
-    process = ProcessGroup.objects.create(name=os.path.basename(file.file.name), user=user)
-    task = ConversionTask.objects.create(
-        external_job_id=None,
-        status=TaskStatus.PENDING,
-        task_type=ConversionTask.ConversionTaskType.ANNOTATION,
-        process=process
-    )
-
-    task.input_files.add(file)
-
-    poll_annotation_start.delay(task_id=task.id, complete_version=complete_version)
-
-    return task
+    nodes = [{'id': 'n1', 'step': 'bakta_annotation'}, _extraction_node('n2', ['n1'], complete_version)]
+    return create_process(user, os.path.basename(file.file.name), nodes, {'n1': {'assembly': file}})
 
 # JSON Parsing
 def start_json_processing(user, feature_file, complete_version=False):
@@ -170,15 +130,5 @@ def start_json_processing(user, feature_file, complete_version=False):
 
     file = upload_file(feature_file, user=user, file_type=File.FileType.JSON)
 
-    process = ProcessGroup.objects.create(name=os.path.basename(file.file.name), user=user)
-    task = ConversionTask.objects.create(
-        status=TaskStatus.PENDING,
-        task_type=ConversionTask.ConversionTaskType.FROM_JSON,
-        process=process,
-    )
-
-    task.input_files.add(file)
-
-    process_json.delay(task_id=task.id, complete_version=complete_version)
-
-    return task
+    nodes = [_extraction_node('n1', [], complete_version)]
+    return create_process(user, os.path.basename(file.file.name), nodes, {'n1': {'annotation': file}})
