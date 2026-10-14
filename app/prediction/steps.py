@@ -6,14 +6,29 @@ import logging
 from core.models import File
 from core.steps import DataKind, LocalStep, Port, StepError, register_step_provider
 
-from .models import PredictionTask
-from .prediction import NO_RESULT, get_prediction
+from .adapters.registry import (
+    get_model_adapter_class,
+    get_model_supported_antibiotics,
+    get_model_supported_organisms,
+    list_registered_models,
+)
+from .models import NO_RESULT, PredictionTask
 from .runs import finish_run_if_done, mark_run_started
-from .registry import get_model_supported_antibiotics, get_model_supported_organisms, list_registered_models
 
 logger = logging.getLogger(__name__)
 
 PREDICTION_STEP_PREFIX = 'predict_'
+
+
+def get_prediction(model_name: str, antibiotic: str, file) -> float:
+    model_cls = get_model_adapter_class(model_name)
+    if not model_cls:
+        raise ValueError(f'Model {model_name} not found in registry.')
+
+    adapter = model_cls(antibiotic=antibiotic)
+
+    adapter.load()
+    return adapter.predict(file)
 
 
 class ModelPredictionStep(LocalStep):

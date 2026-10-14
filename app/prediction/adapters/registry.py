@@ -55,7 +55,7 @@ def register_model(name: str = None):
         _validate_adapter_init(cls)
         organisms = _validate_supported_organisms(cls)
         key = (name or cls.__name__).lower()
-        base_dir = Path(__file__).resolve().parents[1]
+        base_dir = Path(__file__).resolve().parents[2]
         weights_dir = base_dir / 'ai_models' / key / 'weights'
         MODEL_REGISTRY[key] = cls
         MODEL_ANTIBIOTICS[key] = _compute_model_supported_antibiotics(weights_dir)

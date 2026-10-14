@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from prediction.registry import list_all_organisms
+from prediction.adapters.registry import list_all_organisms
 from ..services.pipeline import (
     get_assembly_tasks_can_be_annotated, 
     start_annotation_from_assembly_task, 

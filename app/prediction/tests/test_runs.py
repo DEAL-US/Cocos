@@ -10,9 +10,9 @@ from core.models import File, TaskStatus
 from core.orchestration import create_process, extend_plan
 from core.testing import BAKTA_JSON, FlowTestMixin
 from notifications.models import TaskNotification
-from prediction.models import PredictionRun
-from prediction.prediction import NO_RESULT
-from prediction.registry import MODEL_REGISTRY
+from prediction.models import NO_RESULT, PredictionRun
+from prediction.adapters.registry import MODEL_REGISTRY
+from prediction.runs import prepare_prediction_csv
 
 
 class HalfModel:
@@ -88,3 +88,33 @@ class PredictionRunTests(FlowTestMixin, TestCase):
         self.assertNotEqual(first.output_csv, second.output_csv)
         self.assertEqual(first.tasks.count(), 1)
         self.assertEqual(second.tasks.count(), 1)
+
+
+class PreparePredictionCsvTests(TestCase):
+    def test_rounds_values_blanks_missing_and_averages(self):
+        matrix = {
+            "models": ["a", "b"],
+            "antibiotics": ["amikacin", "ampicillin", "colistin"],
+            "data": [[0.123456, 0.5], [0.2, "NO_RESULT"], ["NO_RESULT", None]],
+        }
+
+        models, rows = prepare_prediction_csv(matrix)
+
+        self.assertEqual(models, ["a", "b"])
+        self.assertEqual(rows, [
+            ["amikacin", 0.1235, 0.5, 0.3117],
+            ["ampicillin", 0.2, "", 0.2],
+            ["colistin", "", "", ""],
+        ])
+
+    def test_rejects_malformed_matrices(self):
+        cases = [
+            ("not a dict", []),
+            ("missing keys", {"models": ["a"]}),
+            ("row count mismatch", {"models": ["a"], "antibiotics": ["x", "y"], "data": [[0.1]]}),
+            ("column count mismatch", {"models": ["a", "b"], "antibiotics": ["x"], "data": [[0.1]]}),
+        ]
+        for label, matrix in cases:
+            with self.subTest(label):
+                with self.assertRaises(ValueError):
+                    prepare_prediction_csv(matrix)

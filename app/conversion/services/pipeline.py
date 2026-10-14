@@ -5,7 +5,7 @@ from core.models import File, TaskStatus
 from core.orchestration import create_process, extend_plan, latest_tasks, retry_node
 from .presentation import format_process_label
 from core.utils import upload_file
-from prediction.registry import list_all_organisms
+from prediction.adapters.registry import list_all_organisms
 
 ASSEMBLY_STEPS = {
     'illumina': 'assembly_illumina',

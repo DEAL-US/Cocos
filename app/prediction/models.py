@@ -4,6 +4,10 @@ from django.core.exceptions import ValidationError
 from core.models import File, Task, TaskStatus
 
 
+# Value stored for a model/antibiotic pair that could not be predicted.
+NO_RESULT = 'NO_RESULT'
+
+
 class PredictionRun(models.Model):
     """One prediction request: several models and antibiotics on the same genes.
 

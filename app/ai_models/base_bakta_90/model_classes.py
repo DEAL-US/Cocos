@@ -2,13 +2,14 @@ from typing import List, Iterable
 import torch
 import torch.nn as nn
 from pathlib import Path
-from prediction.input_utils import (
-    presence_from_list,
+from prediction.adapters import (
+    ANY_ORGANISM,
+    ModelInterface,
     get_columns_from_pickle,
     get_model_weights_path,
+    presence_from_list,
+    register_model,
 )
-from prediction.model_interface import ModelInterface
-from prediction.registry import ANY_ORGANISM, register_model
 
 # --- Model definition ---
 class BaselineMLP(nn.Module):

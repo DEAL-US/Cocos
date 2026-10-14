@@ -9,7 +9,7 @@ from core.orchestration import PlanError, advance_plan, create_process, extend_p
 from core.testing import BAKTA_JSON, FakeBioService, FlowTestMixin
 from notifications.models import TaskNotification
 from prediction.models import PredictionRun, PredictionTask
-from prediction.registry import MODEL_REGISTRY
+from prediction.adapters.registry import MODEL_REGISTRY
 
 
 class ConstantModel:

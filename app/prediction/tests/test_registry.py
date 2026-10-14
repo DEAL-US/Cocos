@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from prediction.registry import (
+from prediction.adapters.registry import (
     ANY_ORGANISM,
     MODEL_ORGANISMS,
     MODEL_REGISTRY,
@@ -52,7 +52,7 @@ class RegistryTests(TestCase):
                 def __init__(self):
                     pass
 
-    @patch("prediction.registry.inspect.signature", side_effect=TypeError("boom"))
+    @patch("prediction.adapters.registry.inspect.signature", side_effect=TypeError("boom"))
     def test_register_model_raises_when_signature_cannot_be_inspected(self, _mock_signature):
         with self.assertRaisesRegex(TypeError, "Cannot inspect __init__ of adapter"):
             @register_model("broken_adapter")

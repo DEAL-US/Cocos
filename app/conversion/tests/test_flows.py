@@ -14,7 +14,7 @@ from conversion.models import ConversionTask
 from core.models import File, FileGene, ProcessGroup, TaskStatus
 from core.testing import ASSEMBLY_FASTA, BAKTA_JSON, FakeBioService, FlowTestMixin
 from notifications.models import TaskNotification
-from prediction.registry import MODEL_ORGANISMS
+from prediction.adapters.registry import MODEL_ORGANISMS
 
 N_FEATURES = len(BAKTA_JSON['features'])
 

@@ -4,7 +4,7 @@ from core.models import File, TaskStatus
 from core.orchestration import extend_plan
 from conversion.services.presentation import format_process_label
 
-from .registry import get_model_supported_antibiotics
+from .adapters.registry import get_model_supported_antibiotics
 from .steps import PREDICTION_STEP_PREFIX
 
 

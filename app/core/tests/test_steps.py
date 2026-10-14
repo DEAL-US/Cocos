@@ -13,7 +13,7 @@ from core.steps import (
     list_steps,
     register_step,
 )
-from prediction.registry import ANY_ORGANISM, MODEL_ANTIBIOTICS, MODEL_REGISTRY
+from prediction.adapters.registry import ANY_ORGANISM, MODEL_ANTIBIOTICS, MODEL_REGISTRY
 
 FASTQ, FASTA, JSON = File.FileType.FASTQ, File.FileType.FASTA, File.FileType.JSON
 

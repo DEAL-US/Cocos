@@ -182,9 +182,7 @@ app/ai_models/<model_name>/
 - `supported_organisms` declares the organisms the model was built for: `ANY_ORGANISM` (the default) or NCBI Taxonomy CURIEs with their names. The organisms offered to users come from these declarations: the organism field of the upload forms only appears once some model declares specific organisms.
 
 ```python
-from prediction.input_utils import get_model_weights_path, presence_from_list
-from prediction.model_interface import ModelInterface
-from prediction.registry import ANY_ORGANISM, register_model
+from prediction.adapters import ANY_ORGANISM, ModelInterface, get_model_weights_path, presence_from_list, register_model
 
 
 @register_model("my_model")

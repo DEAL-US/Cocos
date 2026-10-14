@@ -15,7 +15,7 @@ from django.urls import reverse
 from core.models import File, ProcessGroup, TaskStatus
 from core.testing import BAKTA_JSON, FakeBioService, FlowTestMixin
 from prediction.models import PredictionRun
-from prediction.registry import MODEL_ANTIBIOTICS, MODEL_REGISTRY
+from prediction.adapters.registry import MODEL_ANTIBIOTICS, MODEL_REGISTRY
 
 
 class ConstantModel:

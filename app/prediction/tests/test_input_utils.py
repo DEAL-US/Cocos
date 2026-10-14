@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from core.models import FileGene, Gene
 from core.models import File
-from prediction import input_utils
+from prediction.adapters import input_utils
 
 User = get_user_model()
 
