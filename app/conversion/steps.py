@@ -12,7 +12,6 @@ from notifications.services import notify_user_conversion_warning
 from . import bio_api_client
 from .models import ConversionTask
 from .parsers import PARSERS, parse_file
-from .utils import get_result_filename_stem
 
 FASTQ = File.FileType.FASTQ
 FASTA = File.FileType.FASTA
@@ -48,7 +47,7 @@ class BioServiceStep(ExternalStep):
         content = bio_api_client.download_assembly_fasta_result(task.external_job_id)
         if not content:
             raise ValueError('Downloaded FASTA content is empty')
-        filename = f"{get_result_filename_stem('assembly', task.external_job_id)}.fasta"
+        filename = f"assembly_{task.external_job_id}.fasta"
         task.save_output('assembly', content, FASTA, filename)
 
     def save_annotation(self, task):
@@ -59,7 +58,7 @@ class BioServiceStep(ExternalStep):
             payload = {'features': payload}
         elif not isinstance(payload, dict):
             raise ValueError('Downloaded annotation payload has invalid format')
-        filename = f"{get_result_filename_stem('annotation', task.external_job_id)}.json"
+        filename = f"annotation_{task.external_job_id}.json"
         task.save_output('annotation', json.dumps(payload).encode('utf-8'), JSON, filename)
 
 

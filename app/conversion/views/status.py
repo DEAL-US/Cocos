@@ -19,7 +19,12 @@ from ..services.status import (
     get_json_upload_for_task,
     rename_process,
 )
-from ..utils import get_current_user_tasks
+from ..models import ConversionTask
+
+
+def get_current_user_tasks(request):
+    """Return tasks filtered by authenticated user."""
+    return ConversionTask.objects.filter(process__user=request.user)
 
 
 @login_required
