@@ -395,6 +395,16 @@ class ProcessContractTests(ProcessContractMixin, TestCase):
         self.assertEqual(self.download('conversion:download_fasta', context['fasta_download_task_id']), ASSEMBLY_FASTA)
         self.assertEqual(json.loads(self.download('conversion:download_json', context['json_download_task_id'])), BAKTA_JSON)
 
+    def test_fasta_downloads_while_genes_of_auto_annotation_are_extracted(self):
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)
+        process = self.latest_process()
+        self.process_tasks(process).filter(step='extract_bakta_json').update(status=TaskStatus.RUNNING)
+
+        self.assertRow(process, status='running', has_fasta=True, has_json=False)
+        context = self.assertStatus(process, [('Assembly + Annotation · ONT', 'running')], latest_task_status='running')
+        self.assertEqual(self.download('conversion:download_fasta', context['fasta_download_task_id']), ASSEMBLY_FASTA)
+
     def test_completed_auto_annotation_shows_assembled_step_complete(self):
         with FakeBioService():
             self.run_assembly('ont', annotate=True)

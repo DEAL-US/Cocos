@@ -157,7 +157,8 @@ def _build_assembly_row(view):
 
     can_annotate = assembly_completed and not latest_annotation and not auto_annotated
     can_retry_annotation = annotation_status == TaskStatus.FAILED and not auto_annotated
-    has_fasta = assembly_completed and _linked_file(assembly_task.task_outputs, 'assembly') is not None
+    # The FASTA can be downloaded as soon as it is saved, even while its genes are being extracted.
+    has_fasta = _linked_file(assembly_task.task_outputs, 'assembly') is not None
     has_json = annotation_status == TaskStatus.COMPLETED or has_auto_json
 
     stage_class = ("process-stage-max" if has_json else "process-stage-mid" if annotation_started else "process-stage-light")
@@ -326,7 +327,7 @@ def build_process_status_context(process, page=1):
     }
 
 def _get_fasta_download_task_id(view, assembly_task, latest_annotation):
-    if assembly_task and view.status(assembly_task) == TaskStatus.COMPLETED:
+    if assembly_task and _linked_file(assembly_task.task_outputs, 'assembly'):
         return assembly_task.id
 
     if latest_annotation:
