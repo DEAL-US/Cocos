@@ -1,3 +1,4 @@
+"""Prepare a development environment: Python dependencies, frontend dependencies and the CSS bundle."""
 import subprocess
 import sys
 import shutil
@@ -38,7 +39,7 @@ def check_requirements():
 
 def main():
     """Main setup routine."""
-    project_root = Path(__file__).parent
+    project_root = Path(__file__).resolve().parents[1]
     app_dir = project_root / "app"
     
     print("Cocos Setup")

@@ -13,7 +13,7 @@ COCOS provides a web interface that allows users to process genomic data and obt
 From the `cocos` folder run:
 
 ```powershell
-python setup.py
+python scripts/setup_dev.py
 ```
 
 This installs:
