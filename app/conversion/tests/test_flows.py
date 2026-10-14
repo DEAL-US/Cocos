@@ -219,6 +219,22 @@ class JsonFlowTests(ConversionFlowMixin, TestCase):
         self.assertEqual(FileGene.objects.filter(file=json_file).count(), N_FEATURES)
         self.assertIn(TaskNotification.EVENT_COMPLETED, self.events(process))
 
+    def test_bakta_json_without_genes_completes_with_a_warning(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'),
+                             data={'feature_file': bakta_json('empty.json', {'features': []})})
+
+        process = self.latest_process()
+        self.assertEqual({task.status for task in self.process_tasks(process)}, {TaskStatus.COMPLETED})
+        self.assertIn(TaskNotification.EVENT_WARNING, self.events(process))
+        self.assertIn(TaskNotification.EVENT_COMPLETED, self.events(process))
+
+    def test_bakta_json_with_genes_does_not_warn(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+
+        self.assertNotIn(TaskNotification.EVENT_WARNING, self.events(self.latest_process()))
+
     def test_invalid_json_fails_and_notifies(self):
         bad = SimpleUploadedFile('bad.json', b'{not json', content_type='application/json')
         with FakeBioService():
@@ -258,6 +274,15 @@ class JsonFlowTests(ConversionFlowMixin, TestCase):
         self.assertEqual(json_outputs.count(), 1)
         with json_outputs.first().file.open('rb') as f:
             self.assertEqual(json.loads(f.read()), broken)
+
+
+    def test_annotation_without_genes_completes_with_a_warning(self):
+        with FakeBioService(annotation_payload={'features': []}):
+            self.client.post(reverse('conversion:start_annotation_task'), data={'fasta_file': fasta()})
+
+        process = self.latest_process()
+        self.assertEqual({task.status for task in self.process_tasks(process)}, {TaskStatus.COMPLETED})
+        self.assertIn(TaskNotification.EVENT_WARNING, self.events(process))
 
 
 class BioServiceProblemsTests(ConversionFlowMixin, TestCase):

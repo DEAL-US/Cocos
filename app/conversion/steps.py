@@ -3,9 +3,11 @@
 There is one gene extraction step per registered parser that declares what it consumes.
 """
 import json
+import os
 
-from core.models import File
+from core.models import File, TaskStatus
 from core.steps import Busy, DataKind, ExternalStep, LocalStep, Port, Started, StepError, register_step, register_step_provider
+from notifications.services import notify_user_conversion_warning
 
 from . import bio_api_client
 from .models import ConversionTask
@@ -166,6 +168,16 @@ class GeneExtractionStep(LocalStep):
             raise StepError('Error parsing features. Try again later.')
         # The genes are linked to the annotation file itself.
         task.add_output('genes', file)
+
+    def on_task_finished(self, task):
+        if task.status != TaskStatus.COMPLETED:
+            return
+        file = task.output_file('genes')
+        if not file.genes.exists():
+            notify_user_conversion_warning(
+                task.process.user, task,
+                f"No genes were found in {os.path.basename(file.file.name)}, so it cannot be used for predictions.",
+            )
 
 
 @register_step_provider
