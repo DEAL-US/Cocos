@@ -61,14 +61,26 @@ Nginx is the public entry point and acts as a reverse proxy for the Django appli
 
 The Django/Gunicorn container is not directly exposed to the host.
 
-From `cocos/docker` folder:
+The setup script prepares `.env.prod` and starts the stack. From the `cocos` folder run:
+
+```bash
+python scripts/setup_prod.py
+```
+
+It creates `.env.prod` from `.env.prod.example` if needed, generates the Django secret key and the database password while they still have their example values, and lists the values you still have to fill in (e.g. the domain). Values that are already set are never overwritten. When it reports that `.env.prod` is ready, start the stack with:
+
+```bash
+python scripts/setup_prod.py --start
+```
+
+To do it by hand instead, from the `cocos/docker` folder:
 
 ```bash
 # Configure environment (copy template and fill with real values)
 cp ../.env.prod.example ../.env.prod
 ```
 
-Then edit `.env.prod and` configure the required values. At minimum, production requires:
+Then edit `.env.prod` and configure the required values. At minimum, production requires:
 
 ```
 DJANGO_DEBUG=0
