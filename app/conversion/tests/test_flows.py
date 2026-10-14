@@ -229,12 +229,18 @@ class JsonFlowTests(ConversionFlowMixin, TestCase):
         self.assertEqual({task.status for task in self.process_tasks(process)}, {TaskStatus.COMPLETED})
         self.assertIn(TaskNotification.EVENT_WARNING, self.events(process))
         self.assertIn(TaskNotification.EVENT_COMPLETED, self.events(process))
+        response = self.client.get(reverse('conversion:process_status', args=[process.id]))
+        self.assertTrue(response.context['extracted_without_genes'])
+        self.assertContains(response, 'No genes found')
 
     def test_bakta_json_with_genes_does_not_warn(self):
         with FakeBioService():
             self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
 
         self.assertNotIn(TaskNotification.EVENT_WARNING, self.events(self.latest_process()))
+        response = self.client.get(reverse('conversion:process_status', args=[self.latest_process().id]))
+        self.assertFalse(response.context['extracted_without_genes'])
+        self.assertNotContains(response, 'No genes found')
 
     def test_invalid_json_fails_and_notifies(self):
         bad = SimpleUploadedFile('bad.json', b'{not json', content_type='application/json')

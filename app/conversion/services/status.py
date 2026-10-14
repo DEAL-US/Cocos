@@ -95,6 +95,13 @@ class _ProcessTasks:
     def all(self, category):
         return [task for task in self.visible if task.get_step().category == category]
 
+    def extracted_without_genes(self):
+        """Whether a completed gene extraction of the process found no genes."""
+        return any(
+            task.status == TaskStatus.COMPLETED and not task.output_file('genes').genes.exists()
+            for task in self._latest.values() if task.get_step().category == 'extraction'
+        )
+
 
 def _input_filename(task, roles):
     names = [os.path.basename(file.file.name) for file in (_linked_file(task.task_inputs, role) for role in roles) if file]
@@ -315,6 +322,7 @@ def build_process_status_context(process, page=1):
         'json_download_task_id': _get_json_download_task_id(view, assembly_task, latest_annotation, latest_json, is_auto_annotated),
         'can_annotate': can_annotate,
         'can_retry_annotation': can_retry_annotation,
+        'extracted_without_genes': view.extracted_without_genes(),
         'timeline': timeline,
         'assembly_task_id': assembly_task.id if assembly_task else None,
         'predictions': predictions,
