@@ -647,8 +647,8 @@ class OrganismTests(ConversionFlowMixin, TestCase):
         self.declare_tuberculosis_model()
         for page in self.upload_pages():
             self.assertContains(page, 'name="organism"')
-            self.assertContains(page, f'<option value="{TUBERCULOSIS[0]}">{TUBERCULOSIS[1]}</option>')
-            self.assertContains(page, '<option value="">Other / unknown</option>')
+            self.assertContains(page, f'<option value="{TUBERCULOSIS[0]}">{TUBERCULOSIS[1]}</option>', html=True)
+            self.assertContains(page, '<option value="">Other / unknown</option>', html=True)
 
     def test_new_processes_store_the_chosen_organism(self):
         self.declare_tuberculosis_model()
