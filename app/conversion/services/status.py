@@ -6,7 +6,7 @@ from django.urls import reverse
 from ..models import ConversionTask
 from prediction.models import PredictionRun
 from core.models import File, ProcessGroup, TaskInput, TaskOutput, TaskStatus
-from core.steps import get_step
+from ..steps import GENE_EXTRACTION_STEP_PREFIX
 from .presentation import status_badge_class, build_process_steps
 from app.utils.pagination import get_pagination_page_range
 
@@ -61,7 +61,7 @@ class _ProcessTasks:
             self._latest.setdefault(task.plan_node, task)
         self._extraction_after = {
             dependency: node['id']
-            for node in process.plan if get_step(node['step']).category == 'extraction'
+            for node in process.plan if node['step'].startswith(GENE_EXTRACTION_STEP_PREFIX)
             for dependency in node['after']
         }
         self.visible = [task for task in tasks if not self._is_folded(task)]

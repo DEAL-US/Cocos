@@ -466,6 +466,17 @@ class ProcessContractTests(ProcessContractMixin, TestCase):
         self.assertContains(self.client.get(reverse('conversion:process_status', args=[process.id])),
                             reverse('conversion:download_json', args=[context['json_download_task_id']]))
 
+    def test_process_shows_after_its_prediction_model_is_removed(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json('up.json')})
+        process = self.latest_process()
+        process.plan.append({'id': 'run1_removed_model', 'step': 'predict_removed_model', 'after': ['n1'],
+                             'batch': 2, 'run': 1, 'parameters': {}})
+        process.save(update_fields=['plan'])
+
+        self.assertRow(process, kind='json', status='completed')
+        self.assertStatus(process, [('Gene extraction · Bakta JSON', 'completed')], latest_task_status='completed')
+
     def test_pending_assembly_while_server_busy(self):
         with FakeBioService(start_behavior='busy'):
             self.run_assembly('ont')
