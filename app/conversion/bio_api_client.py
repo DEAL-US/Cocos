@@ -48,11 +48,6 @@ def sequence_ont(fastq_content, annotate=False):
     resp.raise_for_status()
     return resp.json()
 
-def perform_bakta_annotation_from_job(job_id):
-    response = requests.post(f"{BASE}/annotation/bakta/existing/{job_id}?threads=4")
-    response.raise_for_status()
-    return response.json()
-
 def annotate_from_fasta(fasta_content, threads=4):
     resp = requests.post(
         f"{BASE}/annotation/bakta/upload?threads={threads}",

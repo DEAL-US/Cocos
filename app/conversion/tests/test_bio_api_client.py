@@ -7,7 +7,6 @@ from conversion.bio_api_client import (
     download_assembly_fasta_result,
     download_bakta_json_result,
     get_job_status,
-    perform_bakta_annotation_from_job,
     sequence_illumina,
     sequence_ont,
 )
@@ -24,14 +23,6 @@ class BioApiClientTests(TestCase):
     def test_get_job_status_missing_job_returns_404_without_raising(self, mock_get):
         mock_get.return_value = MagicMock(status_code=404)
         self.assertEqual(get_job_status("job-1"), (None, 404))
-
-    @patch("conversion.bio_api_client.requests.post")
-    def test_perform_bakta_annotation_from_job_success(self, mock_post):
-        response = MagicMock(status_code=200)
-        response.json.return_value = {"job_id": "a1", "status": "running"}
-        mock_post.return_value = response
-        out = perform_bakta_annotation_from_job("job-1")
-        self.assertEqual(out["job_id"], "a1")
 
     @patch("conversion.bio_api_client.requests.get")
     def test_download_bakta_json_result_success(self, mock_get):
@@ -78,7 +69,6 @@ class BioApiClientTests(TestCase):
     def test_raise_http_error(self):
         cases = [
             (get_job_status, "get", ("job-1",)),
-            (perform_bakta_annotation_from_job, "post", ("job-1",)),
             (download_bakta_json_result, "get", ("job-1",)),
             (download_assembly_fasta_result, "get", ("job-1",)),
         ]
