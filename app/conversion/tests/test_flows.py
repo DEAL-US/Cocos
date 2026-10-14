@@ -14,6 +14,7 @@ from conversion.models import ConversionTask
 from core.models import File, FileGene, ProcessGroup, TaskStatus
 from core.testing import ASSEMBLY_FASTA, BAKTA_JSON, FakeBioService, FlowTestMixin
 from notifications.models import TaskNotification
+from prediction.registry import MODEL_ORGANISMS
 
 N_FEATURES = len(BAKTA_JSON['features'])
 
@@ -613,3 +614,58 @@ class PermissionsTests(ProcessContractMixin, TestCase):
                 self.assertIn('login', response['Location'])
 
 
+TUBERCULOSIS = ('NCBITaxon:1773', 'Mycobacterium tuberculosis')
+
+
+class OrganismTests(ConversionFlowMixin, TestCase):
+    """New processes store the organism chosen among those the prediction models declare."""
+
+    def setUp(self):
+        super().setUp()
+        self._organisms_backup = dict(MODEL_ORGANISMS)
+
+    def tearDown(self):
+        MODEL_ORGANISMS.clear()
+        MODEL_ORGANISMS.update(self._organisms_backup)
+        super().tearDown()
+
+    def declare_tuberculosis_model(self):
+        MODEL_ORGANISMS['fake_tb_model'] = dict([TUBERCULOSIS])
+
+    def upload_pages(self):
+        return [self.client.get(reverse(name)) for name in ('conversion:assembly_ui', 'conversion:annotation_ui')]
+
+    def test_field_is_hidden_while_every_model_supports_any_organism(self):
+        for page in self.upload_pages():
+            self.assertNotContains(page, 'name="organism"')
+
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+        self.assertEqual(self.latest_process().organism, '')
+
+    def test_field_offers_the_organisms_declared_by_the_models(self):
+        self.declare_tuberculosis_model()
+        for page in self.upload_pages():
+            self.assertContains(page, 'name="organism"')
+            self.assertContains(page, f'<option value="{TUBERCULOSIS[0]}">{TUBERCULOSIS[1]}</option>')
+            self.assertContains(page, '<option value="">Other / unknown</option>')
+
+    def test_new_processes_store_the_chosen_organism(self):
+        self.declare_tuberculosis_model()
+        uploads = [
+            ('assembly', 'conversion:assembly_run', {'assembly_type': 'ont', 'fastq_file': fastq()}),
+            ('fasta', 'conversion:start_annotation_task', {'fasta_file': fasta()}),
+            ('json', 'conversion:annotation_from_json', {'feature_file': bakta_json()}),
+        ]
+        for label, url, data in uploads:
+            with self.subTest(label), FakeBioService():
+                self.client.post(reverse(url), data={**data, 'organism': TUBERCULOSIS[0]})
+                self.assertEqual(self.latest_process().organism, TUBERCULOSIS[0])
+
+    def test_unknown_organism_is_rejected(self):
+        self.declare_tuberculosis_model()
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'),
+                             data={'feature_file': bakta_json(), 'organism': 'NCBITaxon:562'})
+        self.assertFalse(ProcessGroup.objects.exists())
+        self.assertFalse(File.objects.exists())

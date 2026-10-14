@@ -179,7 +179,7 @@ app/ai_models/<model_name>/
 - Weight files must be named after the antibiotic (e.g. `amikacin.pt`). The antibiotics a model supports are the names of its weight files.
 - The adapter registered with `@register_model("<model_name>")` uses the folder name, so its weights are found.
 - The adapter must accept an `antibiotic` argument in `__init__` and implement `load()` and `predict(file)`, where `file` is a Bakta JSON `File` whose genes have been extracted. `predict` returns the probability of resistance.
-- `supported_organisms` declares the organisms the model was built for: `ANY_ORGANISM` (the default) or NCBI Taxonomy CURIEs with their names. The organisms offered to users come from these declarations.
+- `supported_organisms` declares the organisms the model was built for: `ANY_ORGANISM` (the default) or NCBI Taxonomy CURIEs with their names. The organisms offered to users come from these declarations: the organism field of the upload forms only appears once some model declares specific organisms.
 
 ```python
 from prediction.input_utils import get_model_weights_path, presence_from_list

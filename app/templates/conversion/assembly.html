@@ -66,6 +66,8 @@
             </div>
           </fieldset>
 
+          {% include 'conversion/_organism_field.html' with field_id='illumina_organism' %}
+
           <label class="flex cursor-pointer items-center justify-between gap-4 rounded-box border border-base-300 bg-base-200 px-4 py-3">
             <div class="flex items-start gap-3">
               <i class="bi bi-gear-fill text-base mt-1"></i>
@@ -116,6 +118,8 @@
               <input id="ont_fastq" type="file" name="fastq_file" accept=".fastq,.fq,.fastq.gz,.fq.gz" required class="file-input w-full">
             </div>
           </fieldset>
+
+          {% include 'conversion/_organism_field.html' with field_id='ont_organism' %}
 
           <label class="flex cursor-pointer items-center justify-between gap-4 rounded-box border border-base-300 bg-base-200 px-4 py-3">
             <div class="flex items-start gap-3">

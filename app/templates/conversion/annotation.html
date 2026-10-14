@@ -80,6 +80,8 @@
               </div>
           </fieldset>
 
+          {% include 'conversion/_organism_field.html' with field_id='fasta_organism' help='The organism of the uploaded FASTA. A previous assembly keeps the organism of its process.' %}
+
 
             <div class="flex items-start justify-between gap-4 rounded-box border border-base-300 bg-base-200 px-4 py-3">
               <div class="flex items-start gap-3">
@@ -136,6 +138,8 @@
               <input id="feature_file" type="file" name="feature_file" accept=".json" required class="file-input w-full">
             </div>
           </fieldset>
+
+          {% include 'conversion/_organism_field.html' with field_id='json_organism' %}
 
             <div class="flex items-start justify-between gap-4 rounded-box border border-base-300 bg-base-200 px-4 py-3">
               <div class="flex items-start gap-3">

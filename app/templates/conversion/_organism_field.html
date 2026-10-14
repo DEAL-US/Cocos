@@ -1,0 +1,17 @@
+{% comment %}
+  Organism of a new process. Only shown when some prediction model declares specific organisms.
+  Expects `organism_options` ((CURIE, name) pairs) and `field_id`.
+{% endcomment %}
+{% if organism_options %}
+  <fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4">
+    <legend class="fieldset-legend text-base font-semibold">Organism</legend>
+    <p class="text-sm opacity-70 mb-3">{{ help|default:"The organism of the sample, used to find the prediction models built for it." }}</p>
+
+    <select id="{{ field_id }}" name="organism" class="select w-full bg-base-100">
+      <option value="">Other / unknown</option>
+      {% for curie, name in organism_options %}
+        <option value="{{ curie }}">{{ name }}</option>
+      {% endfor %}
+    </select>
+  </fieldset>
+{% endif %}

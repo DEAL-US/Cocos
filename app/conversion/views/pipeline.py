@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from prediction.registry import list_all_organisms
 from ..services.pipeline import (
     get_assembly_tasks_can_be_annotated, 
     start_annotation_from_assembly_task, 
@@ -15,6 +16,7 @@ def _annotation_context(request, active_tab='fasta', **extra):
     context = {
         'active_tab': active_tab,
         'available_fasta_jobs': get_assembly_tasks_can_be_annotated(request.user),
+        'organism_options': list_all_organisms(),
     }
     context.update(extra)
     return context
@@ -23,7 +25,7 @@ def _annotation_context(request, active_tab='fasta', **extra):
 @login_required
 def assembly_ui(request):
     """Render Assembly workflow page (FASTQ to FASTA)."""
-    return render(request, 'conversion/assembly.html')
+    return render(request, 'conversion/assembly.html', {'organism_options': list_all_organisms()})
 
 @require_POST
 @login_required
@@ -48,6 +50,7 @@ def start_assembly_task(request):
             fastq_2=fastq_2,
             annotate=annotate,
             complete_version=complete_version,
+            organism=request.POST.get('organism', ''),
         )
     except ValueError as e:
         messages.error(request, str(e))
@@ -80,7 +83,7 @@ def start_annotation_task(request):
             process = start_annotation_from_assembly_task(request.user, source_task_id, complete_version,)
             message = (f'Annotation task started from previous assembly job {source_task_id}. You will be notified when it is complete.')
         else:
-            process = start_annotation_from_uploaded_fasta(request.user, fasta, complete_version)
+            process = start_annotation_from_uploaded_fasta(request.user, fasta, complete_version, organism=request.POST.get('organism', ''))
             message = (f'Annotation task started for file {fasta.name}. You will be notified when it is complete.')
 
     except ValueError as e:
@@ -104,6 +107,7 @@ def parse_feature_file(request):
             user=request.user,
             feature_file=feature_file,
             complete_version=complete_version,
+            organism=request.POST.get('organism', ''),
         )
 
     except ValueError as e:

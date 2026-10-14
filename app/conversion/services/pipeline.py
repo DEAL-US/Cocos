@@ -5,6 +5,7 @@ from core.models import File, TaskStatus
 from core.orchestration import create_process, extend_plan, latest_tasks, retry_node
 from .presentation import format_process_label
 from core.utils import upload_file
+from prediction.registry import list_all_organisms
 
 ASSEMBLY_STEPS = {
     'illumina': 'assembly_illumina',
@@ -17,6 +18,13 @@ GENE_EXTRACTION_STEP = 'extract_bakta_json'
 def _extraction_node(node_id, after, complete_version):
     return {'id': node_id, 'step': GENE_EXTRACTION_STEP, 'after': after,
             'parameters': {'complete_version': complete_version}}
+
+
+def _check_organism(organism):
+    """The organism of a new process: blank (other / unknown) or one offered by the prediction models."""
+    if organism and organism not in dict(list_all_organisms()):
+        raise ValueError('Unknown organism.')
+    return organism
 
 
 def _next_node_ids(process, count):
@@ -54,7 +62,9 @@ def get_assembly_tasks_can_be_annotated(user):
 
 
 # Assembly
-def start_assembly(user, assembly_type, fastq, fastq_2=None, annotate=False, complete_version=False):
+def start_assembly(user, assembly_type, fastq, fastq_2=None, annotate=False, complete_version=False, organism=''):
+
+    organism = _check_organism(organism)
 
     if assembly_type not in ASSEMBLY_STEPS:
         raise ValueError("Invalid assembly type.")
@@ -81,7 +91,7 @@ def start_assembly(user, assembly_type, fastq, fastq_2=None, annotate=False, com
     else:
         nodes = [{'id': 'n1', 'step': step}]
 
-    return create_process(user, os.path.basename(fastq.name), nodes, {'n1': reads})
+    return create_process(user, os.path.basename(fastq.name), nodes, {'n1': reads}, organism=organism)
 
 
 # Annotation
@@ -114,21 +124,25 @@ def start_annotation_from_assembly_task(user, source_task_id, complete_version):
     ])
     return process
 
-def start_annotation_from_uploaded_fasta(user, fasta, complete_version):
+def start_annotation_from_uploaded_fasta(user, fasta, complete_version, organism=''):
+    organism = _check_organism(organism)
+
     if not fasta:
         raise ValueError('No FASTA file uploaded for annotation.')
 
     file = upload_file(fasta, user=user, file_type=File.FileType.FASTA)
 
     nodes = [{'id': 'n1', 'step': 'bakta_annotation'}, _extraction_node('n2', ['n1'], complete_version)]
-    return create_process(user, os.path.basename(file.file.name), nodes, {'n1': {'assembly': file}})
+    return create_process(user, os.path.basename(file.file.name), nodes, {'n1': {'assembly': file}}, organism=organism)
 
 # JSON Parsing
-def start_json_processing(user, feature_file, complete_version=False):
+def start_json_processing(user, feature_file, complete_version=False, organism=''):
+    organism = _check_organism(organism)
+
     if not feature_file:
         raise ValueError('Select a JSON file.')
 
     file = upload_file(feature_file, user=user, file_type=File.FileType.JSON)
 
     nodes = [_extraction_node('n1', [], complete_version)]
-    return create_process(user, os.path.basename(file.file.name), nodes, {'n1': {'annotation': file}})
+    return create_process(user, os.path.basename(file.file.name), nodes, {'n1': {'annotation': file}}, organism=organism)
