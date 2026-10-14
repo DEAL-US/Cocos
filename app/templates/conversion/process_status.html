@@ -13,6 +13,16 @@
     <a href="{% url 'conversion:process_list' %}" class="process-back-link"><i class="bi bi-arrow-left"></i>Back to Processes</a>
   </div>
 
+  {% if extracted_without_genes %}
+    <div role="alert" class="alert alert-warning alert-soft border border-base-300 items-start gap-3 mb-4">
+      <i class="bi bi-exclamation-triangle-fill text-lg mt-0.5"></i>
+      <div>
+        <h3 class="font-semibold">No genes found</h3>
+        <p class="text-sm mt-1">The annotation of this process has no genes, so it cannot be used for predictions.</p>
+      </div>
+    </div>
+  {% endif %}
+
   <div class="card bg-base-100 border border-base-300 shadow-sm mb-4 process-hero process-hero-{{ process_kind }}">
     <div class="card-body">
       <h1 class="card-title text-2xl process-title-text">{{ process_name }}</h1>
@@ -85,16 +95,6 @@
 
     </div>
   </div>
-
-  {% if extracted_without_genes %}
-    <div role="alert" class="alert alert-warning alert-soft border border-base-300 items-start gap-3 mb-4">
-      <i class="bi bi-exclamation-triangle-fill text-lg mt-0.5"></i>
-      <div>
-        <h3 class="font-semibold">No genes found</h3>
-        <p class="text-sm mt-1">The annotation of this process has no genes, so it cannot be used for predictions.</p>
-      </div>
-    </div>
-  {% endif %}
 
  <div class="card bg-base-100 border border-base-300 shadow-sm process-timeline-card process-timeline-card-{{ process_kind }}">
     <div class="card-body">
