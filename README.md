@@ -164,37 +164,79 @@ Access at: `http://localhost` (port 80)
 
 ## Add New Prediction Models
 
-Add a folder under `ai_models/` with required structure:
+Add a folder under `app/ai_models/` with this structure:
 
 ```
-ai_models/<model_name>/
+app/ai_models/<model_name>/
 ├── weights/
-│   ├── <antibiotic>.pt      # model weights per-antibiotic
+│   ├── <antibiotic>.pt      # model weights per antibiotic
 │   └── ...
 └── model_classes.py         # model definition & adapter
 ```
 
 **Rules:**
 
-- Weight files must be named after the antibiotic (e.g., `amikacin.pt`)
-- `model_classes.py` must implement adapter with `__init__(antibiotic: str)` signature
-- Use decorator to register:
+- Weight files must be named after the antibiotic (e.g. `amikacin.pt`). The antibiotics a model supports are the names of its weight files.
+- The adapter registered with `@register_model("<model_name>")` uses the folder name, so its weights are found.
+- The adapter must accept an `antibiotic` argument in `__init__` and implement `load()` and `predict(file)`, where `file` is a Bakta JSON `File` whose genes have been extracted. `predict` returns the probability of resistance.
+- `supported_organisms` declares the organisms the model was built for: `ANY_ORGANISM` (the default) or NCBI Taxonomy CURIEs with their names. The organisms offered to users come from these declarations.
 
 ```python
-from app.ai_models.registry import register_model
+from prediction.input_utils import get_model_weights_path, presence_from_list
+from prediction.model_interface import ModelInterface
+from prediction.registry import ANY_ORGANISM, register_model
+
 
 @register_model("my_model")
-class MyAdapter:
-    def __init__(self, antibiotic: str):
-        # Load weights/<antibiotic>.pt
-        pass
+class MyAdapter(ModelInterface):
+    supported_organisms = ANY_ORGANISM  # or {'NCBITaxon:562': 'Escherichia coli'}
 
-    def predict(self, sequences):
-        # Return predictions
-        pass
+    def __init__(self, antibiotic: str):
+        self.antibiotic = antibiotic
+
+    def load(self) -> None:
+        self.genes = [...]  # gene identifiers the model uses, in input order
+        weights = get_model_weights_path(self.antibiotic, "my_model")
+        ...  # build the model and load the weights
+
+    def predict(self, file) -> float:
+        presence = presence_from_list(self.genes, file)  # 1/0 for each gene of the model in the file
+        ...  # return the probability of resistance
 ```
 
-See `ai_models/base_bakta_50/` for example.
+Each registered model becomes a prediction step (`predict_<model_name>`) that runs on the genes of a process. See `app/ai_models/base_bakta_50/` for a complete example.
+
+---
+
+## Add New Annotation Parsers
+
+Parsers read an annotation file and link its genes to the file. Each registered parser that declares what it consumes becomes a gene extraction step (`extract_<parser_name>`), so other annotation formats can be added without changing the pipeline.
+
+Register a subclass of `BaseParser` in `app/conversion/parsers.py`:
+
+```python
+from core.models import File
+from core.steps import DataKind
+from conversion.parsers import BaseParser, register_parser
+
+
+@register_parser('my_format')
+class MyFormatParser(BaseParser):
+    label = 'My format'                          # step label: "Gene extraction · My format"
+    consumes_kind = DataKind.ANNOTATED_GENOME    # what the input file represents
+    consumes_format = File.FileType.CSV          # how it is stored
+    default_options = {'min_identity': 90}       # step parameters, passed to parse() as options
+
+    def read(self, file):
+        """Read the stored File into the data parse() expects. Raise ValueError if it cannot be read."""
+        ...
+
+    def parse(self, data, file, user=None, options=None):
+        """Create the Gene and FileGene entries of `file` and return it."""
+        ...
+```
+
+See `BaktaJsonParser` for a complete example.
 
 ---
 
