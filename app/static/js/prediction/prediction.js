@@ -87,6 +87,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     params.append('file_id', selection.file_id);
 
+    hideError();
+
     try {
       const response = await fetch('/prediction/matrix/', {
         method: 'POST',
@@ -97,19 +99,32 @@ document.addEventListener('DOMContentLoaded', function () {
         body: params.toString(),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to start prediction.');
-      }
+      const data = await response.json().catch(() => ({}));
 
-      const data = await response.json();
+      if (!response.ok) {
+        showError(data.error || 'Error computing the prediction matrix.');
+        return;
+      }
 
       window.location.href = `/processes/${data.process_id}/`;
 
     } catch (error) {
       console.error('Error during fetch:', error);
-      predictionStatus.textContent = 'Error computing the prediction matrix.';
-      predictionStatus.classList.remove('hidden');
+      showError('Error computing the prediction matrix.');
+    }
+  }
+
+  function showError(message) {
+    if (!predictionStatus) {
       return;
+    }
+    predictionStatus.textContent = message;
+    predictionStatus.classList.remove('hidden');
+  }
+
+  function hideError() {
+    if (predictionStatus) {
+      predictionStatus.classList.add('hidden');
     }
   }
 
