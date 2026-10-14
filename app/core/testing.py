@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.test import override_settings
 
 from app.celery import app as celery_app
-from conversion import bio_api_client
+from bioservice import client as bio_api_client
 
 User = get_user_model()
 

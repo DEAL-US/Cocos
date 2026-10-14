@@ -5,11 +5,12 @@ There is one gene extraction step per registered parser that declares what it co
 import json
 import os
 
+from bioservice import client as bio_api_client
+from bioservice.steps import BioServiceStep, submission_result
 from core.models import File, TaskStatus
-from core.steps import Busy, DataKind, ExternalStep, LocalStep, Port, Started, StepError, register_step, register_step_provider
+from core.steps import DataKind, LocalStep, Port, StepError, register_step, register_step_provider
 from notifications.services import notify_user_conversion_warning
 
-from . import bio_api_client
 from .models import ConversionTask
 from .parsers import PARSERS, parse_file
 
@@ -20,29 +21,12 @@ JSON = File.FileType.JSON
 ASSEMBLY_OUTPUT = Port('assembly', DataKind.ASSEMBLY, FASTA)
 ANNOTATION_OUTPUT = Port('annotation', DataKind.ANNOTATED_GENOME, JSON)
 
-# Statuses the bio service answers when it accepts a job; anything else (e.g. 'busy') means try later.
-ACCEPTED_STATUSES = {'pending', 'running', 'annotation_pending'}
-
-
-def _submission_result(response):
-    if response.get('status') in ACCEPTED_STATUSES and response.get('job_id'):
-        return Started(response['job_id'])
-    return Busy()
-
-
-class BioServiceStep(ExternalStep):
-    """A step run as a job in the bio service."""
+class ConversionBioServiceStep(BioServiceStep):
+    """A conversion run in the bio service, which stores the assembly or annotation it downloads."""
     task_model = ConversionTask
 
-    def job_status(self, job_id):
-        return bio_api_client.get_job_status(job_id)
-
-    def _already_saved(self, task, role):
-        # collect() may be retried after a partial failure: keep what was already stored.
-        return task.task_outputs.filter(role=role).exists()
-
     def save_assembly(self, task):
-        if self._already_saved(task, 'assembly'):
+        if self.already_saved(task, 'assembly'):
             return
         content = bio_api_client.download_assembly_fasta_result(task.external_job_id)
         if not content:
@@ -51,7 +35,7 @@ class BioServiceStep(ExternalStep):
         task.save_output('assembly', content, FASTA, filename)
 
     def save_annotation(self, task):
-        if self._already_saved(task, 'annotation'):
+        if self.already_saved(task, 'annotation'):
             return
         payload = bio_api_client.download_bakta_json_result(task.external_job_id)
         if isinstance(payload, list):
@@ -62,7 +46,7 @@ class BioServiceStep(ExternalStep):
         task.save_output('annotation', json.dumps(payload).encode('utf-8'), JSON, filename)
 
 
-class AssemblyStep(BioServiceStep):
+class AssemblyStep(ConversionBioServiceStep):
     """Assembly on the bio service. With `annotate`, the service also runs Bakta in the same job."""
     category = 'assembly'
     technology = ''
@@ -88,7 +72,7 @@ class AssemblyONT(AssemblyStep):
     produces = (ASSEMBLY_OUTPUT,)
 
     def process(self, task):
-        return _submission_result(bio_api_client.sequence_ont(task.read_input('reads'), annotate=self.annotate))
+        return submission_result(bio_api_client.sequence_ont(task.read_input('reads'), annotate=self.annotate))
 
 
 @register_step
@@ -101,7 +85,7 @@ class AssemblyIllumina(AssemblyStep):
 
     def process(self, task):
         response = bio_api_client.sequence_illumina(task.read_input('r1'), task.read_input('r2'), annotate=self.annotate)
-        return _submission_result(response)
+        return submission_result(response)
 
 
 @register_step
@@ -121,7 +105,7 @@ class AssemblyIlluminaAnnotated(AssemblyIllumina):
 
 
 @register_step
-class BaktaAnnotation(BioServiceStep):
+class BaktaAnnotation(ConversionBioServiceStep):
     """Bakta annotation of an assembly uploaded to the bio service."""
     key = 'bakta_annotation'
     label = 'Annotation'
@@ -133,7 +117,7 @@ class BaktaAnnotation(BioServiceStep):
 
     def process(self, task):
         response = bio_api_client.annotate_from_fasta(task.read_input('assembly'), threads=task.parameters['threads'])
-        return _submission_result(response)
+        return submission_result(response)
 
     def collect(self, task):
         self.save_annotation(task)
