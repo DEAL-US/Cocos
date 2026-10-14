@@ -10,7 +10,7 @@ from conversion.parsers import parse_file
 from core.models import File, ProcessGroup
 from core.steps import StepError, get_step
 from core.testing import BAKTA_JSON, FlowTestMixin
-from prediction.models import PredictionTask
+from prediction.models import PredictionRun, PredictionTask
 from prediction.prediction import NO_RESULT
 from prediction.registry import MODEL_ANTIBIOTICS, MODEL_REGISTRY
 
@@ -53,7 +53,8 @@ class PredictionStepTests(FlowTestMixin, TestCase):
 
     def make_task(self, model, antibiotics):
         step = get_step(f'predict_{model}')
-        task = PredictionTask.objects.create(process=self.process, step=step.key,
+        run = PredictionRun.objects.create(process=self.process, selected_models=[model], selected_antibiotics=antibiotics)
+        task = PredictionTask.objects.create(process=self.process, step=step.key, run=run,
                                              parameters=step.build_parameters({'antibiotics': antibiotics}))
         task.add_input('genes', self.genes)
         return task

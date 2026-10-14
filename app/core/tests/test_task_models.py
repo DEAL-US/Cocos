@@ -37,7 +37,7 @@ class TaskModelTestCase(TestCase):
 
 class TaskExternalJobTests(TaskModelTestCase):
     def test_external_job_id_lives_on_task_and_is_inherited(self):
-        conversion = ConversionTask.objects.create(process=self.process, task_type='annotation', external_job_id='job-1')
+        conversion = ConversionTask.objects.create(process=self.process, step='bakta_annotation', external_job_id='job-1')
         self.assertEqual(Task.objects.get(pk=conversion.pk).external_job_id, 'job-1')
         self.assertEqual(ConversionTask.objects.get(external_job_id='job-1'), conversion)
         with self.assertRaises(ValidationError):
@@ -50,7 +50,7 @@ class TaskExternalJobTests(TaskModelTestCase):
 
 class TaskStepTests(TaskModelTestCase):
     def test_step_must_be_registered(self):
-        cases = [('', False), ('assembly_ont', False), ('extract_bakta_json', False), ('no_such_step', True)]
+        cases = [('', True), ('assembly_ont', False), ('extract_bakta_json', False), ('no_such_step', True)]
         for step, should_fail in cases:
             with self.subTest(step=step):
                 task = Task(process=self.process, step=step)
@@ -62,15 +62,15 @@ class TaskStepTests(TaskModelTestCase):
 
     def test_subclasses_also_validate_the_step(self):
         with self.assertRaises(ValidationError):
-            ConversionTask.objects.create(process=self.process, task_type='annotation', step='no_such_step')
+            ConversionTask.objects.create(process=self.process, step='no_such_step')
 
     def test_get_step_returns_the_registered_step(self):
         self.assertEqual(self.make_task('bakta_annotation').get_step().key, 'bakta_annotation')
 
     def test_new_fields_have_safe_defaults(self):
-        task = self.make_task()
+        task = self.make_task('assembly_ont')
         task.refresh_from_db()
-        self.assertEqual((task.step, task.parameters, task.plan_node, task.tool_version), ('', {}, '', ''))
+        self.assertEqual((task.parameters, task.plan_node, task.tool_version), ({}, '', ''))
         self.assertIsNone(task.started_at)
         self.assertIsNone(task.finished_at)
 
@@ -162,7 +162,7 @@ class PredictionRunTests(TaskModelTestCase):
     def test_run_groups_one_task_per_model(self):
         run = PredictionRun.objects.create(process=self.process, selected_models=['a', 'b'], selected_antibiotics=['amikacin'])
         for _ in ('a', 'b'):
-            PredictionTask.objects.create(process=self.process, run=run, results={'amikacin': 0.5})
+            PredictionTask.objects.create(process=self.process, step='predict_base_bakta_50', run=run, results={'amikacin': 0.5})
 
         self.assertEqual(run.status, 'pending')
         self.assertEqual(run.tasks.count(), 2)

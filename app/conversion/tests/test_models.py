@@ -25,7 +25,7 @@ class ConversionTaskModelTests(TestCase):
         ]
         for status, job_id, should_raise in cases:
             with self.subTest(status=status, job_id=job_id):
-                task = ConversionTask(external_job_id=job_id, status=status, task_type="annotation", process=self.process)
+                task = ConversionTask(external_job_id=job_id, status=status, step="bakta_annotation", process=self.process)
                 if should_raise:
                     with self.assertRaises(ValidationError):
                         task.save()
@@ -34,6 +34,6 @@ class ConversionTaskModelTests(TestCase):
                     self.assertEqual(task.status, status)
 
     def test_local_tasks_do_not_need_external_job_id(self):
-        task = ConversionTask(status="completed", task_type="from_json", process=self.process)
+        task = ConversionTask(status="completed", step="extract_bakta_json", process=self.process)
         task.save()
         self.assertIsNone(task.external_job_id)

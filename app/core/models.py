@@ -30,7 +30,7 @@ class Task(models.Model):
     # Allow blank so we can create a pending task before an external job id exists.
     external_job_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
 
-    step = models.CharField(max_length=100, blank=True)
+    step = models.CharField(max_length=100)
     parameters = models.JSONField(default=dict, blank=True)
     plan_node = models.CharField(max_length=100, blank=True)
     started_at = models.DateTimeField(null=True, blank=True)

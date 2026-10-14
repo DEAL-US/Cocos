@@ -6,7 +6,7 @@ from django.test import TestCase, override_settings
 from conversion.models import ConversionTask
 from core.models import ProcessGroup
 from notifications.models import TaskNotification
-from prediction.models import PredictionTask
+from prediction.models import PredictionRun, PredictionTask
 from notifications.services import (
     _send_email_notification,
     notify_user_conversion_complete,
@@ -26,7 +26,7 @@ class NotificationServiceTests(TestCase):
         self.task = ConversionTask.objects.create(
             external_job_id='job-1',
             status='running',
-            task_type='annotation',
+            step='bakta_annotation',
             process=self.process,
         )
 
@@ -155,8 +155,9 @@ class TaskNotificationTaskTypesTests(TestCase):
 
     @patch('notifications.services._send_email_notification', return_value=False)
     def test_notifications_link_to_any_task_type(self, email_mock):
-        conversion = ConversionTask.objects.create(process=self.process, task_type='from_json')
-        prediction = PredictionTask.objects.create(process=self.process, selected_models=['m'], selected_antibiotics=['a'])
+        conversion = ConversionTask.objects.create(process=self.process, step='extract_bakta_json')
+        run = PredictionRun.objects.create(process=self.process, selected_models=['base_bakta_50'], selected_antibiotics=['amikacin'])
+        prediction = PredictionTask.objects.create(process=self.process, step='predict_base_bakta_50', run=run)
 
         for task in (conversion, prediction):
             with self.subTest(task=type(task).__name__):

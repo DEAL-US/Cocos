@@ -37,22 +37,8 @@ class PredictionTask(Task):
     """A prediction task representing a model prediction process"""
 
     task_ptr = models.OneToOneField(Task, on_delete=models.CASCADE, parent_link=True, primary_key=True, db_column='id')
-    output_csv = models.ForeignKey('core.File', on_delete=models.PROTECT, null=True, blank=True, related_name='prediction_output_csv')
-
-    # Old one-task-for-all-models fields, removed in the contract migration; new tasks leave them empty.
-    selected_models = models.JSONField(default=list, blank=True)
-    selected_antibiotics = models.JSONField(default=list, blank=True)
-    data = models.JSONField(default=list, blank=True, null=True)
-
-    # Null only while old prediction tasks (one task for all models) still exist.
-    run = models.ForeignKey(PredictionRun, on_delete=models.CASCADE, null=True, blank=True, related_name='tasks')
+    run = models.ForeignKey(PredictionRun, on_delete=models.CASCADE, related_name='tasks')
     results = models.JSONField(default=dict, blank=True)
-
-    # Model-level validation
-    def clean(self):
-        super().clean()
-        if self.output_csv and self.output_csv.file_type != File.FileType.CSV:
-            raise ValidationError({'output_csv': 'Output CSV must be a CSV file.'})
 
     # Ensure model validation runs on save
     def save(self, *args, **kwargs):
