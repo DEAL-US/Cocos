@@ -1,4 +1,4 @@
-"""Prepare a development environment: Python dependencies, frontend dependencies and the CSS bundle."""
+"""Prepare a development environment: .env, Python dependencies, frontend dependencies and the CSS bundle."""
 import subprocess
 import sys
 import shutil
@@ -61,6 +61,13 @@ def main():
         print(f"\n app directory not found at {app_dir}")
         return 1
     
+    # Create the development environment file from its example
+    env_file = project_root / ".env"
+    if not env_file.exists():
+        shutil.copyfile(project_root / ".env.example", env_file)
+        print("
+Created .env from .env.example")
+
     # Install Python dependencies
     print("\nInstalling Python dependencies...")
     if run_command([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], 

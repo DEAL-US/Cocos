@@ -16,8 +16,9 @@ From the `cocos` folder run:
 python scripts/setup_dev.py
 ```
 
-This installs:
+This sets up:
 
+- `.env`, copied from `.env.example` if it does not exist yet
 - Python dependencies from `requirements.txt`
 - Frontend dependencies (`tailwindcss` + `daisyui`) from `app/package.json`
 - Compiled CSS output at `app/static/css/tailwind.css`
@@ -133,6 +134,8 @@ Access at: `http://localhost` (port 80)
 ---
 
 ## Environment Configuration
+
+Environment files are not committed. `.env.example` and `.env.prod.example` are templates: copy them to `.env` and `.env.prod` (the setup scripts do it for you) and fill in the values.
 
 ### Development (`.env`)
 

@@ -15,3 +15,7 @@ example_files/ATCC25922.fastq.gz
 # Test coverage
 .coverage
 htmlcov/
+
+# Environment files: copy them from .env.example / .env.prod.example
+.env
+.env.prod
