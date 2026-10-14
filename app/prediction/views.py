@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 
 from core.models import TaskStatus
 from .models import PredictionRun
-from .service import get_prediction_input_options, start_prediction
+from .services import get_prediction_input_options, start_prediction
 from .adapters.registry import list_registered_models, list_all_antibiotics
 
 @login_required
