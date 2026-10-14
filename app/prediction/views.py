@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from core.models import TaskStatus
-from .models import PredictionTask
+from .models import PredictionRun
 from .service import get_prediction_input_options, start_prediction
 from .registry import list_registered_models, list_all_antibiotics
 
@@ -28,7 +28,7 @@ def make_prediction_view(request):
     task = None
 
     try:
-        task = start_prediction(
+        run = start_prediction(
             user=request.user,
             model_names=model_names,
             antibiotics=antibiotics,
@@ -44,20 +44,20 @@ def make_prediction_view(request):
             status=500,
         )
     
-    return JsonResponse({'task_id': task.id, 'process_id': task.process.id}, status=202)
+    return JsonResponse({'run_id': run.id, 'process_id': run.process.id}, status=202)
 
 @login_required
 @require_POST
-def download_prediction_csv(request, prediction_task_id):
-    task = get_object_or_404(_get_user_prediction_tasks(request.user), pk=prediction_task_id)
+def download_prediction_csv(request, prediction_run_id):
+    run = get_object_or_404(_get_user_prediction_runs(request.user), pk=prediction_run_id)
 
-    if task.status != TaskStatus.COMPLETED or not task.output_csv:
+    if run.status != TaskStatus.COMPLETED or not run.output_csv:
         messages.error(request, 'The requested CSV is not available for download.')
         return redirect('prediction:prediction')
 
     try:
-        file = task.output_csv.file.open('rb')
-        filename = os.path.basename(task.output_csv.file.name)
+        file = run.output_csv.file.open('rb')
+        filename = os.path.basename(run.output_csv.file.name)
 
         response = FileResponse(
             file,
@@ -72,5 +72,5 @@ def download_prediction_csv(request, prediction_task_id):
         messages.error(request, 'Could not read the CSV file. Please try again later.')
         return redirect('prediction:prediction')
 
-def _get_user_prediction_tasks(user):
-    return PredictionTask.objects.filter(process__user=user).order_by('-created_at')
+def _get_user_prediction_runs(user):
+    return PredictionRun.objects.filter(process__user=user).order_by('-created_at')

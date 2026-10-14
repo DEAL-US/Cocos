@@ -1,10 +1,11 @@
-from .models import PredictionTask
+from .models import PredictionRun
 from conversion.models import ConversionTask
 from core.models import File, TaskStatus
+from core.orchestration import extend_plan
 from conversion.services.presentation import format_process_label
 
 from .registry import get_model_supported_antibiotics
-from .tasks import predict
+from .steps import PREDICTION_STEP_PREFIX
 
 
 def get_prediction_input_options(user):
@@ -66,16 +67,30 @@ def start_prediction(user, model_names, antibiotics, file_id):
         raise ValueError('No valid antibiotic/model combinations found.')
     
     source_task = _get_source_task_for_prediction(file)
+    process = source_task.process
 
-    task = PredictionTask.objects.create(
-        process=source_task.process,
+    run = PredictionRun.objects.create(
+        process=process,
         selected_models=model_names,
         selected_antibiotics=valid_antibiotics,
-        )
-
-    predict.delay(
-        task_id=task.id,
-        file_id=file.id if file else None,
     )
 
-    return task
+    # One node per model, with the selected antibiotics it supports. Models that support none of
+    # them get no task, so their column shows no result.
+    nodes = []
+    for model_name in model_names:
+        model_antibiotics = [antibiotic for antibiotic in valid_antibiotics
+                             if antibiotic in get_model_supported_antibiotics(model_name)]
+        if model_antibiotics:
+            nodes.append({
+                'id': f'run{run.pk}_{model_name}',
+                'step': f'{PREDICTION_STEP_PREFIX}{model_name}',
+                'after': [source_task.plan_node],
+                'run': run.pk,
+                'parameters': {'antibiotics': model_antibiotics},
+            })
+
+    extend_plan(process, nodes)
+
+    run.refresh_from_db()
+    return run

@@ -14,7 +14,7 @@ from django.urls import reverse
 
 from core.models import File, ProcessGroup, TaskStatus
 from core.testing import BAKTA_JSON, FakeBioService, FlowTestMixin
-from prediction.models import PredictionTask
+from prediction.models import PredictionRun
 from prediction.registry import MODEL_ANTIBIOTICS, MODEL_REGISTRY
 
 
@@ -104,7 +104,7 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         options = self.client.get(reverse('prediction:prediction')).context['input_file_options']
         self.assertEqual([option['id'] for option in options], [str(self.genes_file.id)])
         self.assertEqual(self.predict(['fake_constant'], ['amikacin'], broken_file.id).status_code, 400)
-        self.assertFalse(PredictionTask.objects.exists())
+        self.assertFalse(PredictionRun.objects.exists())
 
     def test_prediction_with_several_models_builds_matrix_and_csv(self):
         response = self.predict(['fake_constant', 'fake_genes'], ['amikacin', 'ampicillin'])
@@ -152,11 +152,11 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
             with self.subTest(label):
                 response = self.predict(models, antibiotics, file_id)
                 self.assertEqual(response.status_code, 400)
-        self.assertFalse(PredictionTask.objects.exists())
+        self.assertFalse(PredictionRun.objects.exists())
 
     def test_other_user_cannot_predict_on_or_download_my_results(self):
         self.predict(['fake_constant'], ['amikacin'])
-        prediction = PredictionTask.objects.get()
+        prediction = PredictionRun.objects.get()
 
         self.client.login(username='other-user', password='pass1234')
         self.assertEqual(self.predict(['fake_constant'], ['amikacin']).status_code, 400)
@@ -172,10 +172,9 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
 
         for name, antibiotics in real_models.items():
             with self.subTest(model=name):
-                PredictionTask.objects.all().delete()
-                self.predict([name], [antibiotics[0]])
+                run_id = self.predict([name], [antibiotics[0]]).json()['run_id']
 
-                [prediction] = self.predictions_on_status_page()
+                [prediction] = [p for p in self.predictions_on_status_page() if p['id'] == run_id]
                 self.assertEqual(prediction['status'], TaskStatus.COMPLETED)
                 value = prediction['matrix']['data'][0][0]
                 self.assertIsInstance(value, float)

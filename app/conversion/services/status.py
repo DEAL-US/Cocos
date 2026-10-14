@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.urls import reverse
 
 from ..models import ConversionTask
-from prediction.models import PredictionTask
+from prediction.models import PredictionRun
 from core.models import File, ProcessGroup, TaskInput, TaskOutput, TaskStatus
 from core.steps import get_step
 from .presentation import status_badge_class, build_process_steps
@@ -264,12 +264,12 @@ def build_process_status_context(process, page=1):
 
     timeline = [_build_timeline_entry(view, task) for task in reversed(shown)]
 
-    prediction_tasks = list(PredictionTask.objects
+    prediction_runs = list(PredictionRun.objects
         .filter(process=process)
         .order_by('-created_at', '-id')
     )
 
-    paginator = Paginator(prediction_tasks, 3)
+    paginator = Paginator(prediction_runs, 3)
     prediction_page = paginator.get_page(page)
 
     pagination_url = reverse('conversion:process_status', kwargs={'process_id': process.id})
@@ -278,25 +278,25 @@ def build_process_status_context(process, page=1):
 
     predictions = [
         {
-            'id': task.id,
-            'status': task.status,
-            'status_badge': status_badge_class(task.status),
-            'created_at': task.created_at,
-            'updated_at': task.updated_at,
-            'models': task.selected_models,
-            'antibiotics': task.selected_antibiotics,
+            'id': run.id,
+            'status': run.status,
+            'status_badge': status_badge_class(run.status),
+            'created_at': run.created_at,
+            'updated_at': run.updated_at,
+            'models': run.selected_models,
+            'antibiotics': run.selected_antibiotics,
             'matrix': {
-                'models': task.selected_models,
-                'antibiotics': task.selected_antibiotics,
-                'data': task.data,
+                'models': run.selected_models,
+                'antibiotics': run.selected_antibiotics,
+                'data': run.data,
             },
-            'matrix_json_id': f'prediction-matrix-{task.id}',
+            'matrix_json_id': f'prediction-matrix-{run.id}',
             'can_download': (
-                task.status == TaskStatus.COMPLETED
-                and task.output_csv is not None
+                run.status == TaskStatus.COMPLETED
+                and run.output_csv is not None
             ),
         }
-        for task in prediction_page
+        for run in prediction_page
     ]
 
     latest_status = view.status(latest_task)
