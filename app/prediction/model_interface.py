@@ -23,7 +23,7 @@ class ModelInterface:
     """
     supported_organisms = ANY_ORGANISM
 
-    def features(self, file) -> list:
+    def features(self) -> list:
         """
         Return the features needed by the model (e.g. gene identifiers).
         """
