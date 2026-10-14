@@ -8,7 +8,7 @@ from prediction.models import PredictionRun
 from core.models import File, ProcessGroup, TaskInput, TaskOutput, TaskStatus
 from ..steps import GENE_EXTRACTION_STEP_PREFIX
 from .presentation import status_badge_class, build_process_steps
-from app.utils.pagination import get_pagination_page_range
+from core.pagination import get_pagination_page_range
 
 READ_ROLES = ('reads', 'r1', 'r2')
 

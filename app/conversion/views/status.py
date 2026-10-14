@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from app.utils.pagination import get_pagination_page_range
+from core.pagination import get_pagination_page_range
 from core.utils import create_file_zip
 from core.models import ProcessGroup, TaskStatus
 from ..services.status import (

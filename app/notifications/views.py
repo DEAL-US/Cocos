@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from app.utils.pagination import get_pagination_page_range
+from core.pagination import get_pagination_page_range
 from notifications.models import TaskNotification
 
 
