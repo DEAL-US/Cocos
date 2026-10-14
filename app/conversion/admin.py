@@ -1,8 +1,8 @@
 from django.contrib import admin
 
 from conversion.models import ConversionTask
+from core.admin import TaskAdmin
 
 @admin.register(ConversionTask)
-class ConversionTaskAdmin(admin.ModelAdmin):
-    list_display = ('id', 'external_job_id', 'status', 'created_at', 'updated_at')
-    search_fields = ('external_job_id', 'status')
+class ConversionTaskAdmin(TaskAdmin):
+    list_display = TaskAdmin.list_display + ('external_job_id',)
