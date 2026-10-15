@@ -205,10 +205,8 @@ EMAIL_TIMEOUT = 10
 
 # SendGrid Configuration (for production)
 # Set EMAIL_BACKEND=sendgrid_backend.SendgridBackend and SENDGRID_API_KEY in environment
+# A missing key is reported by `manage.py check --deploy` (see core.checks).
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
-
-if not DEBUG and not SENDGRID_API_KEY:
-    raise ValueError("SENDGRID_API_KEY is required in production")
 
 
 # Security:
