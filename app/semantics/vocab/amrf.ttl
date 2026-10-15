@@ -1,5 +1,6 @@
 @prefix amrf:    <https://w3id.org/amrf/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix edam:    <http://edamontology.org/> .
 @prefix obo:     <http://purl.obolibrary.org/obo/> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
@@ -29,3 +30,12 @@ amrf:predictsResistanceTo
     rdfs:range obo:ARO_1000003 ;
     rdfs:isDefinedBy <https://w3id.org/amrf/> ;
     skos:editorialNote "IAO 'is about' (obo:IAO_0000136) and schema:about only state that a model concerns an antibiotic, not that it predicts resistance to it rather than, for instance, susceptibility or minimum inhibitory concentration. ARO 'confers_resistance_to_antibiotic' (obo:ARO_2000000) relates genes and variants, not models. It is declared a subproperty of 'is about' so that consumers unaware of AMRF still read the model as being about the antibiotic."@en .
+
+amrf:BaktaJSON
+    a owl:Class ;
+    rdfs:label "Bakta JSON"@en ;
+    rdfs:comment "JSON format of the genome annotations written by Bakta, with the annotated features of a genome and their database cross-references."@en ;
+    rdfs:subClassOf edam:format_3464 ;
+    rdfs:seeAlso <https://github.com/oschwengers/bakta> , <https://bio.tools/bakta> ;
+    rdfs:isDefinedBy <https://w3id.org/amrf/> ;
+    skos:editorialNote "EDAM has no format for Bakta's JSON output; bio.tools lists it only as generic JSON (edam:format_3464). A specific format is needed so that a parser of Bakta JSON is not offered any JSON feature table. It is a subclass of EDAM JSON so that consumers that accept any JSON accept it. To be proposed to EDAM; if accepted, this term will be deprecated in favour of the EDAM one."@en .
