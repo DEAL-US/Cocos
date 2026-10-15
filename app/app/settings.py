@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'conversion.apps.ConversionConfig',
     'notifications.apps.NotificationsConfig',
     'prediction.apps.PredictionConfig',
+    'semantics.apps.SemanticsConfig',
     'django_celery_results',
 ]
 
