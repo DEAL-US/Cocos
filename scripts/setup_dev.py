@@ -65,8 +65,7 @@ def main():
     env_file = project_root / ".env"
     if not env_file.exists():
         shutil.copyfile(project_root / ".env.example", env_file)
-        print("
-Created .env from .env.example")
+        print("\nCreated .env from .env.example")
 
     # Install Python dependencies
     print("\nInstalling Python dependencies...")
