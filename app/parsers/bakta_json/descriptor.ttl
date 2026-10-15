@@ -1,0 +1,32 @@
+@prefix amrf:       <https://w3id.org/amrf/> .
+@prefix bioschemas: <https://bioschemas.org/> .
+@prefix bsc:        <https://bioschemas.org/properties/> .
+@prefix dcterms:    <http://purl.org/dc/terms/> .
+@prefix edam:       <http://edamontology.org/> .
+@prefix schema:     <https://schema.org/> .
+
+# Gene extraction from Bakta JSON annotations: the step extract_bakta_json.
+
+<https://w3id.org/cocos/step/extract_bakta_json>
+    a schema:SoftwareApplication ;
+    dcterms:conformsTo <https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE> ;
+    schema:identifier "extract_bakta_json" ;
+    schema:name "Gene extraction · Bakta JSON"@en ;
+    schema:description "Reads the features of a Bakta JSON annotation and links the genes they identify (gene names, products and database cross-references) to the annotation file."@en ;
+    schema:featureList edam:operation_1812 ;
+    bsc:input <https://w3id.org/cocos/step/extract_bakta_json#annotation> ;
+    bsc:output <https://w3id.org/cocos/step/extract_bakta_json#genes> .
+
+<https://w3id.org/cocos/step/extract_bakta_json#annotation>
+    a bioschemas:FormalParameter ;
+    dcterms:conformsTo <https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE> ;
+    schema:name "annotation" ;
+    schema:additionalType edam:data_1270 ;
+    schema:encodingFormat amrf:BaktaJSON .
+
+<https://w3id.org/cocos/step/extract_bakta_json#genes>
+    a bioschemas:FormalParameter ;
+    dcterms:conformsTo <https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE> ;
+    schema:name "genes" ;
+    schema:additionalType edam:data_0916 ;
+    schema:encodingFormat edam:format_3464 .

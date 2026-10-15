@@ -1,0 +1,40 @@
+@prefix amrf:       <https://w3id.org/amrf/> .
+@prefix bioschemas: <https://bioschemas.org/> .
+@prefix bsc:        <https://bioschemas.org/properties/> .
+@prefix dcterms:    <http://purl.org/dc/terms/> .
+@prefix edam:       <http://edamontology.org/> .
+@prefix obo:        <http://purl.obolibrary.org/obo/> .
+@prefix schema:     <https://schema.org/> .
+
+# TODO (tutor): the description, version and author are placeholders; add schema:license and
+# schema:citation once they are known.
+
+<https://w3id.org/cocos/model/base_bakta_50>
+    a schema:SoftwareApplication ;
+    dcterms:conformsTo <https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE> ;
+    schema:identifier "base_bakta_50" ;
+    schema:name "base_bakta_50" ;
+    schema:description "TODO: baseline multilayer perceptron over the presence of Bakta-annotated genes (50)."@en ;
+    schema:softwareVersion "0.0.0" ;
+    schema:author [ a schema:Person ; schema:name "TODO" ] ;
+    schema:featureList edam:operation_3482 ;
+    bsc:input <https://w3id.org/cocos/model/base_bakta_50#genes> ;
+    bsc:output <https://w3id.org/cocos/model/base_bakta_50#predictions> ;
+    schema:taxonomicRange obo:NCBITaxon_2 ;
+    amrf:predictsResistanceTo obo:ARO_0000013 ,   # amikacin
+                              obo:ARO_3000645 ,   # cefotaxime
+                              obo:ARO_0000073 .   # meropenem
+
+<https://w3id.org/cocos/model/base_bakta_50#genes>
+    a bioschemas:FormalParameter ;
+    dcterms:conformsTo <https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE> ;
+    schema:name "genes" ;
+    schema:additionalType edam:data_0916 ;
+    schema:encodingFormat edam:format_3464 .
+
+<https://w3id.org/cocos/model/base_bakta_50#predictions>
+    a bioschemas:FormalParameter ;
+    dcterms:conformsTo <https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE> ;
+    schema:name "predictions" ;
+    schema:additionalType edam:data_2048 ;
+    schema:encodingFormat edam:format_3752 .
