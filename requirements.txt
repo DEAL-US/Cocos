@@ -8,3 +8,5 @@ torch==2.2.0
 numpy==1.24.3
 gunicorn
 whitenoise
+rdflib==7.6.0
+pyshacl==0.40.1
