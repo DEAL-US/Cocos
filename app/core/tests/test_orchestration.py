@@ -9,7 +9,7 @@ from core.orchestration import PlanError, advance_plan, create_process, extend_p
 from core.testing import BAKTA_JSON, FakeBioService, FlowTestMixin
 from notifications.models import TaskNotification
 from prediction.models import PredictionRun, PredictionTask
-from prediction.adapters.registry import MODEL_REGISTRY
+from prediction.testing import register_fake_models
 
 
 class ConstantModel:
@@ -79,9 +79,7 @@ class PlanExecutionTests(OrchestrationTestCase):
         self.assertEqual(latest_tasks(process)['n2'].input_file('assembly'), latest_tasks(process)['n1'].output_file('assembly'))
 
     def test_prediction_nodes_run_in_parallel_after_the_genes(self):
-        MODEL_REGISTRY.update({'fake_a': ConstantModel, 'fake_b': ConstantModel})
-        self.addCleanup(MODEL_REGISTRY.pop, 'fake_a', None)
-        self.addCleanup(MODEL_REGISTRY.pop, 'fake_b', None)
+        register_fake_models(self, {'fake_a': ConstantModel, 'fake_b': ConstantModel})
 
         process = create_process(self.user, 'sample.json', [{'id': 'n1', 'step': 'extract_bakta_json'}],
                                  {'n1': {'annotation': self.bakta_json()}})
@@ -200,9 +198,7 @@ class BatchNotificationTests(OrchestrationTestCase):
         ])
 
     def test_prediction_requests_notify_their_start_and_end_once(self):
-        MODEL_REGISTRY.update({'fake_a': ConstantModel, 'fake_b': ConstantModel})
-        self.addCleanup(MODEL_REGISTRY.pop, 'fake_a', None)
-        self.addCleanup(MODEL_REGISTRY.pop, 'fake_b', None)
+        register_fake_models(self, {'fake_a': ConstantModel, 'fake_b': ConstantModel})
         process = create_process(self.user, 'sample.json', [{'id': 'n1', 'step': 'extract_bakta_json'}],
                                  {'n1': {'annotation': self.bakta_json()}})
         run = PredictionRun.objects.create(process=process, selected_models=['fake_a', 'fake_b'], selected_antibiotics=['amikacin'])

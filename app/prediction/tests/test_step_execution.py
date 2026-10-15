@@ -12,7 +12,7 @@ from core.models import File, ProcessGroup
 from core.steps import StepError, get_step
 from core.testing import BAKTA_JSON, FlowTestMixin
 from prediction.models import NO_RESULT, PredictionRun, PredictionTask
-from prediction.adapters.registry import MODEL_ANTIBIOTICS, MODEL_REGISTRY
+from prediction.testing import register_fake_models
 from prediction.steps import get_prediction
 
 
@@ -37,20 +37,12 @@ class BrokenModel(HalfModel):
 class PredictionStepTests(FlowTestMixin, TestCase):
     def setUp(self):
         super().setUp()
-        self._registry_backup = (dict(MODEL_REGISTRY), dict(MODEL_ANTIBIOTICS))
-        self.addCleanup(self._restore_registry)
-        MODEL_REGISTRY.update({'fake_half': HalfModel, 'fake_broken': BrokenModel})
+        register_fake_models(self, {'fake_half': HalfModel, 'fake_broken': BrokenModel})
 
         self.process = ProcessGroup.objects.create(name='sample', user=self.user)
         self.genes = File(user=self.user, file_type=File.FileType.JSON)
         self.genes.file.save('genes.json', ContentFile(json.dumps(BAKTA_JSON).encode()), save=True)
         parse_file('bakta_json', BAKTA_JSON, self.genes, user=self.user)
-
-    def _restore_registry(self):
-        MODEL_REGISTRY.clear()
-        MODEL_REGISTRY.update(self._registry_backup[0])
-        MODEL_ANTIBIOTICS.clear()
-        MODEL_ANTIBIOTICS.update(self._registry_backup[1])
 
     def make_task(self, model, antibiotics):
         step = get_step(f'predict_{model}')

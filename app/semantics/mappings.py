@@ -62,3 +62,22 @@ def sequencing_technique(step):
     """NCIT technique of the reads a step consumes, or None if it does not depend on one."""
     technology = getattr(step, 'technology', '')
     return SEQUENCING_TECHNIQUES[technology] if technology else None
+
+
+def kind_of(data_iri):
+    """The DataKind an EDAM data term stands for."""
+    for kind, term in DATA.items():
+        if term == data_iri:
+            return kind
+    raise KeyError(f'No data kind for {data_iri}')
+
+
+def file_type_of(format_iri):
+    """The File.FileType a format term is stored as."""
+    for (_, file_type), term in SPECIFIC_FORMATS.items():
+        if term == format_iri:
+            return file_type
+    for file_type, term in FORMATS.items():
+        if term == format_iri:
+            return file_type
+    raise KeyError(f'No file type for {format_iri}')

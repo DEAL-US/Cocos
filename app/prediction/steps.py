@@ -4,10 +4,11 @@ import io
 import logging
 
 from core.models import File
-from core.steps import DataKind, LocalStep, Port, StepError, register_step_provider
+from core.steps import LocalStep, StepError, register_step_provider
 
 from .adapters.registry import (
     get_model_adapter_class,
+    get_model_ports,
     get_model_supported_antibiotics,
     get_model_supported_organisms,
     list_registered_models,
@@ -32,17 +33,16 @@ def get_prediction(model_name: str, antibiotic: str, file) -> float:
 
 
 class ModelPredictionStep(LocalStep):
-    """Predict antibiotic resistance with one registered model."""
+    """Predict antibiotic resistance with one registered model; its ports come from the model descriptor."""
     category = 'prediction'
     task_model = PredictionTask
-    consumes = (Port('genes', DataKind.GENE_SET, File.FileType.JSON),)
-    produces = (Port('predictions', DataKind.RESISTANCE_PREDICTION, File.FileType.CSV),)
     default_parameters = {'antibiotics': []}
 
     def __init__(self, model_name):
         self.model_name = model_name
         self.key = f'{PREDICTION_STEP_PREFIX}{model_name}'
         self.label = model_name
+        self.consumes, self.produces = get_model_ports(model_name)
 
     @property
     def supported_antibiotics(self):

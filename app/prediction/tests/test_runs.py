@@ -11,7 +11,7 @@ from core.orchestration import create_process, extend_plan
 from core.testing import BAKTA_JSON, FlowTestMixin
 from notifications.models import TaskNotification
 from prediction.models import NO_RESULT, PredictionRun
-from prediction.adapters.registry import MODEL_REGISTRY
+from prediction.testing import register_fake_models
 from prediction.runs import prepare_prediction_csv
 
 
@@ -36,9 +36,7 @@ class BrokenModel(HalfModel):
 class PredictionRunTests(FlowTestMixin, TestCase):
     def setUp(self):
         super().setUp()
-        for name, cls in (('fake_half', HalfModel), ('fake_broken', BrokenModel)):
-            MODEL_REGISTRY[name] = cls
-            self.addCleanup(MODEL_REGISTRY.pop, name, None)
+        register_fake_models(self, {'fake_half': HalfModel, 'fake_broken': BrokenModel})
 
         genes = File(user=self.user, file_type=File.FileType.JSON)
         genes.file.save('sample.json', ContentFile(json.dumps(BAKTA_JSON).encode()), save=True)

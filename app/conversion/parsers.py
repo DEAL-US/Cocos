@@ -6,6 +6,7 @@ import importlib
 import pkgutil
 
 import parsers
+from semantics.plugins import describe_parser
 
 
 # --- Registry for parsers ---
@@ -14,9 +15,14 @@ PARSERS = {}
 def register_parser(name):
     """
     Decorator to register a parser instance under `name`.
+
+    A parser with a descriptor (parsers/<name>/descriptor.ttl) becomes a gene extraction step
+    with the label and ports the descriptor declares.
     """
     def decorator(cls):
-        PARSERS[name] = cls()
+        parser = cls()
+        parser.description = describe_parser(name)
+        PARSERS[name] = parser
         return cls
     return decorator
 
@@ -36,10 +42,8 @@ def parse_file(parser, data, file, user=None, options=None):
 
 # --- Base Parser, extend this for specific file types or parsing ---
 class BaseParser():
-    # Parsers that declare what they consume become gene extraction steps (see conversion.steps).
-    label = ''
-    consumes_kind = None
-    consumes_format = None
+    # Step parameters, passed to parse() as options. What the parser consumes and produces is
+    # declared in its descriptor.ttl.
     default_options = {}
 
     def read(self, file):

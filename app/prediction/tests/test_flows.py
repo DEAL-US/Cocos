@@ -15,7 +15,8 @@ from django.urls import reverse
 from core.models import File, ProcessGroup, TaskStatus
 from core.testing import BAKTA_JSON, FakeBioService, FlowTestMixin
 from prediction.models import PredictionRun
-from prediction.adapters.registry import MODEL_ANTIBIOTICS, MODEL_REGISTRY
+from prediction.adapters.registry import MODEL_ANTIBIOTICS
+from prediction.testing import register_fake_models
 
 
 class ConstantModel:
@@ -51,23 +52,14 @@ FAKE_MODELS = {
 class PredictionFlowTests(FlowTestMixin, TestCase):
     def setUp(self):
         super().setUp()
-        self._registry_backup = (dict(MODEL_REGISTRY), dict(MODEL_ANTIBIOTICS))
-        for name, (cls, antibiotics) in FAKE_MODELS.items():
-            MODEL_REGISTRY[name] = cls
-            MODEL_ANTIBIOTICS[name] = antibiotics
+        self.real_model_antibiotics = dict(MODEL_ANTIBIOTICS)
+        register_fake_models(self, FAKE_MODELS)
 
         payload = SimpleUploadedFile('sample.json', json.dumps(BAKTA_JSON).encode(), content_type='application/json')
         with FakeBioService():
             self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': payload})
         self.process = ProcessGroup.objects.get(user=self.user)
         self.genes_file = File.objects.get(user=self.user, file_type=File.FileType.JSON)
-
-    def tearDown(self):
-        MODEL_REGISTRY.clear()
-        MODEL_REGISTRY.update(self._registry_backup[0])
-        MODEL_ANTIBIOTICS.clear()
-        MODEL_ANTIBIOTICS.update(self._registry_backup[1])
-        super().tearDown()
 
     def predict(self, models, antibiotics, file_id=None):
         return self.client.post(reverse('prediction:prediction_matrix'), data={
@@ -164,11 +156,9 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_real_models_smoke(self):
-        real_models = {name: antibiotics for name, antibiotics in self._registry_backup[1].items() if antibiotics}
+        real_models = {name: antibiotics for name, antibiotics in self.real_model_antibiotics.items() if antibiotics}
         if not real_models:
             self.skipTest('No real models with weights are registered in this environment')
-        MODEL_REGISTRY.update(self._registry_backup[0])
-        MODEL_ANTIBIOTICS.update(self._registry_backup[1])
 
         for name, antibiotics in real_models.items():
             with self.subTest(model=name):

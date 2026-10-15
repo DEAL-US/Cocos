@@ -1,6 +1,8 @@
 from django.test import SimpleTestCase
 
 from core import steps as step_registry
+from unittest import mock
+
 from conversion.parsers import PARSERS, BaseParser, register_parser
 from core.models import File, TaskStatus
 from core.steps import (
@@ -13,7 +15,9 @@ from core.steps import (
     list_steps,
     register_step,
 )
-from prediction.adapters.registry import ANY_ORGANISM, MODEL_ANTIBIOTICS, MODEL_REGISTRY
+from prediction.adapters.registry import ANY_ORGANISM, MODEL_REGISTRY
+from prediction.testing import register_fake_models
+from semantics.plugins import ParserDescription
 
 FASTQ, FASTA, JSON = File.FileType.FASTQ, File.FileType.FASTA, File.FileType.JSON
 
@@ -100,21 +104,24 @@ class ExternalStatusTests(SimpleTestCase):
 
 
 class GeneExtractionStepsTests(SimpleTestCase):
-    def register_parser_temporarily(self, name, cls):
-        register_parser(name)(cls)
+    def register_parser_temporarily(self, name, cls, description=None):
+        with mock.patch('conversion.parsers.describe_parser', return_value=description):
+            register_parser(name)(cls)
         self.addCleanup(PARSERS.pop, name, None)
 
-    def test_one_extraction_step_per_parser_that_declares_its_input(self):
+    def test_one_extraction_step_per_parser_with_a_descriptor(self):
         class TsvParser(BaseParser):
-            label = 'AMR TSV'
-            consumes_kind = DataKind.ANNOTATED_GENOME
-            consumes_format = File.FileType.CSV
             default_options = {'min_identity': 90}
 
         class UndeclaredParser(BaseParser):
             pass
 
-        self.register_parser_temporarily('test_tsv', TsvParser)
+        description = ParserDescription(
+            label='Gene extraction · AMR TSV',
+            inputs=ports(('annotation', DataKind.ANNOTATED_GENOME, File.FileType.CSV)),
+            outputs=ports(('genes', DataKind.GENE_SET, File.FileType.CSV)),
+        )
+        self.register_parser_temporarily('test_tsv', TsvParser, description)
         self.register_parser_temporarily('test_undeclared', UndeclaredParser)
 
         step = get_step('extract_test_tsv')
@@ -127,22 +134,15 @@ class GeneExtractionStepsTests(SimpleTestCase):
 
 
 class PredictionStepsTests(SimpleTestCase):
-    def setUp(self):
-        self._registry_backup = (dict(MODEL_REGISTRY), dict(MODEL_ANTIBIOTICS))
-
-    def tearDown(self):
-        MODEL_REGISTRY.clear()
-        MODEL_REGISTRY.update(self._registry_backup[0])
-        MODEL_ANTIBIOTICS.clear()
-        MODEL_ANTIBIOTICS.update(self._registry_backup[1])
+    def register_late_model(self):
+        register_fake_models(self, {'late_model': (object, ['amikacin'])})
 
     def test_one_prediction_step_per_registered_model(self):
         keys = {step.key for step in list_steps() if step.category == 'prediction'}
         self.assertEqual(keys, {f'predict_{name}' for name in MODEL_REGISTRY})
 
     def test_models_registered_later_are_available_as_steps(self):
-        MODEL_REGISTRY['late_model'] = object
-        MODEL_ANTIBIOTICS['late_model'] = ['amikacin']
+        self.register_late_model()
 
         step = get_step('predict_late_model')
 
@@ -155,7 +155,7 @@ class PredictionStepsTests(SimpleTestCase):
         self.assertEqual(step.build_parameters({'antibiotics': ['amikacin']}), {'antibiotics': ['amikacin']})
 
     def test_default_parameters_are_not_shared_between_calls(self):
-        MODEL_REGISTRY['late_model'] = object
+        self.register_late_model()
         step = get_step('predict_late_model')
         step.build_parameters()['antibiotics'].append('amikacin')
         self.assertEqual(step.build_parameters(), {'antibiotics': []})

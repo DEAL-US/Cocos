@@ -40,8 +40,9 @@ def build_registry_graph(include_terms=True):
     graph = bind_prefixes(Graph())
     graph += load_vocabulary()
     graph += steps_graph(framework_steps())
-    for name in PARSERS:
-        graph += load_descriptor(parser_descriptor_path(name))
+    for name, parser in PARSERS.items():
+        if getattr(parser, 'description', None) is not None:
+            graph += load_descriptor(parser_descriptor_path(name))
     for name in list_registered_models():
         graph += load_descriptor(model_descriptor_path(name))
     if include_terms and TERMS_FILE.exists():

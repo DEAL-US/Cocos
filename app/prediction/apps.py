@@ -1,4 +1,8 @@
+import logging
+
 from django.apps import AppConfig
+
+logger = logging.getLogger(__name__)
 
 
 class PredictionConfig(AppConfig):
@@ -6,7 +10,7 @@ class PredictionConfig(AppConfig):
     name = 'prediction'
     
     def ready(self):
-        from . import steps
+        from . import checks, steps  # noqa: F401 (checks registers the system checks)
 
         # Import all modules under ai_models (recursively) so that model adapter
         # decorators run. We prefer `app.ai_models` (package under the Django
@@ -33,7 +37,8 @@ class PredictionConfig(AppConfig):
                 try:
                     importlib.import_module(module_name)
                 except Exception:
-                    # Don't block startup for import errors in individual model modules
-                    pass
+                    # Don't block startup for import errors in individual model modules, but say why
+                    # the model is missing (e.g. no descriptor.ttl).
+                    logger.exception('Could not load the model module %s', module_name)
         except Exception:
             pass

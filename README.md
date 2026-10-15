@@ -181,6 +181,16 @@ Environment files are not committed. `.env.example` and `.env.prod.example` are 
 
 Prediction models and annotation parsers are plug-ins: each one is a folder that COCOS discovers when it starts, so adding one does not require changing the rest of the code.
 
+Each plug-in has a **`descriptor.ttl`**: an RDF description (Turtle) of what it consumes and produces and, for models, which organisms and antibiotics it supports. The descriptor is the source of truth: COCOS reads it to decide what a plug-in can be used for. It reuses existing ontologies: [EDAM](https://edamontology.org) for data, formats and operations, [ARO](https://obofoundry.org/ontology/aro.html) for antibiotics, [NCBITaxon](https://obofoundry.org/ontology/ncbitaxon.html) for organisms and [Bioschemas](https://bioschemas.org/profiles/ComputationalTool) for the overall structure, plus the AMRF vocabulary of COCOS (`app/semantics/vocab/amrf.ttl`) for what they do not cover. Copy the descriptor of an existing plug-in and adapt it.
+
+After adding or changing a descriptor, run (needs internet):
+
+```bash
+python manage.py fetch_terms
+```
+
+It looks every ontology term up in the [EBI Ontology Lookup Service](https://www.ebi.ac.uk/ols4), fails if one does not exist, and stores their labels and hierarchy in `app/semantics/vocab/terms.ttl` (commit it). A model whose terms are not in that file is not registered.
+
 | To add | Create | Becomes the step |
 |---|---|---|
 | A prediction model | `app/ai_models/<model_name>/` | `predict_<model_name>` |
@@ -195,24 +205,23 @@ app/ai_models/<model_name>/
 ├── weights/
 │   ├── <antibiotic>.pt      # model weights per antibiotic
 │   └── ...
+├── descriptor.ttl           # what the model supports (see below)
 └── model_classes.py         # model definition & adapter
 ```
 
 **Rules:**
 
-- Weight files must be named after the antibiotic (e.g. `amikacin.pt`). The antibiotics a model supports are the names of its weight files.
-- The adapter registered with `@register_model("<model_name>")` uses the folder name, so its weights are found.
-- The adapter must accept an `antibiotic` argument in `__init__` and implement `load()` and `predict(file)`, where `file` is a Bakta JSON `File` whose genes have been extracted. `predict` returns the probability of resistance.
-- `supported_organisms` declares the organisms the model was built for: `ANY_ORGANISM` (the default) or NCBI Taxonomy CURIEs with their names. The organisms offered to users come from these declarations: the organism field of the upload forms only appears once some model declares specific organisms.
+- The descriptor declares the antibiotics the model predicts (`amrf:predictsResistanceTo` with ARO terms) and the organisms it was built for (`schema:taxonomicRange` with NCBITaxon terms; `obo:NCBITaxon_2`, Bacteria, means any organism). The organisms offered to users come from these declarations: the organism field of the upload forms only appears once some model declares specific organisms.
+- Weight files must be named after the ARO label of each declared antibiotic (e.g. `amikacin.pt` for `obo:ARO_0000013`). `python manage.py check` reports a declared antibiotic without weights as an error, and weights for an undeclared antibiotic as a warning.
+- The adapter registered with `@register_model("<model_name>")` uses the folder name, so its weights and descriptor are found.
+- The adapter must accept an `antibiotic` argument in `__init__` and implement `load()` and `predict(file)`, where `file` is the input the descriptor declares (today, a Bakta JSON `File` whose genes have been extracted). `predict` returns the probability of resistance.
 
 ```python
-from prediction.adapters import ANY_ORGANISM, ModelInterface, get_model_weights_path, presence_from_list, register_model
+from prediction.adapters import ModelInterface, get_model_weights_path, presence_from_list, register_model
 
 
 @register_model("my_model")
 class MyAdapter(ModelInterface):
-    supported_organisms = ANY_ORGANISM  # or {'NCBITaxon:562': 'Escherichia coli'}
-
     def __init__(self, antibiotic: str):
         self.antibiotic = antibiotic
 
@@ -226,33 +235,29 @@ class MyAdapter(ModelInterface):
         ...  # return the probability of resistance
 ```
 
-Each registered model becomes a prediction step (`predict_<model_name>`) that runs on the genes of a process. See `app/ai_models/base_bakta_50/` for a complete example.
+Each registered model becomes a prediction step (`predict_<model_name>`) that consumes what its descriptor declares. See `app/ai_models/base_bakta_50/` for a complete example.
 
 ### Add New Annotation Parsers
 
-Parsers read an annotation file and link its genes to the file. Each registered parser that declares what it consumes becomes a gene extraction step (`extract_<parser_name>`), so other annotation formats can be added without changing the pipeline.
+Parsers read an annotation file and link its genes to the file. Each registered parser with a descriptor becomes a gene extraction step (`extract_<parser_name>`) with the label, input and output the descriptor declares, so other annotation formats can be added without changing the pipeline.
 
 Add a folder under `app/parsers/` with this structure:
 
 ```
 app/parsers/<parser_name>/
 ├── __init__.py
+├── descriptor.ttl           # the extraction step: its label, input (data and format) and output
 └── parser.py                # the parser, registered with @register_parser("<parser_name>")
 ```
 
 In `parser.py`, register a subclass of `BaseParser`:
 
 ```python
-from core.models import File
-from core.steps import DataKind
 from conversion.parsers import BaseParser, register_parser
 
 
 @register_parser('my_format')
 class MyFormatParser(BaseParser):
-    label = 'My format'                          # step label: "Gene extraction · My format"
-    consumes_kind = DataKind.ANNOTATED_GENOME    # what the input file represents
-    consumes_format = File.FileType.CSV          # how it is stored
     default_options = {'min_identity': 90}       # step parameters, passed to parse() as options
 
     def read(self, file):

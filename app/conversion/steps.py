@@ -1,6 +1,6 @@
 """Conversion steps run on the bio service (assembly, annotation) or locally (gene extraction).
 
-There is one gene extraction step per registered parser that declares what it consumes.
+There is one gene extraction step per registered parser with a descriptor.
 """
 import json
 import os
@@ -134,9 +134,9 @@ class GeneExtractionStep(LocalStep):
     def __init__(self, parser_name, parser):
         self.parser_name = parser_name
         self.key = f'{GENE_EXTRACTION_STEP_PREFIX}{parser_name}'
-        self.label = f'Gene extraction · {parser.label}'
-        self.consumes = (Port('annotation', parser.consumes_kind, parser.consumes_format),)
-        self.produces = (Port('genes', DataKind.GENE_SET, parser.consumes_format),)
+        self.label = parser.description.label
+        self.consumes = parser.description.inputs
+        self.produces = parser.description.outputs
         self.default_parameters = dict(parser.default_options)
 
     def process(self, task):
@@ -168,6 +168,6 @@ def gene_extraction_steps():
     steps = (
         GeneExtractionStep(name, parser)
         for name, parser in PARSERS.items()
-        if getattr(parser, 'consumes_kind', None) is not None
+        if getattr(parser, 'description', None) is not None
     )
     return {step.key: step for step in steps}

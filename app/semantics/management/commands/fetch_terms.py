@@ -1,6 +1,9 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from semantics.registry import build_registry_graph
+from semantics.descriptors import all_descriptor_paths, load_descriptor
+from semantics.registry import framework_steps
+from semantics.steps_graph import steps_graph
+from semantics.vocabulary import load_vocabulary
 from semantics.terms import TERMS_FILE, TermError, fetch_terms, reused_terms, write_terms
 
 
@@ -9,7 +12,12 @@ class Command(BaseCommand):
             'hierarchy to terms.ttl. Run it after adding or changing a descriptor; needs internet.')
 
     def handle(self, *args, **options):
-        iris = reused_terms(build_registry_graph(include_terms=False))
+        # Read every descriptor file, not only the registered plug-ins: a model is not registered
+        # until the terms it uses are in terms.ttl.
+        graph = load_vocabulary() + steps_graph(framework_steps())
+        for path in all_descriptor_paths():
+            graph += load_descriptor(path)
+        iris = reused_terms(graph)
         self.stdout.write(f'Looking up {len(iris)} terms in OLS...')
         try:
             graph = fetch_terms(iris)

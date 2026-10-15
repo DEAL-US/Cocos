@@ -1,7 +1,12 @@
-"""Model registry utilities. Allow registering model adapter classes with a simple decorator and retrieving them by name."""
+"""Model registry utilities. Allow registering model adapter classes with a simple decorator and retrieving them by name.
+
+What a model supports (organisms, antibiotics, input) comes from its descriptor.ttl, read by the
+semantic layer when the model is registered.
+"""
 import inspect
-import re
 from pathlib import Path
+
+from semantics.plugins import describe_model
 
 MODEL_REGISTRY = {
     # 'model_name': ModelAdapterClass,
@@ -23,7 +28,9 @@ MODEL_ORGANISMS = {
     # 'model_name': ANY_ORGANISM or {'NCBITaxon:562': 'Escherichia coli', ...},
 }
 
-NCBI_TAXON_CURIE = re.compile(r'^NCBITaxon:\d+$')
+MODEL_PORTS = {
+    # 'model_name': (consumes, produces), tuples of core.steps.Port
+}
 
 def _validate_adapter_init(cls) -> None:
     try:
@@ -38,28 +45,15 @@ def _validate_adapter_init(cls) -> None:
             f"Adapter {cls.__name__} must accept an 'antibiotic' parameter in __init__"
         )
 
-def _validate_supported_organisms(cls):
-    """Return ANY_ORGANISM or a {CURIE: name} dict; adapters that declare nothing support any organism."""
-    organisms = getattr(cls, 'supported_organisms', ANY_ORGANISM)
-    if organisms is ANY_ORGANISM:
-        return ANY_ORGANISM
-    if not isinstance(organisms, dict) or not organisms:
-        raise TypeError(f"Adapter {cls.__name__}.supported_organisms must be ANY_ORGANISM or a non-empty dict {{CURIE: name}}")
-    for curie, label in organisms.items():
-        if not NCBI_TAXON_CURIE.match(curie) or not label:
-            raise TypeError(f"Adapter {cls.__name__}: invalid organism {curie!r}; use 'NCBITaxon:<id>': '<name>'")
-    return dict(organisms)
-
 def register_model(name: str = None):
     def _decorator(cls):
         _validate_adapter_init(cls)
-        organisms = _validate_supported_organisms(cls)
         key = (name or cls.__name__).lower()
-        base_dir = Path(__file__).resolve().parents[2]
-        weights_dir = base_dir / 'ai_models' / key / 'weights'
+        description = describe_model(key)
         MODEL_REGISTRY[key] = cls
-        MODEL_ANTIBIOTICS[key] = _compute_model_supported_antibiotics(weights_dir)
-        MODEL_ORGANISMS[key] = organisms
+        MODEL_ANTIBIOTICS[key] = list(description.antibiotics)
+        MODEL_ORGANISMS[key] = ANY_ORGANISM if description.any_organism else description.organisms
+        MODEL_PORTS[key] = (description.inputs, description.outputs)
         return cls
     return _decorator
 
@@ -76,6 +70,10 @@ def list_registered_models():
 def get_model_supported_antibiotics(name: str):
     """Return list of antibiotic names available for a given registered model."""
     return MODEL_ANTIBIOTICS.get(name.lower(), [])
+
+def get_model_ports(name: str):
+    """Return (consumes, produces) of a registered model, as declared in its descriptor."""
+    return MODEL_PORTS[name.lower()]
 
 def get_model_supported_organisms(name: str):
     """Return ANY_ORGANISM or {CURIE: name} of the organisms a registered model supports."""
@@ -97,12 +95,11 @@ def list_all_antibiotics():
         antibiotics.update(ab_list)
     return sorted(antibiotics)
 
-# ---- Internal utilities
-def _compute_model_supported_antibiotics(weights_dir: str):
-    """
-    Compute the list of antibiotic names available for a given registered model.
-    """
-    if weights_dir.exists() and weights_dir.is_dir():
-        return sorted({p.stem for p in weights_dir.glob('*.pt')})
-    else:
-        return []
+# ---- Weights
+def model_weights_dir(name: str) -> Path:
+    return Path(__file__).resolve().parents[2] / 'ai_models' / name / 'weights'
+
+def list_model_weights(name: str):
+    """Return the sorted names of the weight files (<antibiotic>.pt) of a model."""
+    weights_dir = model_weights_dir(name)
+    return sorted(p.stem for p in weights_dir.glob('*.pt')) if weights_dir.is_dir() else []

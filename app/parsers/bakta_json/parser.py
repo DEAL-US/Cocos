@@ -4,15 +4,11 @@ import json
 from django.db import transaction
 
 from conversion.parsers import BaseParser, register_parser
-from core.models import File, FileGene, Gene
-from core.steps import DataKind
+from core.models import FileGene, Gene
 
 
 @register_parser('bakta_json')
 class BaktaJsonParser(BaseParser):
-    label = 'Bakta JSON'
-    consumes_kind = DataKind.ANNOTATED_GENOME
-    consumes_format = File.FileType.JSON
     default_options = {'complete_version': False}
 
     def read(self, file):

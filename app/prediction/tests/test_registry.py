@@ -2,22 +2,45 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
+from core.models import File
+from core.steps import DataKind, Port
 from prediction.adapters.registry import (
     ANY_ORGANISM,
+    MODEL_ANTIBIOTICS,
     MODEL_ORGANISMS,
+    MODEL_PORTS,
     MODEL_REGISTRY,
     get_model_adapter_class,
+    get_model_ports,
+    get_model_supported_antibiotics,
     get_model_supported_organisms,
     list_all_organisms,
     list_registered_models,
     register_model,
 )
+from semantics.plugins import DescriptorError, ModelDescription
+
+GENES = (Port('genes', DataKind.GENE_SET, File.FileType.JSON),)
+PREDICTIONS = (Port('predictions', DataKind.RESISTANCE_PREDICTION, File.FileType.CSV),)
+
+
+def description(organisms=None, antibiotics=('amikacin',)):
+    """What a descriptor declares: any organism unless `organisms` ({CURIE: name}) is given."""
+    return ModelDescription(inputs=GENES, outputs=PREDICTIONS, any_organism=organisms is None,
+                            organisms=dict(organisms or {}), antibiotics=tuple(antibiotics))
+
+
+def describing(**kwargs):
+    """Patch the descriptor reader so registered test models declare `kwargs`."""
+    return patch('prediction.adapters.registry.describe_model', return_value=description(**kwargs))
 
 
 class RegistryTests(TestCase):
     def setUp(self):
         self._registry_backup = dict(MODEL_REGISTRY)
         MODEL_REGISTRY.clear()
+        describing().start()
+        self.addCleanup(patch.stopall)
 
     def tearDown(self):
         MODEL_REGISTRY.clear()
@@ -62,39 +85,34 @@ class RegistryTests(TestCase):
 
 
 
-class SupportedOrganismsTests(TestCase):
+class ModelDescriptorTests(TestCase):
+    """What a model supports comes from its descriptor."""
+
     def setUp(self):
-        self._backup = (dict(MODEL_REGISTRY), dict(MODEL_ORGANISMS))
+        registries = (MODEL_REGISTRY, MODEL_ANTIBIOTICS, MODEL_ORGANISMS, MODEL_PORTS)
+        backups = [dict(registry) for registry in registries]
 
-    def tearDown(self):
-        MODEL_REGISTRY.clear()
-        MODEL_REGISTRY.update(self._backup[0])
-        MODEL_ORGANISMS.clear()
-        MODEL_ORGANISMS.update(self._backup[1])
+        def restore():
+            for registry, backup in zip(registries, backups):
+                registry.clear()
+                registry.update(backup)
+        self.addCleanup(restore)
 
-    def test_specific_organisms_are_listed_and_any_organism_models_are_not(self):
-        @register_model("test_ecoli")
-        class EcoliAdapter:
-            supported_organisms = {'NCBITaxon:562': 'Escherichia coli'}
+    def register(self, name, **kwargs):
+        with describing(**kwargs):
+            @register_model(name)
+            class Adapter:
+                def __init__(self, antibiotic: str):
+                    pass
 
-            def __init__(self, antibiotic: str):
-                pass
-
-        @register_model("test_tb")
-        class TbAdapter:
-            supported_organisms = {'NCBITaxon:1773': 'Mycobacterium tuberculosis', 'NCBITaxon:562': 'Escherichia coli'}
-
-            def __init__(self, antibiotic: str):
-                pass
-
-        @register_model("test_any")
-        class AnyAdapter:
-            supported_organisms = ANY_ORGANISM
-
-            def __init__(self, antibiotic: str):
-                pass
+    def test_organisms_antibiotics_and_ports_come_from_the_descriptor(self):
+        self.register('test_ecoli', organisms={'NCBITaxon:562': 'Escherichia coli'}, antibiotics=('amikacin', 'meropenem'))
+        self.register('test_tb', organisms={'NCBITaxon:1773': 'Mycobacterium tuberculosis', 'NCBITaxon:562': 'Escherichia coli'})
+        self.register('test_any')
 
         self.assertEqual(get_model_supported_organisms('TEST_ECOLI'), {'NCBITaxon:562': 'Escherichia coli'})
+        self.assertEqual(get_model_supported_antibiotics('test_ecoli'), ['amikacin', 'meropenem'])
+        self.assertEqual(get_model_ports('test_ecoli'), (GENES, PREDICTIONS))
         self.assertIs(get_model_supported_organisms('test_any'), ANY_ORGANISM)
         organisms = list_all_organisms()
         self.assertIn(('NCBITaxon:1773', 'Mycobacterium tuberculosis'), organisms)
@@ -102,28 +120,16 @@ class SupportedOrganismsTests(TestCase):
         self.assertEqual(names, sorted(names))
         self.assertEqual(len(names), len(set(names)))
 
-    def test_models_that_declare_nothing_support_any_organism(self):
-        @register_model("test_no_organisms")
-        class NoOrganismsAdapter:
-            def __init__(self, antibiotic: str):
-                pass
+    def test_a_model_without_descriptor_is_not_registered(self):
+        with self.assertRaises(DescriptorError):
+            @register_model("test_without_descriptor")
+            class Adapter:
+                def __init__(self, antibiotic: str):
+                    pass
 
-        self.assertIs(get_model_supported_organisms('test_no_organisms'), ANY_ORGANISM)
-
-    def test_invalid_organisms_are_rejected(self):
-        cases = [['NCBITaxon:562'], {}, {'562': 'Escherichia coli'}, {'NCBITaxon:562': ''}, 'any']
-        for organisms in cases:
-            with self.subTest(organisms=organisms):
-                with self.assertRaises(TypeError):
-                    @register_model("test_invalid_organisms")
-                    class InvalidAdapter:
-                        supported_organisms = organisms
-
-                        def __init__(self, antibiotic: str):
-                            pass
+        self.assertNotIn('test_without_descriptor', list_registered_models())
 
     def test_real_models_support_any_organism(self):
         for name in ('base_bakta_50', 'base_bakta_90'):
-            if name in self._backup[0]:
-                with self.subTest(name):
-                    self.assertIs(get_model_supported_organisms(name), ANY_ORGANISM)
+            with self.subTest(name):
+                self.assertIs(get_model_supported_organisms(name), ANY_ORGANISM)
