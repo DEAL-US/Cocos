@@ -65,6 +65,10 @@ obo:ARO_0000073 rdfs:label "meropenem" ;
 obo:ARO_3000645 rdfs:label "cefotaxime" ;
     rdfs:subClassOf obo:ARO_3009107 .
 
+obo:ARO_3007382 rdfs:label "gentamicin" ;
+    rdfs:subClassOf obo:ARO_0000016,
+        obo:ARO_3000707 .
+
 obo:IAO_0000136 rdfs:label "is about" .
 
 obo:NCBITaxon_2 rdfs:label "Bacteria" ;
@@ -164,9 +168,6 @@ edam:operation_2423 rdfs:label "Prediction and recognition" ;
 edam:operation_2945 rdfs:label "Data analysis" ;
     rdfs:subClassOf edam:operation_0004 .
 
-obo:ARO_0000016 rdfs:label "aminoglycoside antibiotic" ;
-    rdfs:subClassOf obo:ARO_1000003 .
-
 obo:ARO_0000020 rdfs:label "carbapenem" ;
     rdfs:subClassOf obo:ARO_3000007 .
 
@@ -174,6 +175,9 @@ obo:ARO_0000032 rdfs:label "cephalosporin" ;
     rdfs:subClassOf obo:ARO_3000007 .
 
 obo:ARO_1000001 rdfs:label "process or component of antibiotic biology or chemistry" .
+
+obo:ARO_3000707 rdfs:label "antibiotic mixture" ;
+    rdfs:subClassOf obo:ARO_1000003 .
 
 obo:ARO_3009107 rdfs:label "third-generation cephalosporin" ;
     rdfs:subClassOf obo:ARO_0000032 .
@@ -222,8 +226,8 @@ edam:operation_2478 rdfs:label "Nucleic acid sequence analysis" ;
 edam:operation_3918 rdfs:label "Genome analysis" ;
     rdfs:subClassOf edam:operation_2478 .
 
-obo:ARO_1000003 rdfs:label "antibiotic molecule" ;
-    rdfs:subClassOf obo:ARO_1000001 .
+obo:ARO_0000016 rdfs:label "aminoglycoside antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
 
 obo:ARO_3000007 rdfs:label "beta-lactam antibiotic" ;
     rdfs:subClassOf obo:ARO_1000003 .
@@ -239,6 +243,9 @@ obo:NCIT_C19770 rdfs:label "Molecular Analysis" ;
 
 edam:format_2330 rdfs:label "Textual format" ;
     rdfs:subClassOf edam:format_1915 .
+
+obo:ARO_1000003 rdfs:label "antibiotic molecule" ;
+    rdfs:subClassOf obo:ARO_1000001 .
 
 edam:data_0006 rdfs:label "Data" .
 

@@ -23,7 +23,7 @@
     schema:taxonomicRange obo:NCBITaxon_2 ;
     amrf:predictsResistanceTo obo:ARO_0000013 ,   # amikacin
                               obo:ARO_3000645 ,   # cefotaxime
-                              obo:ARO_0000073 .   # meropenem
+                              obo:ARO_3007382 .   # gentamicin
 
 <https://w3id.org/cocos/model/base_bakta_90#genes>
     a bioschemas:FormalParameter ;
