@@ -8,6 +8,9 @@ class ConversionConfig(AppConfig):
 
     def ready(self):
         from . import steps
+        from .parsers import load_parser_packages
+
+        load_parser_packages()
 
         # In DEBUG purge Celery queues and related Redis keys to keep
         # development runs clean (originally in converter.apps)

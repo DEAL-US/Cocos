@@ -177,7 +177,16 @@ Environment files are not committed. `.env.example` and `.env.prod.example` are 
 
 ---
 
-## Add New Prediction Models
+## Extending COCOS
+
+Prediction models and annotation parsers are plug-ins: each one is a folder that COCOS discovers when it starts, so adding one does not require changing the rest of the code.
+
+| To add | Create | Becomes the step |
+|---|---|---|
+| A prediction model | `app/ai_models/<model_name>/` | `predict_<model_name>` |
+| An annotation parser | `app/parsers/<parser_name>/` | `extract_<parser_name>` |
+
+### Add New Prediction Models
 
 Add a folder under `app/ai_models/` with this structure:
 
@@ -219,13 +228,19 @@ class MyAdapter(ModelInterface):
 
 Each registered model becomes a prediction step (`predict_<model_name>`) that runs on the genes of a process. See `app/ai_models/base_bakta_50/` for a complete example.
 
----
-
-## Add New Annotation Parsers
+### Add New Annotation Parsers
 
 Parsers read an annotation file and link its genes to the file. Each registered parser that declares what it consumes becomes a gene extraction step (`extract_<parser_name>`), so other annotation formats can be added without changing the pipeline.
 
-Register a subclass of `BaseParser` in `app/conversion/parsers.py`:
+Add a folder under `app/parsers/` with this structure:
+
+```
+app/parsers/<parser_name>/
+├── __init__.py
+└── parser.py                # the parser, registered with @register_parser("<parser_name>")
+```
+
+In `parser.py`, register a subclass of `BaseParser`:
 
 ```python
 from core.models import File
@@ -249,7 +264,7 @@ class MyFormatParser(BaseParser):
         ...
 ```
 
-See `BaktaJsonParser` for a complete example.
+See `app/parsers/bakta_json/` for a complete example.
 
 ---
 
