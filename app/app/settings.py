@@ -193,7 +193,7 @@ CELERY_RESULT_BACKEND = "django-db"
 
 # Email Configuration
 # Development: console backend (prints to terminal)
-# Production: SendGrid backend (requires sendgrid-django package and SENDGRID_API_KEY env var)
+# Production: SendGrid backend (requires the django-sendgrid-v5 package and SENDGRID_API_KEY env var)
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
