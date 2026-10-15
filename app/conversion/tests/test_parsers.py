@@ -4,7 +4,7 @@ from django.core.files.base import ContentFile
 from django.test import TestCase
 from core.models import FileGene, Gene
 from core.models import File
-from conversion.parsers import get_parser, parse_file, register_parser
+from conversion.parsers import PARSERS, get_parser, parse_file, register_parser
 from parsers.bakta_json.parser import BaktaJsonParser
 from pathlib import Path
 import json
@@ -28,6 +28,8 @@ class ParserRegistryTests(TestCase):
 
     def test_register_and_parse_dispatch(self):
         
+        self.addCleanup(PARSERS.pop, "dummy_parser_test", None)
+
         @register_parser("dummy_parser_test")
         class DummyParser:
             def parse(self, data, file, user=None, options=None):
