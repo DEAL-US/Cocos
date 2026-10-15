@@ -10,3 +10,4 @@ gunicorn
 whitenoise
 rdflib==7.6.0
 pyshacl==0.40.1
+python-dotenv==1.2.4
