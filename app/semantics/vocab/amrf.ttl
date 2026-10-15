@@ -1,0 +1,31 @@
+@prefix amrf:    <https://w3id.org/amrf/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix obo:     <http://purl.obolibrary.org/obo/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+# AMRF reuses EDAM, Bioschemas/schema.org, ARO, NCBITaxon, IAO and NCIT, and only defines a
+# term when none of them fits. Each term explains in skos:editorialNote why it is needed.
+
+<https://w3id.org/amrf/>
+    a owl:Ontology ;
+    dcterms:title "AMRF: AntiMicrobial Resistance Framework vocabulary"@en ;
+    dcterms:description "Terms to describe antimicrobial resistance prediction models and the processing steps that prepare their inputs, so that a framework can discover which models can be applied to a sample. Complements EDAM, Bioschemas, ARO and NCBITaxon."@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:created "2026-10-15"^^xsd:date ;
+    owl:versionInfo "0.1.0" ;
+    owl:versionIRI <https://w3id.org/amrf/0.1.0> ;
+    vann:preferredNamespacePrefix "amrf" ;
+    vann:preferredNamespaceUri "https://w3id.org/amrf/" .
+
+amrf:predictsResistanceTo
+    a owl:ObjectProperty ;
+    rdfs:label "predicts resistance to"@en ;
+    rdfs:comment "Relates a predictive model to an antibiotic for which it predicts whether a sample is resistant."@en ;
+    rdfs:subPropertyOf obo:IAO_0000136 ;
+    rdfs:range obo:ARO_1000003 ;
+    rdfs:isDefinedBy <https://w3id.org/amrf/> ;
+    skos:editorialNote "IAO 'is about' (obo:IAO_0000136) and schema:about only state that a model concerns an antibiotic, not that it predicts resistance to it rather than, for instance, susceptibility or minimum inhibitory concentration. ARO 'confers_resistance_to_antibiotic' (obo:ARO_2000000) relates genes and variants, not models. It is declared a subproperty of 'is about' so that consumers unaware of AMRF still read the model as being about the antibiotic."@en .
