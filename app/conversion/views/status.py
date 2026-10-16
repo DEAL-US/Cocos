@@ -3,7 +3,6 @@ import os
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -11,13 +10,14 @@ from django.views.decorators.http import require_POST
 
 from core.pagination import get_pagination_page_range
 from core.utils import create_file_zip
-from core.models import File, ProcessGroup, TaskStatus
+from core.models import ProcessGroup, TaskStatus
 from ..services.status import (
     build_process_rows,
     build_process_status_context,
     get_fastq_uploads_for_task,
     get_fasta_upload_for_task,
     get_json_upload_for_task,
+    get_process_files,
     rename_process,
 )
 from ..models import ConversionTask
@@ -144,8 +144,7 @@ def download_fastq_view(request, task_id):
 def download_process_file_view(request, process_id, file_id):
     """Download one file consumed or produced by a process of the user, exactly as stored."""
     process = get_object_or_404(ProcessGroup, id=process_id, user=request.user)
-    process_files = File.objects.filter(Q(task_inputs__task__process=process) | Q(task_outputs__task__process=process))
-    file = get_object_or_404(process_files.distinct(), id=file_id)
+    file = get_object_or_404(get_process_files(process), id=file_id)
     return FileResponse(file.file.open('rb'), as_attachment=True, filename=os.path.basename(file.file.name))
 
 

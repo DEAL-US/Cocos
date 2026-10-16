@@ -380,6 +380,10 @@ def rename_process(process, new_name):
     process.name = new_name
     process.save(update_fields=["name"])
 
+def get_process_files(process):
+    """Files consumed or produced by the tasks of a process."""
+    return File.objects.filter(Q(task_inputs__task__process=process) | Q(task_outputs__task__process=process)).distinct()
+
 def get_fastq_uploads_for_task(task):
     """Return FASTQ file(s) object for a task, or None if not found."""
     return File.objects.filter(task_inputs__task=task, task_inputs__role__in=READ_ROLES).order_by('task_inputs__role')
