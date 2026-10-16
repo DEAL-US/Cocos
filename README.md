@@ -276,6 +276,19 @@ See `app/parsers/bakta_json/` for a complete example.
 
 ---
 
+## Sample Descriptions (RDF)
+
+Each process can be retrieved as an RDF description of the sample, for integration with other tools (it is not linked from the web interface). Only its owner can get it, logged in:
+
+```
+GET /processes/<id>/rdf/                   Turtle
+GET /processes/<id>/rdf/?format=jsonld     JSON-LD (or send Accept: application/ld+json)
+```
+
+The sample is a `schema:Dataset` named by the URL of its process page, with the organism chosen by the user (`schema:taxonomicRange`, absent if unknown) and the data it has as `schema:DataDownload` parts: the files the user uploaded and the outputs of completed tasks. Each part is a file in the role it plays (e.g. `reads`, `assembly`, `annotation`, `genes`), described with the same EDAM data and format terms as the inputs of steps and models, and with a `schema:contentUrl` to download that file (`/processes/<id>/files/<file id>/`). A Bakta JSON appears twice: as the annotation and, once its genes are extracted, as the genes.
+
+---
+
 ## Testing
 
 Dependencies are split in two files:

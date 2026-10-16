@@ -23,4 +23,5 @@ urlpatterns = [
     path('', include(('conversion.urls', 'conversion'), namespace='conversion')),
     path('notifications/', include(('notifications.urls', 'notifications'), namespace='notifications')),
     path('', include(('prediction.urls', 'prediction'), namespace='prediction')),
+    path('', include(('semantics.urls', 'semantics'), namespace='semantics')),
 ]
