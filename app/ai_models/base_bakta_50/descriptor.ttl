@@ -15,6 +15,7 @@
     schema:identifier "base_bakta_50" ;
     schema:name "base_bakta_50" ;
     schema:description "TODO: baseline multilayer perceptron over the presence of Bakta-annotated genes (50)."@en ;
+    schema:url <https://github.com/mquirosq/cocos/tree/main/app/ai_models/base_bakta_50> ;
     schema:softwareVersion "0.0.0" ;
     schema:author [ a schema:Person ; schema:name "TODO" ] ;
     schema:featureList edam:operation_3482 ;

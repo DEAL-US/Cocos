@@ -13,6 +13,7 @@
     schema:identifier "extract_bakta_json" ;
     schema:name "Gene extraction · Bakta JSON"@en ;
     schema:description "Reads the features of a Bakta JSON annotation and links the genes they identify (gene names, products and database cross-references) to the annotation file."@en ;
+    schema:url <https://github.com/mquirosq/cocos/tree/main/app/parsers/bakta_json> ;
     schema:featureList edam:operation_1812 ;
     bsc:input <https://w3id.org/cocos/step/extract_bakta_json#annotation> ;
     bsc:output <https://w3id.org/cocos/step/extract_bakta_json#genes> .

@@ -67,6 +67,7 @@ class AssemblyStep(ConversionBioServiceStep):
 class AssemblyONT(AssemblyStep):
     key = 'assembly_ont'
     label = 'Assembly · ONT'
+    description = 'Assembles Oxford Nanopore reads into a genome assembly in the bio service.'
     technology = 'ont'
     consumes = (Port('reads', DataKind.READS, FASTQ),)
     produces = (ASSEMBLY_OUTPUT,)
@@ -79,6 +80,7 @@ class AssemblyONT(AssemblyStep):
 class AssemblyIllumina(AssemblyStep):
     key = 'assembly_illumina'
     label = 'Assembly · Illumina'
+    description = 'Assembles paired-end Illumina reads (R1 and R2) into a genome assembly in the bio service.'
     technology = 'illumina'
     consumes = (Port('r1', DataKind.READS, FASTQ), Port('r2', DataKind.READS, FASTQ))
     produces = (ASSEMBLY_OUTPUT,)
@@ -92,6 +94,7 @@ class AssemblyIllumina(AssemblyStep):
 class AssemblyONTAnnotated(AssemblyONT):
     key = 'assembly_ont_annotated'
     label = 'Assembly + Annotation · ONT'
+    description = 'Assembles Oxford Nanopore reads and annotates the assembly with Bakta in the same bio service job.'
     annotate = True
     produces = (ASSEMBLY_OUTPUT, ANNOTATION_OUTPUT)
 
@@ -100,6 +103,7 @@ class AssemblyONTAnnotated(AssemblyONT):
 class AssemblyIlluminaAnnotated(AssemblyIllumina):
     key = 'assembly_illumina_annotated'
     label = 'Assembly + Annotation · Illumina'
+    description = 'Assembles paired-end Illumina reads and annotates the assembly with Bakta in the same bio service job.'
     annotate = True
     produces = (ASSEMBLY_OUTPUT, ANNOTATION_OUTPUT)
 
@@ -109,6 +113,7 @@ class BaktaAnnotation(ConversionBioServiceStep):
     """Bakta annotation of an assembly uploaded to the bio service."""
     key = 'bakta_annotation'
     label = 'Annotation'
+    description = 'Annotates a genome assembly with Bakta in the bio service.'
     category = 'annotation'
     finished_status = 'annotated'
     consumes = (Port('assembly', DataKind.ASSEMBLY, FASTA),)

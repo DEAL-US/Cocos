@@ -58,6 +58,8 @@ class Step:
     """Base class for every step: metadata, plus how it runs (see LocalStep and ExternalStep)."""
     key: str = ''
     label: str = ''
+    # One sentence on what the step does, for its RDF description.
+    description: str = ''
     category: str = ''
     consumes: tuple[Port, ...] = ()
     produces: tuple[Port, ...] = ()

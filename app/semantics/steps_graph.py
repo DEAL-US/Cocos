@@ -3,6 +3,10 @@
 Each step is a Bioschemas ComputationalTool: a schema:SoftwareApplication with the EDAM
 operations it performs and its inputs and outputs as FormalParameters (EDAM data and format).
 """
+import inspect
+from pathlib import Path
+
+from django.conf import settings
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, RDF
 
@@ -17,6 +21,12 @@ def step_iri(step):
     return COCOS[f'step/{step.key}']
 
 
+def source_url(step):
+    """Web page of the source file that defines the step."""
+    path = Path(inspect.getsourcefile(type(step))).resolve().relative_to(Path(settings.BASE_DIR).resolve().parent)
+    return URIRef(f'{settings.COCOS_SOURCE_URL}/{path.as_posix()}')
+
+
 def port_iri(resource, role):
     return URIRef(f'{resource}#{role}')
 
@@ -28,6 +38,8 @@ def describe_step(graph, step):
     graph.add((step_node, DCTERMS.conformsTo, COMPUTATIONAL_TOOL_PROFILE))
     graph.add((step_node, SCHEMA.identifier, Literal(step.key)))
     graph.add((step_node, SCHEMA.name, Literal(step.label, lang='en')))
+    graph.add((step_node, SCHEMA.description, Literal(step.description, lang='en')))
+    graph.add((step_node, SCHEMA.url, source_url(step)))
     for operation in operation_terms(step):
         graph.add((step_node, SCHEMA.featureList, operation))
 
