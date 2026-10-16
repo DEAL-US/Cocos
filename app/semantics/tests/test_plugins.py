@@ -5,7 +5,10 @@ from rdflib import Graph
 
 from core.models import File
 from core.steps import DataKind, Port
-from semantics.plugins import DescriptorError, describe_model, describe_parser
+from semantics.checks import check_rejected_plugins
+from semantics.descriptors import load_descriptor, model_descriptor_path
+from semantics.namespaces import SCHEMA
+from semantics.plugins import REJECTED_PLUGINS, DescriptorError, describe_model, describe_parser
 
 GENES = Port('genes', DataKind.GENE_SET, File.FileType.JSON)
 
@@ -41,3 +44,22 @@ class DescribeParserTests(SimpleTestCase):
 
     def test_a_parser_without_descriptor_is_not_a_step(self):
         self.assertIsNone(describe_parser('no_such_parser'))
+
+
+class InvalidDescriptorTests(SimpleTestCase):
+    def test_a_descriptor_that_breaks_the_shapes_is_an_error(self):
+        graph = load_descriptor(model_descriptor_path('base_bakta_50'))
+        graph.remove((None, SCHEMA.url, None))
+
+        with mock.patch('semantics.plugins.load_descriptor', return_value=graph):
+            with self.assertRaisesRegex(DescriptorError, 'schema:url'):
+                describe_model('base_bakta_50')
+
+
+class RejectedPluginsCheckTests(SimpleTestCase):
+    def test_rejected_plugins_are_reported_as_warnings(self):
+        with mock.patch.dict(REJECTED_PLUGINS, {('model', 'broken'): 'no descriptor'}, clear=True):
+            messages = check_rejected_plugins(None)
+
+        self.assertEqual([(message.id, message.msg) for message in messages],
+                         [('semantics.W001', 'The model broken was not registered: no descriptor')])

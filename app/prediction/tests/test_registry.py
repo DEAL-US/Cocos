@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -18,7 +19,7 @@ from prediction.adapters.registry import (
     list_registered_models,
     register_model,
 )
-from semantics.plugins import DescriptorError, ModelDescription
+from semantics.plugins import REJECTED_PLUGINS, ModelDescription
 
 GENES = (Port('genes', DataKind.GENE_SET, File.FileType.JSON),)
 PREDICTIONS = (Port('predictions', DataKind.RESISTANCE_PREDICTION, File.FileType.CSV),)
@@ -30,17 +31,21 @@ def description(organisms=None, antibiotics=('amikacin',)):
                             organisms=dict(organisms or {}), antibiotics=tuple(antibiotics))
 
 
-def describing(**kwargs):
-    """Patch the descriptor reader so registered test models declare `kwargs`."""
-    return patch('prediction.adapters.registry.describe_model', return_value=description(**kwargs))
+@contextmanager
+def describing(weights=None, **kwargs):
+    """Patch the descriptor reader so registered test models declare `kwargs`, and have weights for
+    the declared antibiotics (or for `weights`, if given)."""
+    declared = description(**kwargs)
+    weights = list(declared.antibiotics if weights is None else weights)
+    with patch('prediction.adapters.registry.describe_model', return_value=declared),             patch('prediction.adapters.registry.list_model_weights', return_value=weights):
+        yield
 
 
 class RegistryTests(TestCase):
     def setUp(self):
         self._registry_backup = dict(MODEL_REGISTRY)
         MODEL_REGISTRY.clear()
-        describing().start()
-        self.addCleanup(patch.stopall)
+        self.enterContext(describing())
 
     def tearDown(self):
         MODEL_REGISTRY.clear()
@@ -89,7 +94,7 @@ class ModelDescriptorTests(TestCase):
     """What a model supports comes from its descriptor."""
 
     def setUp(self):
-        registries = (MODEL_REGISTRY, MODEL_ANTIBIOTICS, MODEL_ORGANISMS, MODEL_PORTS)
+        registries = (MODEL_REGISTRY, MODEL_ANTIBIOTICS, MODEL_ORGANISMS, MODEL_PORTS, REJECTED_PLUGINS)
         backups = [dict(registry) for registry in registries]
 
         def restore():
@@ -98,8 +103,8 @@ class ModelDescriptorTests(TestCase):
                 registry.update(backup)
         self.addCleanup(restore)
 
-    def register(self, name, **kwargs):
-        with describing(**kwargs):
+    def register(self, name, weights=None, **kwargs):
+        with describing(weights, **kwargs):
             @register_model(name)
             class Adapter:
                 def __init__(self, antibiotic: str):
@@ -120,14 +125,20 @@ class ModelDescriptorTests(TestCase):
         self.assertEqual(names, sorted(names))
         self.assertEqual(len(names), len(set(names)))
 
-    def test_a_model_without_descriptor_is_not_registered(self):
-        with self.assertRaises(DescriptorError):
-            @register_model("test_without_descriptor")
-            class Adapter:
-                def __init__(self, antibiotic: str):
-                    pass
+    def test_a_model_without_descriptor_is_skipped_and_reported(self):
+        @register_model("test_without_descriptor")
+        class Adapter:
+            def __init__(self, antibiotic: str):
+                pass
 
         self.assertNotIn('test_without_descriptor', list_registered_models())
+        self.assertIn('not found', REJECTED_PLUGINS[('model', 'test_without_descriptor')])
+
+    def test_a_model_without_weights_for_a_declared_antibiotic_is_skipped_and_reported(self):
+        self.register('test_missing_weights', antibiotics=('amikacin', 'meropenem'), weights=['amikacin'])
+
+        self.assertNotIn('test_missing_weights', list_registered_models())
+        self.assertIn('meropenem', REJECTED_PLUGINS[('model', 'test_missing_weights')])
 
     def test_real_models_support_any_organism(self):
         for name in ('base_bakta_50', 'base_bakta_90'):

@@ -6,7 +6,7 @@ semantic layer when the model is registered.
 import inspect
 from pathlib import Path
 
-from semantics.plugins import describe_model
+from semantics.plugins import DescriptorError, accept_plugin, describe_model, reject_plugin
 
 MODEL_REGISTRY = {
     # 'model_name': ModelAdapterClass,
@@ -46,10 +46,20 @@ def _validate_adapter_init(cls) -> None:
         )
 
 def register_model(name: str = None):
+    """Register an adapter. The model is skipped (and reported by the system checks) if its
+    descriptor is missing or invalid, or if an antibiotic it declares has no weights."""
     def _decorator(cls):
         _validate_adapter_init(cls)
         key = (name or cls.__name__).lower()
-        description = describe_model(key)
+        try:
+            description = describe_model(key)
+            missing = sorted(set(description.antibiotics) - set(list_model_weights(key)))
+            if missing:
+                raise DescriptorError(f'it declares {", ".join(missing)} but has no weights for them in {model_weights_dir(key)}')
+        except DescriptorError as error:
+            reject_plugin('model', key, error)
+            return cls
+        accept_plugin('model', key)
         MODEL_REGISTRY[key] = cls
         MODEL_ANTIBIOTICS[key] = list(description.antibiotics)
         MODEL_ORGANISMS[key] = ANY_ORGANISM if description.any_organism else description.organisms

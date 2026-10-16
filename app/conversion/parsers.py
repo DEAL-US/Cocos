@@ -6,7 +6,7 @@ import importlib
 import pkgutil
 
 import parsers
-from semantics.plugins import describe_parser
+from semantics.plugins import DescriptorError, accept_plugin, describe_parser, reject_plugin
 
 
 # --- Registry for parsers ---
@@ -16,12 +16,17 @@ def register_parser(name):
     """
     Decorator to register a parser instance under `name`.
 
-    A parser with a descriptor (parsers/<name>/descriptor.ttl) becomes a gene extraction step
-    with the label and ports the descriptor declares.
+    A parser with a valid descriptor (parsers/<name>/descriptor.ttl) becomes a gene extraction
+    step with the label and ports the descriptor declares. With an invalid one, it is not a step.
     """
     def decorator(cls):
         parser = cls()
-        parser.description = describe_parser(name)
+        try:
+            parser.description = describe_parser(name)
+            accept_plugin('parser', name)
+        except DescriptorError as error:
+            parser.description = None
+            reject_plugin('parser', name, error)
         PARSERS[name] = parser
         return cls
     return decorator

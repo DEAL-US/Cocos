@@ -183,14 +183,16 @@ Prediction models and annotation parsers are plug-ins: each one is a folder that
 
 Each plug-in has a **`descriptor.ttl`**: an RDF description (Turtle) of what it consumes and produces and, for models, which organisms and antibiotics it supports. The descriptor is the source of truth: COCOS reads it to decide what a plug-in can be used for. It reuses existing ontologies: [EDAM](https://edamontology.org) for data, formats and operations, [ARO](https://obofoundry.org/ontology/aro.html) for antibiotics, [NCBITaxon](https://obofoundry.org/ontology/ncbitaxon.html) for organisms and [Bioschemas](https://bioschemas.org/profiles/ComputationalTool) for the overall structure, plus the AMRF vocabulary of COCOS (`app/semantics/vocab/amrf.ttl`) for what they do not cover. Copy the descriptor of an existing plug-in and adapt it.
 
+Every descriptor is validated with the [SHACL](https://www.w3.org/TR/shacl/) shapes in `app/semantics/vocab/shapes.ttl` when the plug-in is registered. They require what [Bioschemas ComputationalTool](https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE) requires (`name`, `description`, `url`), EDAM terms for operations, inputs and outputs and, for models, a version, ARO antibiotics and NCBITaxon organisms; `author`, `license` and `citation` are recommended. **A plug-in whose descriptor is invalid is not registered**: the rest of COCOS keeps working, and `python manage.py check` reports why (`semantics.W001`). The test suite fails while any plug-in is invalid.
+
 **Checklist** to add or change a plug-in (commands run from `app/`, or in the dev container with `docker exec bio-web-web-1 python manage.py ...`):
 
 1. Create the folder with the code and its `descriptor.ttl` (see the sections below).
 2. Run `python manage.py fetch_terms` (needs internet). It looks every ontology term of every descriptor up in the [EBI Ontology Lookup Service](https://www.ebi.ac.uk/ols4), fails if one does not exist or is obsolete, and stores their labels and hierarchy in `app/semantics/vocab/terms.ttl`. The application and the tests only read that file, so they never need internet.
-3. Run `python manage.py check`: for models, it reports missing or undeclared weights.
+3. Run `python manage.py check`. It warns about plug-ins that were not registered (invalid descriptor, or a declared antibiotic without weights) and about weights the descriptor does not declare.
 4. Commit the folder and `terms.ttl` together.
 
-If you forget step 2, the plug-in does not appear: COCOS cannot name its antibiotics or organisms, so it skips the model at startup and logs `... has no label in terms.ttl: run python manage.py fetch_terms`. The test suite fails for the same reason.
+If you forget step 2, the plug-in does not appear: without the hierarchy of its terms its descriptor cannot be validated, so `python manage.py check` reports it as not registered and suggests running `fetch_terms`. The test suite fails for the same reason.
 
 | To add | Create | Becomes the step |
 |---|---|---|
@@ -213,7 +215,7 @@ app/ai_models/<model_name>/
 **Rules:**
 
 - The descriptor declares the antibiotics the model predicts (`amrf:predictsResistanceTo` with ARO terms) and the organisms it was built for (`schema:taxonomicRange` with NCBITaxon terms; `obo:NCBITaxon_2`, Bacteria, means any organism). The organisms offered to users come from these declarations: the organism field of the upload forms only appears once some model declares specific organisms.
-- Weight files must be named after the ARO label of each declared antibiotic (e.g. `amikacin.pt` for `obo:ARO_0000013`). `python manage.py check` reports a declared antibiotic without weights as an error, and weights for an undeclared antibiotic as a warning.
+- Weight files must be named after the ARO label of each declared antibiotic (e.g. `amikacin.pt` for `obo:ARO_0000013`). A model with a declared antibiotic without weights is not registered (reported by `python manage.py check`); weights for an undeclared antibiotic are ignored, with a warning.
 - The adapter registered with `@register_model("<model_name>")` uses the folder name, so its weights and descriptor are found.
 - The adapter must accept an `antibiotic` argument in `__init__` and implement `load()` and `predict(file)`, where `file` is the input the descriptor declares (today, a Bakta JSON `File` whose genes have been extracted). `predict` returns the probability of resistance.
 
