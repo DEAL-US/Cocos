@@ -175,3 +175,36 @@ amrfsh:OwnTermShape
         sh:path rdfs:isDefinedBy ; sh:hasValue amrf: ;
         sh:message "An AMRF term needs rdfs:isDefinedBy amrf:."@en ;
     ] .
+
+# --- Samples: the data a framework holds about one isolate (instance data, not the registry)
+
+amrfsh:SampleShape
+    a sh:NodeShape ;
+    sh:targetClass schema:Dataset ;
+    sh:property [
+        sh:path schema:identifier ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A sample needs exactly one schema:identifier."@en ;
+    ] , [
+        sh:path schema:name ; sh:minCount 1 ;
+        sh:message "A sample needs a schema:name."@en ;
+    ] , [
+        sh:path schema:taxonomicRange ; sh:node amrfsh:Taxon ;
+        sh:message "The organism of a sample (schema:taxonomicRange) must be an NCBITaxon term; leave it out if unknown."@en ;
+    ] , [
+        sh:path schema:hasPart ; sh:class schema:DataDownload ;
+        sh:message "The parts of a sample (schema:hasPart) must be schema:DataDownload entries."@en ;
+    ] .
+
+amrfsh:DataEntryShape
+    a sh:NodeShape ;
+    sh:targetClass schema:DataDownload ;
+    sh:property [
+        sh:path schema:name ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A piece of data needs exactly one schema:name, its role."@en ;
+    ] , [
+        sh:path schema:additionalType ; sh:minCount 1 ; sh:maxCount 1 ; sh:node amrfsh:EdamData ;
+        sh:message "A piece of data needs exactly one schema:additionalType, an EDAM data term."@en ;
+    ] , [
+        sh:path schema:encodingFormat ; sh:minCount 1 ; sh:maxCount 1 ; sh:node amrfsh:EdamFormat ;
+        sh:message "A piece of data needs exactly one schema:encodingFormat, an EDAM format term."@en ;
+    ] .
