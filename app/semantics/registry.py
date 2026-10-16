@@ -2,8 +2,12 @@
 
 It joins the AMRF vocabulary, the steps of the framework (generated from the code), the
 descriptors of the parsers and models (written by hand) and the labels and hierarchy of the
-reused ontology terms (terms.ttl). Every access to the graph goes through this module, so it
-could be served from a triplestore without changing its users.
+reused ontology terms (terms.ttl).
+
+Code that queries the registry (the discovery, the SPARQL endpoint) gets the graph from
+registry_graph(), so the graph could later be served from a triplestore by changing only
+this module. Reading the descriptor files themselves (plugins.py, fetch_terms) does not go
+through here.
 """
 from functools import lru_cache
 
