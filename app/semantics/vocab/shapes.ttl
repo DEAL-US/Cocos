@@ -1,0 +1,177 @@
+@prefix amrf:       <https://w3id.org/amrf/> .
+@prefix amrfsh:     <https://w3id.org/amrf/shapes#> .
+@prefix bioschemas: <https://bioschemas.org/> .
+@prefix bsc:        <https://bioschemas.org/properties/> .
+@prefix dcterms:    <http://purl.org/dc/terms/> .
+@prefix edam:       <http://edamontology.org/> .
+@prefix obo:        <http://purl.obolibrary.org/obo/> .
+@prefix owl:        <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:       <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema:     <https://schema.org/> .
+@prefix sh:         <http://www.w3.org/ns/shacl#> .
+@prefix skos:       <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:        <http://www.w3.org/2001/XMLSchema#> .
+
+# What a valid description of an antimicrobial resistance prediction model, and of the steps that
+# prepare its inputs, looks like. Checking that a term "is an antibiotic" or "is an EDAM format"
+# follows rdfs:subClassOf up to the root, so the hierarchy of the reused terms must be in the data
+# graph (COCOS adds terms.ttl).
+
+amrfsh:
+    a owl:Ontology ;
+    dcterms:title "AMRF shapes: validation of antimicrobial resistance model descriptions"@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:created "2026-10-16"^^xsd:date ;
+    owl:versionInfo "0.1.0" ;
+    rdfs:seeAlso amrf: .
+
+# --- Tools: every step and model (Bioschemas ComputationalTool 1.0 minimum, plus EDAM I/O)
+
+amrfsh:ToolShape
+    a sh:NodeShape ;
+    sh:targetClass schema:SoftwareApplication ;
+    sh:property [
+        sh:path schema:identifier ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A tool needs exactly one schema:identifier."@en ;
+    ] , [
+        sh:path schema:name ; sh:minCount 1 ;
+        sh:message "A tool needs a schema:name (Bioschemas minimum)."@en ;
+    ] , [
+        sh:path schema:description ; sh:minCount 1 ; sh:minLength 1 ;
+        sh:message "A tool needs a schema:description (Bioschemas minimum)."@en ;
+    ] , [
+        sh:path schema:url ; sh:minCount 1 ; sh:nodeKind sh:IRI ;
+        sh:message "A tool needs a schema:url, the web page of the tool (Bioschemas minimum)."@en ;
+    ] , [
+        sh:path dcterms:conformsTo ;
+        sh:hasValue <https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE> ;
+        sh:message "A tool must declare dcterms:conformsTo the Bioschemas ComputationalTool 1.0 profile."@en ;
+    ] , [
+        sh:path schema:featureList ; sh:minCount 1 ; sh:node amrfsh:EdamOperation ;
+        sh:message "A tool needs at least one schema:featureList, and each must be an EDAM operation."@en ;
+    ] , [
+        sh:path bsc:input ; sh:minCount 1 ; sh:class bioschemas:FormalParameter ;
+        sh:message "A tool needs at least one bsc:input, and each must be a bioschemas:FormalParameter."@en ;
+    ] , [
+        sh:path bsc:output ; sh:minCount 1 ; sh:class bioschemas:FormalParameter ;
+        sh:message "A tool needs at least one bsc:output, and each must be a bioschemas:FormalParameter."@en ;
+    ] .
+
+# --- Inputs and outputs (Bioschemas FormalParameter 1.0, with EDAM data and format)
+
+amrfsh:ParameterShape
+    a sh:NodeShape ;
+    sh:targetObjectsOf bsc:input , bsc:output ;
+    sh:property [
+        sh:path schema:name ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A parameter needs exactly one schema:name, its role."@en ;
+    ] , [
+        sh:path dcterms:conformsTo ;
+        sh:hasValue <https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE> ;
+        sh:message "A parameter must declare dcterms:conformsTo the Bioschemas FormalParameter 1.0 profile."@en ;
+    ] , [
+        sh:path schema:additionalType ; sh:minCount 1 ; sh:maxCount 1 ; sh:node amrfsh:EdamData ;
+        sh:message "A parameter needs exactly one schema:additionalType, an EDAM data term."@en ;
+    ] , [
+        sh:path schema:encodingFormat ; sh:minCount 1 ; sh:maxCount 1 ; sh:node amrfsh:EdamFormat ;
+        sh:message "A parameter needs exactly one schema:encodingFormat, an EDAM format term."@en ;
+    ] .
+
+# --- Models: tools that perform EDAM Antimicrobial resistance prediction
+
+amrfsh:ModelShape
+    a sh:NodeShape ;
+    # A SPARQL target (SHACL Advanced Features) selects the tools that are models.
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE { ?this <https://schema.org/featureList> <http://edamontology.org/operation_3482> . }
+        """ ;
+    ] ;
+    # The properties are on this shape (not behind sh:node) so that a missing recommended
+    # property is a warning, not a failure of the whole model.
+    sh:property [
+        sh:path schema:softwareVersion ; sh:minCount 1 ;
+        sh:message "A model needs a schema:softwareVersion."@en ;
+    ] , [
+        sh:path amrf:predictsResistanceTo ; sh:minCount 1 ; sh:node amrfsh:Antibiotic ;
+        sh:message "A model needs at least one amrf:predictsResistanceTo, and each must be an ARO antibiotic."@en ;
+    ] , [
+        sh:path schema:taxonomicRange ; sh:minCount 1 ; sh:node amrfsh:Taxon ;
+        sh:message "A model needs at least one schema:taxonomicRange, and each must be an NCBITaxon term (NCBITaxon_2, Bacteria, for any organism)."@en ;
+    ] , [
+        sh:path schema:author ; sh:minCount 1 ; sh:severity sh:Warning ;
+        sh:message "A model should declare its schema:author."@en ;
+    ] , [
+        sh:path schema:license ; sh:minCount 1 ; sh:severity sh:Warning ;
+        sh:message "A model should declare its schema:license."@en ;
+    ] , [
+        sh:path schema:citation ; sh:minCount 1 ; sh:severity sh:Warning ;
+        sh:message "A model should declare how to cite it (schema:citation)."@en ;
+    ] .
+
+# --- Reused terms: each must sit under the root of its ontology
+
+amrfsh:EdamOperation
+    a sh:NodeShape ;
+    sh:property [
+        sh:path [ sh:zeroOrMorePath rdfs:subClassOf ] ; sh:hasValue edam:operation_0004 ;
+        sh:message "Not an EDAM operation (or not in terms.ttl: run manage.py fetch_terms)."@en ;
+    ] .
+
+amrfsh:EdamData
+    a sh:NodeShape ;
+    sh:property [
+        sh:path [ sh:zeroOrMorePath rdfs:subClassOf ] ; sh:hasValue edam:data_0006 ;
+        sh:message "Not an EDAM data term (or not in terms.ttl: run manage.py fetch_terms)."@en ;
+    ] .
+
+amrfsh:EdamFormat
+    a sh:NodeShape ;
+    sh:property [
+        sh:path [ sh:zeroOrMorePath rdfs:subClassOf ] ; sh:hasValue edam:format_1915 ;
+        sh:message "Not an EDAM format (or not in terms.ttl: run manage.py fetch_terms)."@en ;
+    ] .
+
+amrfsh:Antibiotic
+    a sh:NodeShape ;
+    sh:property [
+        sh:path [ sh:zeroOrMorePath rdfs:subClassOf ] ; sh:hasValue obo:ARO_1000003 ;
+        sh:message "Not an ARO antibiotic molecule (or not in terms.ttl: run manage.py fetch_terms)."@en ;
+    ] .
+
+amrfsh:Taxon
+    a sh:NodeShape ;
+    sh:property [
+        sh:path [ sh:zeroOrMorePath rdfs:subClassOf ] ; sh:hasValue obo:NCBITaxon_1 ;
+        sh:message "Not an NCBITaxon organism (or not in terms.ttl: run manage.py fetch_terms)."@en ;
+    ] .
+
+# --- The AMRF vocabulary itself: every own term documented and justified
+
+amrfsh:OwnTermShape
+    a sh:NodeShape ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT DISTINCT ?this WHERE {
+                ?this ?p ?o .
+                FILTER (isIRI(?this) && STRSTARTS(STR(?this), "https://w3id.org/amrf/")
+                        && !STRSTARTS(STR(?this), "https://w3id.org/amrf/shapes")
+                        && ?this != <https://w3id.org/amrf/>)
+            }
+        """ ;
+    ] ;
+    sh:property [
+        sh:path rdfs:label ; sh:minCount 1 ;
+        sh:message "An AMRF term needs an rdfs:label."@en ;
+    ] , [
+        sh:path rdfs:comment ; sh:minCount 1 ;
+        sh:message "An AMRF term needs an rdfs:comment that defines it."@en ;
+    ] , [
+        sh:path skos:editorialNote ; sh:minCount 1 ;
+        sh:message "An AMRF term needs a skos:editorialNote explaining why no existing term fits."@en ;
+    ] , [
+        sh:path rdfs:isDefinedBy ; sh:hasValue amrf: ;
+        sh:message "An AMRF term needs rdfs:isDefinedBy amrf:."@en ;
+    ] .

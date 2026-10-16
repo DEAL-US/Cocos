@@ -5,9 +5,7 @@ antibiotics and ports of each model from here, and the gene extraction steps tak
 and label of each parser. Labels of reused terms come from terms.ttl.
 """
 from dataclasses import dataclass
-from functools import lru_cache
 
-from rdflib import Graph
 from rdflib.namespace import RDFS
 
 from core.steps import Port
@@ -15,7 +13,7 @@ from core.steps import Port
 from .descriptors import load_descriptor, model_descriptor_path, model_iri, parser_descriptor_path
 from .mappings import file_type_of, kind_of
 from .namespaces import AMRF, BSC, COCOS, OBO, SCHEMA
-from .terms import TERMS_FILE
+from .terms import terms_graph
 
 # A model for Bacteria accepts a sample of any organism (v1: no other taxonomy reasoning).
 ANY_BACTERIA = OBO.NCBITaxon_2
@@ -39,11 +37,6 @@ class ParserDescription:
     label: str
     inputs: tuple
     outputs: tuple
-
-
-@lru_cache(maxsize=1)
-def terms_graph():
-    return Graph().parse(TERMS_FILE, format='turtle') if TERMS_FILE.exists() else Graph()
 
 
 def describe_model(model_name):

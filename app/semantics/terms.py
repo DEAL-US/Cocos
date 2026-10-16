@@ -4,6 +4,7 @@
 does not exist or is obsolete, and returns its label and its ancestors up to the root. The
 result is stored in terms.ttl, so the application and the tests never need the internet.
 """
+from functools import lru_cache
 from pathlib import Path
 from urllib.parse import quote
 
@@ -38,6 +39,12 @@ HEADER = """# Labels and hierarchy of the ontology terms COCOS reuses, copied fr
 
 class TermError(Exception):
     """A reused term does not exist or is obsolete."""
+
+
+@lru_cache(maxsize=1)
+def terms_graph():
+    """The contents of terms.ttl (empty if it does not exist yet). Treat it as read-only."""
+    return Graph().parse(TERMS_FILE, format='turtle') if TERMS_FILE.exists() else Graph()
 
 
 def ontology_of(iri):
