@@ -13,6 +13,9 @@ from rdflib.namespace import DCTERMS, RDF
 from .mappings import data_term, format_term, operation_terms, sequencing_technique
 from .namespaces import BIOSCHEMAS, BSC, COCOS, SCHEMA, bind_prefixes
 
+# bio.tools tool type of the steps that run as jobs in the bio service.
+WEB_SERVICE = 'Web service'
+
 COMPUTATIONAL_TOOL_PROFILE = URIRef('https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE')
 FORMAL_PARAMETER_PROFILE = URIRef('https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE')
 
@@ -40,6 +43,8 @@ def describe_step(graph, step):
     graph.add((step_node, SCHEMA.name, Literal(step.label, lang='en')))
     graph.add((step_node, SCHEMA.description, Literal(step.description, lang='en')))
     graph.add((step_node, SCHEMA.url, source_url(step)))
+    if step.is_external:
+        graph.add((step_node, SCHEMA.applicationCategory, Literal(WEB_SERVICE)))
     for operation in operation_terms(step):
         graph.add((step_node, SCHEMA.featureList, operation))
 

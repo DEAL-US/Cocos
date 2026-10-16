@@ -15,6 +15,7 @@ class StepsGraphTests(SimpleTestCase):
 
         self.assertIn((step, RDF.type, SCHEMA.SoftwareApplication), graph)
         self.assertIn((step, SCHEMA.featureList, EDAM.operation_0525), graph)
+        self.assertEqual(graph.value(step, SCHEMA.applicationCategory), Literal('Web service'))
         self.assertTrue(str(graph.value(step, SCHEMA.description)))
         self.assertEqual(str(graph.value(step, SCHEMA.url)),
                          'https://github.com/mquirosq/cocos/blob/main/app/conversion/steps.py')
