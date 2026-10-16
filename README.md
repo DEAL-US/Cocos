@@ -183,13 +183,14 @@ Prediction models and annotation parsers are plug-ins: each one is a folder that
 
 Each plug-in has a **`descriptor.ttl`**: an RDF description (Turtle) of what it consumes and produces and, for models, which organisms and antibiotics it supports. The descriptor is the source of truth: COCOS reads it to decide what a plug-in can be used for. It reuses existing ontologies: [EDAM](https://edamontology.org) for data, formats and operations, [ARO](https://obofoundry.org/ontology/aro.html) for antibiotics, [NCBITaxon](https://obofoundry.org/ontology/ncbitaxon.html) for organisms and [Bioschemas](https://bioschemas.org/profiles/ComputationalTool) for the overall structure, plus the AMRF vocabulary of COCOS (`app/semantics/vocab/amrf.ttl`) for what they do not cover. Copy the descriptor of an existing plug-in and adapt it.
 
-After adding or changing a descriptor, run (needs internet):
+**Checklist** to add or change a plug-in (commands run from `app/`, or in the dev container with `docker exec bio-web-web-1 python manage.py ...`):
 
-```bash
-python manage.py fetch_terms
-```
+1. Create the folder with the code and its `descriptor.ttl` (see the sections below).
+2. Run `python manage.py fetch_terms` (needs internet). It looks every ontology term of every descriptor up in the [EBI Ontology Lookup Service](https://www.ebi.ac.uk/ols4), fails if one does not exist or is obsolete, and stores their labels and hierarchy in `app/semantics/vocab/terms.ttl`. The application and the tests only read that file, so they never need internet.
+3. Run `python manage.py check`: for models, it reports missing or undeclared weights.
+4. Commit the folder and `terms.ttl` together.
 
-It looks every ontology term up in the [EBI Ontology Lookup Service](https://www.ebi.ac.uk/ols4), fails if one does not exist, and stores their labels and hierarchy in `app/semantics/vocab/terms.ttl` (commit it). A model whose terms are not in that file is not registered.
+If you forget step 2, the plug-in does not appear: COCOS cannot name its antibiotics or organisms, so it skips the model at startup and logs `... has no label in terms.ttl: run python manage.py fetch_terms`. The test suite fails for the same reason.
 
 | To add | Create | Becomes the step |
 |---|---|---|

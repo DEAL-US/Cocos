@@ -5,7 +5,10 @@ from rdflib import Graph, URIRef
 from rdflib.namespace import RDFS
 
 from semantics.namespaces import OBO
-from semantics.registry import build_registry_graph
+from semantics.descriptors import all_descriptor_paths, load_descriptor
+from semantics.registry import framework_steps
+from semantics.steps_graph import steps_graph
+from semantics.vocabulary import load_vocabulary
 from semantics.terms import TERMS_FILE, TermError, _term_url, fetch_terms, reused_terms
 
 MEROPENEM, CARBAPENEM = OBO.ARO_0000073, OBO.ARO_0000020
@@ -48,9 +51,14 @@ class FetchTermsTests(SimpleTestCase):
 
 
 class TermsFileTests(SimpleTestCase):
-    def test_every_reused_term_of_the_registry_has_a_label(self):
-        """Fails when a descriptor uses a term not in terms.ttl: run `manage.py fetch_terms`."""
+    def test_every_reused_term_of_every_descriptor_has_a_label(self):
+        """Fails when a descriptor uses a term not in terms.ttl: run `manage.py fetch_terms`.
+
+        It reads every descriptor on disk, because a model whose terms are missing is not registered.
+        """
+        graph = load_vocabulary() + steps_graph(framework_steps())
+        for path in all_descriptor_paths():
+            graph += load_descriptor(path)
         terms = Graph().parse(TERMS_FILE, format='turtle')
-        missing = [iri for iri in reused_terms(build_registry_graph(include_terms=False))
-                   if terms.value(URIRef(iri), RDFS.label) is None]
+        missing = [iri for iri in reused_terms(graph) if terms.value(URIRef(iri), RDFS.label) is None]
         self.assertEqual(missing, [])
