@@ -675,3 +675,37 @@ class OrganismTests(ConversionFlowMixin, TestCase):
                              data={'feature_file': bakta_json(), 'organism': 'NCBITaxon:562'})
         self.assertFalse(ProcessGroup.objects.exists())
         self.assertFalse(File.objects.exists())
+
+
+class ProcessFileDownloadTests(ConversionFlowMixin, TestCase):
+    """Each file of a process can be downloaded on its own (the RDF description links to it)."""
+
+    def setUp(self):
+        super().setUp()
+        with FakeBioService():
+            self.run_assembly('illumina')
+        self.process = self.latest_process()
+        assembly = self.process_tasks(self.process).first()
+        self.r1, self.r2 = assembly.input_file('r1'), assembly.input_file('r2')
+
+    def download(self, process, file):
+        return self.client.get(reverse('conversion:process_file', args=[process.id, file.id]))
+
+    def test_each_file_downloads_exactly_its_content(self):
+        for file, content in ((self.r1, b'R1-CONTENT'), (self.r2, b'R2-CONTENT')):
+            with self.subTest(file=file.id):
+                response = self.download(self.process, file)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(b''.join(response.streaming_content), content)
+
+    def test_files_of_other_processes_are_not_found(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+        other_process = self.latest_process()
+
+        self.assertEqual(self.download(other_process, self.r1).status_code, 404)
+
+    def test_other_users_cannot_download(self):
+        self.client.login(username='other-user', password='pass1234')
+
+        self.assertEqual(self.download(self.process, self.r1).status_code, 404)
