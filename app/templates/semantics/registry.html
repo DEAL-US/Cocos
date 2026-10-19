@@ -51,11 +51,24 @@
   <div class="card bg-base-100 border border-base-300 shadow-sm">
     <div class="card-body">
       <h2 class="card-title text-xl"><i class="bi bi-search text-primary"></i>SPARQL endpoint</h2>
-      <p class="text-sm">
-        Query the registry at <code>{{ request.scheme }}://{{ request.get_host }}{% url 'semantics:sparql' %}</code>
-        (SPARQL 1.1 protocol, read-only). The prefixes <code>schema:</code>, <code>edam:</code>, <code>obo:</code>,
-        <code>bsc:</code>, <code>amrf:</code> and <code>rdfs:</code> are predefined. For example, the models and the antibiotics they predict:
-      </p>
+
+      <div class="space-y-3 text-base">
+        <div class="rounded-box border border-primary/40 bg-primary/5 px-4 py-3 font-mono text-sm break-all">
+          {{ request.scheme }}://{{ request.get_host }}{% url 'semantics:sparql' %}
+        </div>
+        <p class="text-base-content/80">Read-only · SPARQL 1.1 protocol · JSON, XML or CSV results</p>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-base-content/80">Predefined prefixes</span>
+          <span class="badge badge-soft badge-primary font-mono">schema:</span>
+          <span class="badge badge-soft badge-primary font-mono">edam:</span>
+          <span class="badge badge-soft badge-primary font-mono">obo:</span>
+          <span class="badge badge-soft badge-primary font-mono">bsc:</span>
+          <span class="badge badge-soft badge-primary font-mono">amrf:</span>
+          <span class="badge badge-soft badge-primary font-mono">rdfs:</span>
+        </div>
+      </div>
+
+      <p class="mt-4 font-semibold">Example: the models and the antibiotics they predict</p>
       <pre class="bg-base-200 border border-base-300 rounded-box p-4 text-sm overflow-x-auto">SELECT ?model ?antibiotic WHERE {
   ?model schema:featureList edam:operation_3482 ;
          amrf:predictsResistanceTo ?drug .
