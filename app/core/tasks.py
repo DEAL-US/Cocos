@@ -47,7 +47,8 @@ def _batch_label(task, nodes):
 
 
 def _is_prediction_batch(nodes):
-    return bool(nodes) and 'run' in nodes[0]
+    # A prediction request can start with preparation steps; its predictions have a run.
+    return any('run' in node for node in nodes)
 
 
 def _notify_started(task):
@@ -112,6 +113,21 @@ def fail_task(task, message):
     else:
         notify_user_conversion_failed(task.process.user, task, message)
     task.get_step().on_task_finished(task)
+    if task.plan_node:
+        _cancel_blocked_nodes(task)
+
+
+def _cancel_blocked_nodes(failed_task):
+    """Cancel the nodes that can no longer run because `failed_task` failed (e.g. predictions after a
+    failed preparation step). Other blocked nodes stay, so retrying the failed node continues the plan."""
+    process = failed_task.process
+    nodes = [node for node in orchestration.blocked_nodes(process, failed_task.plan_node)
+             if get_step(node['step']).cancel_when_blocked]
+    if not nodes:
+        return
+    orchestration.cancel_nodes(process, {node['id'] for node in nodes})
+    for node in nodes:
+        get_step(node['step']).on_node_cancelled(process, node, failed_task)
 
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=1, max_retries=MAX_TRIES)

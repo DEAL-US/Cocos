@@ -5,6 +5,8 @@ A plan is a list of nodes {'id', 'step', 'parameters', 'after': [node ids], 'bat
 node adds another task for it. The nodes added by one request (creating the process, annotating
 it later, a prediction) share a batch.
 
+A node can be cancelled ('cancelled': True) when a node it depends on fails: it is never launched.
+
 A node's inputs are either files uploaded by the user (only for nodes without dependencies) or
 outputs of its dependencies with the same kind of data and format.
 """
@@ -48,7 +50,7 @@ def advance_plan(process, inputs=None):
         tasks_by_node = latest_tasks(process)
         launched = []
         for node in process.plan:
-            if node['id'] in tasks_by_node:
+            if node['id'] in tasks_by_node or node.get('cancelled'):
                 continue
             dependencies = [tasks_by_node.get(node_id) for node_id in node['after']]
             if not all(task is not None and task.status == TaskStatus.COMPLETED for task in dependencies):
@@ -72,6 +74,27 @@ def retry_node(process, node_id):
         task = _create_task(process, node, previous_inputs, dependencies=[])
     _launch([task])
     return task
+
+
+def blocked_nodes(process, node_id):
+    """Nodes without a task that depend, directly or through other nodes, on `node_id`."""
+    tasks_by_node = latest_tasks(process)
+    blocked_ids, blocked = {node_id}, []
+    for node in process.plan:  # nodes only depend on earlier nodes
+        if node['id'] not in tasks_by_node and blocked_ids & set(node['after']):
+            blocked_ids.add(node['id'])
+            blocked.append(node)
+    return blocked
+
+
+def cancel_nodes(process, node_ids):
+    """Mark nodes of the plan as cancelled, so they are never launched."""
+    with transaction.atomic():
+        process = ProcessGroup.objects.select_for_update().get(pk=process.pk)
+        for node in process.plan:
+            if node['id'] in node_ids:
+                node['cancelled'] = True
+        process.save(update_fields=['plan'])
 
 
 def find_node(process, node_id):

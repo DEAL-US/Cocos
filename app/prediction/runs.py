@@ -7,6 +7,7 @@ from django.core.files.base import ContentFile
 from django.db import transaction
 
 from core.models import File, TaskStatus
+from core.orchestration import latest_tasks
 from notifications.services import notify_user_conversion_complete, notify_user_conversion_failed
 
 from .models import NO_RESULT, PredictionRun
@@ -25,15 +26,30 @@ def mark_run_started(run_id):
 
 
 def finish_run_if_done(run_id, last_task):
-    """When every model task of the run has finished, build the matrix and the CSV and notify the user.
+    """When every model of the run has finished, build the matrix and the CSV and notify the user.
 
-    Models that failed, or could not predict an antibiotic, appear as NO_RESULT.
+    Every prediction node of the run must have a finished task, or be cancelled because its
+    preparation failed. Models that failed, were cancelled, or could not predict an antibiotic
+    appear as NO_RESULT. If every model was cancelled, the run fails.
     """
     with transaction.atomic():
-        run = PredictionRun.objects.select_for_update().get(pk=run_id)
-        tasks = list(run.tasks.all())
-        if run.status in FINISHED or any(task.status not in FINISHED for task in tasks):
+        run = PredictionRun.objects.select_for_update().select_related('process').get(pk=run_id)
+        if run.status in FINISHED:
             return False
+        nodes = [node for node in run.process.plan if node.get('run') == run.pk and not node.get('cancelled')]
+        tasks_by_node = latest_tasks(run.process)
+        tasks = [tasks_by_node.get(node['id']) for node in nodes]
+        if any(task is None or task.status not in FINISHED for task in tasks):
+            return False
+
+        tasks = [task.concrete for task in tasks]  # PredictionTask, with its results
+
+        if not tasks:
+            run.status = TaskStatus.FAILED
+            run.save()
+            notify_user_conversion_failed(run.process.user, last_task,
+                                          "The prediction could not run because a preparation step failed.")
+            return True
 
         results_by_model = {task.get_step().model_name: task.results for task in tasks}
         matrix = {

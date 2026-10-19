@@ -7,8 +7,9 @@ from django.core.files.base import ContentFile
 from django.test import TestCase
 
 from core.models import File, TaskStatus
+from conversion.tests.test_flows import ConversionFlowMixin
 from core.orchestration import create_process, extend_plan
-from core.testing import BAKTA_JSON, FlowTestMixin
+from core.testing import BAKTA_JSON, FakeBioService, FlowTestMixin
 from notifications.models import TaskNotification
 from prediction.models import NO_RESULT, PredictionRun
 from prediction.testing import register_fake_models
@@ -116,3 +117,61 @@ class PreparePredictionCsvTests(TestCase):
             with self.subTest(label):
                 with self.assertRaises(ValueError):
                     prepare_prediction_csv(matrix)
+
+
+class PredictionAfterPreparationTests(ConversionFlowMixin, TestCase):
+    """Predictions can wait for preparation steps added to the plan in the same request."""
+
+    def setUp(self):
+        super().setUp()
+        register_fake_models(self, {'fake_half': HalfModel, 'fake_other': HalfModel})
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)  # n1: assembly + annotation, n2: gene extraction
+        self.process = self.latest_process()
+
+    def predict(self, preparation_behavior=None):
+        """fake_half on the genes the process has; fake_other after annotating the assembly again."""
+        run = PredictionRun.objects.create(process=self.process, selected_models=['fake_half', 'fake_other'],
+                                           selected_antibiotics=['amikacin'])
+        parameters = {'antibiotics': ['amikacin']}
+        with FakeBioService(**(preparation_behavior or {})):
+            extend_plan(self.process, [
+                {'id': 'ready', 'step': 'predict_fake_half', 'after': ['n2'], 'run': run.pk, 'parameters': parameters},
+                {'id': 'annotate', 'step': 'bakta_annotation', 'after': ['n1']},
+                {'id': 'extract', 'step': 'extract_bakta_json', 'after': ['annotate']},
+                {'id': 'prepared', 'step': 'predict_fake_other', 'after': ['extract'], 'run': run.pk,
+                 'parameters': parameters},
+            ])
+        run.refresh_from_db()
+        self.process.refresh_from_db()
+        return run
+
+    def test_the_run_waits_for_the_models_whose_preparation_is_running(self):
+        run = self.predict()
+
+        self.assertEqual(run.status, TaskStatus.COMPLETED)
+        self.assertEqual(run.data, [[0.25, 0.25]])
+
+    def test_a_failed_preparation_cancels_its_prediction_and_the_others_keep_their_results(self):
+        run = self.predict({'status_sequence': ['failed']})
+
+        self.assertEqual(run.status, TaskStatus.COMPLETED)
+        self.assertEqual(run.data, [[0.25, NO_RESULT]])
+        cancelled = {node['id'] for node in self.process.plan if node.get('cancelled')}
+        self.assertEqual(cancelled, {'prepared'})  # the extraction stays, so the annotation can be retried
+
+    def test_the_run_fails_when_every_preparation_fails(self):
+        run = PredictionRun.objects.create(process=self.process, selected_models=['fake_other'],
+                                           selected_antibiotics=['amikacin'])
+        with FakeBioService(status_sequence=['failed']):
+            extend_plan(self.process, [
+                {'id': 'annotate', 'step': 'bakta_annotation', 'after': ['n1']},
+                {'id': 'extract', 'step': 'extract_bakta_json', 'after': ['annotate']},
+                {'id': 'prepared', 'step': 'predict_fake_other', 'after': ['extract'], 'run': run.pk,
+                 'parameters': {'antibiotics': ['amikacin']}},
+            ])
+        run.refresh_from_db()
+
+        self.assertEqual(run.status, TaskStatus.FAILED)
+        messages = TaskNotification.objects.filter(task__process=self.process).values_list('message', flat=True)
+        self.assertIn('The prediction could not run because a preparation step failed.', messages)

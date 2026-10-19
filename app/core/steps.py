@@ -80,6 +80,12 @@ class Step:
     def on_task_finished(self, task):
         """Hook called when a task of this step completes or fails."""
 
+    # Whether a node of this step is cancelled when a node it depends on fails (see core.tasks).
+    cancel_when_blocked = False
+
+    def on_node_cancelled(self, process, node, failed_task):
+        """Hook called when a node of this step is cancelled because `failed_task` failed."""
+
     def build_parameters(self, overrides=None):
         """Return the step parameters: defaults updated with `overrides`. Unknown names are rejected."""
         overrides = dict(overrides or {})

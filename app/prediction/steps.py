@@ -60,6 +60,13 @@ class ModelPredictionStep(LocalStep):
         if task.run_id:
             finish_run_if_done(task.run_id, task)
 
+    # A prediction whose preparation failed will never get its input.
+    cancel_when_blocked = True
+
+    def on_node_cancelled(self, process, node, failed_task):
+        if node.get('run') is not None:
+            finish_run_if_done(node['run'], failed_task)
+
     def process(self, task):
         """Predict every antibiotic of the task; antibiotics that fail get NO_RESULT."""
         genes = task.input_file('genes')
