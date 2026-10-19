@@ -1,0 +1,10 @@
+{# Download buttons of an RDF resource. `filename` is its name without extension. #}
+<div class="flex flex-wrap items-center gap-2">
+  <span class="text-sm font-semibold text-base-content/70 mr-1">Download as</span>
+  <a class="btn btn-sm btn-outline btn-primary" href="?format=ttl" download="{{ filename }}.ttl">
+    <i class="bi bi-download"></i>Turtle
+  </a>
+  <a class="btn btn-sm btn-outline btn-primary" href="?format=jsonld" download="{{ filename }}.jsonld">
+    <i class="bi bi-download"></i>JSON-LD
+  </a>
+</div>

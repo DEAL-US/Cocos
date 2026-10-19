@@ -138,12 +138,17 @@ def registry_view(request):
     if rdf != 'html':
         return rdf_response(graph, rdf)
     tools = sorted(
-        ({'iri': tool, 'name': str(graph.value(tool, SCHEMA.name) or tool), 'url': local_url(tool),
+        ({'name': str(graph.value(tool, SCHEMA.name) or tool),
+          'description': str(graph.value(tool, SCHEMA.description) or ''),
+          'url': local_url(tool),
           'is_model': str(tool).startswith(str(COCOS['model/']))}
          for tool in graph.subjects(RDF.type, SCHEMA.SoftwareApplication)),
-        key=lambda tool: (not tool['is_model'], tool['name']),
+        key=lambda tool: tool['name'],
     )
-    return render(request, 'semantics/registry.html', {'tools': tools})
+    return render(request, 'semantics/registry.html', {'sections': [
+        ('Prediction models', 'bi-cpu', [tool for tool in tools if tool['is_model']]),
+        ('Processing steps', 'bi-diagram-3', [tool for tool in tools if not tool['is_model']]),
+    ]})
 
 
 def step_view(request, key):
@@ -164,6 +169,7 @@ def vocabulary_view(request):
     return render(request, 'semantics/resource.html', {
         'title': 'AMRF: AntiMicrobial Resistance Framework vocabulary',
         'iri': str(AMRF),
+        'filename': 'amrf',
         'subjects': [_subject(vocabulary, URIRef(str(AMRF)))] + [_subject(vocabulary, term) for term in terms],
     })
 
@@ -178,7 +184,7 @@ def shapes_view(request):
     if rdf != 'html':
         return rdf_response(shapes_graph(), rdf)
     return render(request, 'semantics/resource.html', {
-        'title': 'AMRF shapes', 'iri': str(AMRF) + 'shapes',
+        'title': 'AMRF shapes', 'iri': str(AMRF) + 'shapes', 'filename': 'amrf-shapes',
         'turtle': bind_prefixes(Graph() + shapes_graph()).serialize(format='turtle'),
     })
 
@@ -194,6 +200,7 @@ def _resource(request, graph, iri):
     return render(request, 'semantics/resource.html', {
         'title': str(graph.value(iri, SCHEMA.name) or graph.value(iri, RDFS.label) or iri),
         'iri': str(iri),
+        'filename': str(iri).rstrip('/').rsplit('/', 1)[-1],
         'subjects': [_subject(graph, subject) for subject in subjects],
     })
 

@@ -1,44 +1,60 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block override_style %}
+<link rel="stylesheet" href="{% static 'css/conversion/processes.css' %}">
+{% endblock %}
 
 {% block title %}COCOS registry{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-5xl">
-  <h1 class="text-3xl font-bold mb-2">COCOS registry</h1>
-  <p class="text-base-content/70 mb-4">
-    The prediction models and processing steps of this COCOS instance, described in RDF with
-    EDAM, Bioschemas, ARO, NCBITaxon and the <a class="link link-primary" href="{% url 'semantics:vocabulary' %}">AMRF vocabulary</a>,
-    and validated with the <a class="link link-primary" href="{% url 'semantics:shapes' %}">AMRF shapes</a>.
-  </p>
-
-  <div class="flex flex-wrap gap-2 mb-6">
-    <a class="btn btn-sm" href="?format=ttl"><i class="bi bi-filetype-txt"></i>Turtle</a>
-    <a class="btn btn-sm" href="?format=jsonld"><i class="bi bi-filetype-json"></i>JSON-LD</a>
+<div class="container mx-auto px-4 py-8 max-w-5xl space-y-6">
+  <div class="card bg-base-100 border border-base-300 shadow-sm">
+    <div class="card-body gap-4">
+      <div>
+        <h1 class="text-3xl font-bold mb-2">COCOS registry</h1>
+        <p class="text-base-content/70">
+          The prediction models and processing steps of this COCOS instance, described in RDF with
+          EDAM, Bioschemas, ARO, NCBITaxon and the <a class="link link-primary" href="{% url 'semantics:vocabulary' %}">AMRF vocabulary</a>,
+          and validated with the <a class="link link-primary" href="{% url 'semantics:shapes' %}">AMRF shapes</a>.
+        </p>
+      </div>
+      {% include 'semantics/_download.html' with filename='registry' %}
+    </div>
   </div>
 
-  <div class="card bg-base-100 border border-base-300 shadow-sm mb-4">
-    <div class="card-body">
-      <h2 class="card-title text-xl">Models and steps</h2>
-      <ul class="space-y-1">
-        {% for tool in tools %}
-          <li>
-            <span class="badge badge-sm badge-soft {% if tool.is_model %}badge-primary{% else %}badge-neutral{% endif %} mr-2">
-              {% if tool.is_model %}Model{% else %}Step{% endif %}
-            </span>
-            <a class="link link-primary" href="{{ tool.url }}">{{ tool.name }}</a>
-          </li>
-        {% endfor %}
-      </ul>
-    </div>
+  <div class="grid gap-6 md:grid-cols-2">
+    {% for title, icon, tools in sections %}
+      <div class="card bg-base-100 border border-base-300 shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title text-xl mb-2"><i class="bi {{ icon }} text-primary"></i>{{ title }}</h2>
+          <ul class="space-y-2">
+            {% for tool in tools %}
+              <li>
+                <a href="{{ tool.url }}" class="flex items-center justify-between gap-3 rounded-box border border-base-300 px-4 py-3 hover:border-primary hover:bg-base-200 transition-colors">
+                  <span>
+                    <span class="block font-semibold">{{ tool.name }}</span>
+                    {% if tool.description %}
+                      <span class="block text-sm text-base-content/70">{{ tool.description }}</span>
+                    {% endif %}
+                  </span>
+                  <i class="bi bi-chevron-right text-base-content/50"></i>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    {% endfor %}
   </div>
 
   <div class="card bg-base-100 border border-base-300 shadow-sm">
     <div class="card-body">
-      <h2 class="card-title text-xl">SPARQL endpoint</h2>
+      <h2 class="card-title text-xl"><i class="bi bi-search text-primary"></i>SPARQL endpoint</h2>
       <p class="text-sm">
         Query the registry at <code>{{ request.scheme }}://{{ request.get_host }}{% url 'semantics:sparql' %}</code>
         (SPARQL 1.1 protocol, read-only). The prefixes <code>schema:</code>, <code>edam:</code>, <code>obo:</code>,
-        <code>bsc:</code> and <code>amrf:</code> are predefined. For example, the models and the antibiotics they predict:
+        <code>bsc:</code>, <code>amrf:</code> and <code>rdfs:</code> are predefined. For example, the models and the antibiotics they predict:
       </p>
       <pre class="bg-base-200 border border-base-300 rounded-box p-4 text-sm overflow-x-auto">SELECT ?model ?antibiotic WHERE {
   ?model schema:featureList edam:operation_3482 ;

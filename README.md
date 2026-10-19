@@ -308,6 +308,15 @@ The registry (steps, models, the AMRF vocabulary and shapes) is public; the data
 | `/amrf/shapes` | the AMRF SHACL shapes |
 | `/sparql` | read-only SPARQL endpoint over the registry |
 
+Without a browser, ask for the format you want:
+
+```bash
+curl -H "Accept: text/turtle" http://localhost:8080/model/base_bakta_50       # one model, Turtle
+curl "http://localhost:8080/registry/?format=jsonld" -o registry.jsonld        # the whole registry, JSON-LD
+```
+
+RDF libraries send that `Accept` header themselves, so in Python `rdflib.Graph().parse("http://localhost:8080/registry/")` is enough.
+
 The SPARQL endpoint follows the SPARQL 1.1 protocol (`GET ?query=...`, or `POST` as a form or as `application/sparql-query`) and allows cross-origin requests. `SELECT` and `ASK` results are JSON (default), XML or CSV; `CONSTRUCT` and `DESCRIBE` results are Turtle or JSON-LD. The prefixes `schema:`, `edam:`, `obo:`, `bsc:`, `amrf:` and `rdfs:` are predefined. Updates, `SERVICE` and queries longer than 10,000 characters are refused. For example, the models and the antibiotics they predict:
 
 ```bash

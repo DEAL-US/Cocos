@@ -1,16 +1,26 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block override_style %}
+<link rel="stylesheet" href="{% static 'css/conversion/processes.css' %}">
+{% endblock %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-5xl">
-  <h1 class="text-3xl font-bold mb-1">{{ title }}</h1>
-  <p class="text-sm text-base-content/70 break-all mb-4"><code>{{ iri }}</code></p>
+<div class="container mx-auto px-4 py-8 max-w-5xl space-y-6">
+  <div>
+    <a href="{% url 'semantics:registry' %}" class="process-back-link"><i class="bi bi-arrow-left"></i>Back to the registry</a>
+  </div>
 
-  <div class="flex flex-wrap gap-2 mb-6">
-    <a class="btn btn-sm" href="?format=ttl"><i class="bi bi-filetype-txt"></i>Turtle</a>
-    <a class="btn btn-sm" href="?format=jsonld"><i class="bi bi-filetype-json"></i>JSON-LD</a>
-    <a class="btn btn-sm btn-ghost" href="{% url 'semantics:registry' %}">All steps and models</a>
+  <div class="card bg-base-100 border border-base-300 shadow-sm">
+    <div class="card-body gap-4">
+      <div>
+        <h1 class="text-3xl font-bold mb-1">{{ title }}</h1>
+        <p class="text-sm text-base-content/70 break-all"><code>{{ iri }}</code></p>
+      </div>
+      {% include 'semantics/_download.html' %}
+    </div>
   </div>
 
   {% if turtle %}
@@ -18,17 +28,20 @@
   {% endif %}
 
   {% for subject in subjects %}
-    <div id="{{ subject.fragment }}" class="card bg-base-100 border border-base-300 shadow-sm mb-4">
+    <div id="{{ subject.fragment }}" class="card bg-base-100 border border-base-300 shadow-sm">
       <div class="card-body">
         {% if not forloop.first %}
-          <h2 class="card-title text-lg break-all">{{ subject.iri }}</h2>
+          <h2 class="card-title text-lg">
+            {% if subject.fragment %}{{ subject.fragment }}{% else %}<span class="break-all">{{ subject.iri }}</span>{% endif %}
+          </h2>
+          {% if subject.fragment %}<p class="text-xs text-base-content/60 break-all -mt-1 mb-2"><code>{{ subject.iri }}</code></p>{% endif %}
         {% endif %}
-        <table class="table table-sm">
+        <table class="table">
           <tbody>
             {% for predicate, values in subject.properties.items %}
               <tr>
-                <th class="w-1/3 align-top font-mono text-xs">{{ predicate }}</th>
-                <td>
+                <th class="w-1/3 align-top font-mono text-xs text-base-content/70">{{ predicate }}</th>
+                <td class="space-y-1">
                   {% for value in values %}
                     <div>
                       {% if value.url %}
