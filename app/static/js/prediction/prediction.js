@@ -4,13 +4,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const predictionStatus = document.getElementById('prediction-status');
   const antibioticsSelectEl = document.getElementById('antibiotics-select');
 
-  const modelsHint = document.getElementById('models-hint');
-  const modelsPanel = document.getElementById('models-panel');
   const modelsList = document.getElementById('models-list');
   const modelsChips = document.getElementById('models-chips');
+  const chipsPlaceholder = modelsChips.querySelector('[data-chips-placeholder]');
   const modelsCount = document.getElementById('models-count');
   const rowTemplate = document.getElementById('model-row-template');
+  const stepTemplate = document.getElementById('model-step-template');
   const chipTemplate = document.getElementById('model-chip-template');
+  const messageTemplate = document.getElementById('models-message-template');
   const preparationNote = document.getElementById('preparation-note');
   const sampleOrganism = document.getElementById('sample-organism');
 
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // What the discovery says about each model for the selected sample
   let models = [];
+  let loading = false;
   let sampleRequest = 0;
 
   // Models of the selected sample
@@ -31,6 +33,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const sampleId = sampleSelect ? sampleSelect.value : '';
     const request = ++sampleRequest;
     models = [];
+    loading = Boolean(sampleId);
+    renderOrganism(null, null);
     renderModels();
     if (!sampleId) {
       return;
@@ -42,7 +46,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (request !== sampleRequest) {
         return;  // another sample was selected meanwhile
       }
+      loading = false;
       if (!response.ok) {
+        renderModels();
         showError(data.error || 'Could not load the models of this sample.');
         return;
       }
@@ -51,6 +57,8 @@ document.addEventListener('DOMContentLoaded', function () {
       renderModels();
     } catch (error) {
       console.error('Error loading models:', error);
+      loading = false;
+      renderModels();
       showError('Could not load the models of this sample.');
     }
   }
@@ -59,29 +67,39 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!sampleOrganism) {
       return;
     }
-    sampleOrganism.querySelector('[data-organism-name]').textContent = organism || 'unknown';
-    sampleOrganism.querySelector('[data-organism-link]').href = `/processes/${sampleId}/#organism`;
-    sampleOrganism.classList.remove('hidden');
+    sampleOrganism.classList.toggle('hidden', !sampleId);
+    if (sampleId) {
+      sampleOrganism.querySelector('[data-organism-name]').textContent = organism || 'unknown';
+      sampleOrganism.querySelector('[data-organism-link]').href = `/processes/${sampleId}/#organism`;
+    }
   }
 
   function renderModels() {
-    const hasSample = Boolean(sampleSelect && sampleSelect.value) && models.length > 0;
-    modelsHint.classList.toggle('hidden', hasSample);
-    modelsPanel.classList.toggle('hidden', !hasSample);
-    if (!hasSample && sampleOrganism) {
-      sampleOrganism.classList.add('hidden');
-    }
-
-    modelsList.replaceChildren(...models.map(renderRow));
-    modelsChips.replaceChildren(...models.filter(model => model.selected).map(renderChip));
+    modelsList.replaceChildren(...(models.length ? models.map(renderRow) : [renderMessage()]));
     modelsCount.textContent = models.length;
 
-    const preparing = models.filter(model => model.selected && model.status === 'reachable');
+    // The chips row keeps its height, so the page does not move when the first model is selected.
+    const selected = models.filter(model => model.selected);
+    modelsChips.replaceChildren(...(selected.length ? selected.map(renderChip) : [chipsPlaceholder]));
+
+    const preparing = selected.filter(model => model.status === 'reachable');
     preparationNote.classList.toggle('hidden', preparing.length === 0);
     preparationNote.querySelector('[data-preparation-models]').textContent =
       preparing.map(model => model.model).join(', ');
 
     updateButtonsState();
+  }
+
+  function renderMessage() {
+    const message = messageTemplate.content.firstElementChild.cloneNode(true);
+    if (!(sampleSelect && sampleSelect.value)) {
+      message.textContent = 'Select a sample first to see which models can run on it.';
+    } else if (loading) {
+      message.textContent = 'Checking which models can run on this sample…';
+    } else {
+      message.textContent = 'There are no prediction models available.';
+    }
+    return message;
   }
 
   function renderRow(model) {
@@ -97,28 +115,38 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     row.querySelector('[data-model-name]').textContent = model.model;
+
     const badge = row.querySelector('[data-model-status]');
     badge.textContent = STATUS_LABELS[model.status];
-    badge.classList.add(modelsList.dataset[`class${capitalize(model.status)}`]);
-    row.querySelector('[data-model-detail]').textContent = describe(model);
+    badge.classList.add(...classesOf(model.status));
+
+    const detail = row.querySelector('[data-model-detail]');
+    const steps = row.querySelector('[data-model-steps]');
+    if (model.status === 'reachable') {
+      detail.textContent = 'COCOS will run first:';
+      steps.replaceChildren(...model.steps.map(renderStep));
+    } else if (model.status === 'incompatible') {
+      detail.textContent = model.reasons.join(' ');
+    }
+
     if (checkbox.disabled) {
-      row.querySelector('label').classList.add(modelsList.dataset.classUnavailable);
+      row.querySelector('[data-model-row]').classList.add(...classesOf('unavailable'));
     }
     return row;
   }
 
-  function capitalize(text) {
-    return text.charAt(0).toUpperCase() + text.slice(1);
+  function renderStep(label, index, labels) {
+    const step = stepTemplate.content.firstElementChild.cloneNode(true);
+    step.querySelector('[data-step-name]').textContent = `${index + 1}. ${label}`;
+    if (index === labels.length - 1) {
+      step.querySelector('[data-step-arrow]').remove();
+    }
+    return step;
   }
 
-  function describe(model) {
-    if (model.status === 'reachable') {
-      return `Preparation: ${model.steps.join(' → ')}`;
-    }
-    if (model.status === 'incompatible') {
-      return model.reasons.join(' ');
-    }
-    return '';
+  function classesOf(status) {
+    const key = `class${status.charAt(0).toUpperCase()}${status.slice(1)}`;
+    return modelsList.dataset[key].split(' ');
   }
 
   function renderChip(model) {
@@ -225,6 +253,8 @@ document.addEventListener('DOMContentLoaded', function () {
       loadModels();
     });
   }
+
+  renderModels();
 
   customElements.whenDefined('multi-select').then(() => {
     if (antibioticsSelectEl) {
