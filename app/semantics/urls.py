@@ -6,4 +6,11 @@ app_name = 'semantics'
 
 urlpatterns = [
     path('processes/<int:process_id>/rdf/', views.process_rdf_view, name='process_rdf'),
+    path('sparql', views.sparql_view, name='sparql'),
+    path('registry/', views.registry_view, name='registry'),
+    path('step/<str:key>', views.step_view, name='step'),
+    path('model/<str:name>', views.model_view, name='model'),
+    path('amrf/', views.vocabulary_view, name='vocabulary'),
+    path('amrf/shapes', views.shapes_view, name='shapes'),
+    path('amrf/<str:term>', views.vocabulary_term_view, name='vocabulary_term'),
 ]
