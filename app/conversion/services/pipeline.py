@@ -95,13 +95,19 @@ def start_assembly(user, assembly_type, fastq, fastq_2=None, annotate=False, com
 
 
 # Annotation
-def retry_assembly(process):
-    """Run the failed assembly of a process again with the same reads; what was planned after it follows."""
+RETRYABLE_CATEGORIES = ('assembly', 'annotation')
+
+
+def retry_failed_step(process):
+    """Run the failed assembly or annotation of a process again, with the same inputs; what was
+    planned after it (e.g. the gene extraction) follows. Return the label of the step."""
     failed = [task for task in latest_tasks(process).values()
-              if task.get_step().category == 'assembly' and task.status == TaskStatus.FAILED]
+              if task.status == TaskStatus.FAILED and task.get_step().category in RETRYABLE_CATEGORIES]
     if not failed:
-        raise ValueError('This process has no failed assembly to retry.')
-    retry_node(process, failed[0].plan_node)
+        raise ValueError('This process has no failed step to retry.')
+    task = max(failed, key=lambda task: task.id)
+    retry_node(process, task.plan_node)
+    return task.get_step().label
 
 
 def start_annotation_from_assembly_task(user, source_task_id, complete_version):
@@ -122,8 +128,8 @@ def start_annotation_from_assembly_task(user, source_task_id, complete_version):
         raise ValueError('This assembly result already has an annotation task.')
 
     if annotations:
-        # Retry the failed annotation with the same assembly; its gene extraction is already planned.
-        retry_node(process, annotations[0].plan_node)
+        # Annotating again an assembly whose annotation failed is retrying that annotation.
+        retry_failed_step(process)
         return process
 
     annotation_id, extraction_id = _next_node_ids(process, 2)

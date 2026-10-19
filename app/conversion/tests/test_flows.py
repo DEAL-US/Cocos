@@ -347,6 +347,9 @@ class ProcessContractMixin(ConversionFlowMixin):
             page += 1
         return next(row for row in rows if row['process_name'] == process.name)
 
+    def retry(self, process):
+        return self.client.post(reverse('conversion:retry_step', args=[process.id]))
+
     def annotate_assembly_of(self, process):
         return self.client.post(reverse('conversion:start_annotation_task'),
                                 data={'source_task_id': self.status_context(process)['assembly_task_id']})
@@ -445,6 +448,17 @@ class ProcessContractTests(ProcessContractMixin, TestCase):
         self.assertStatus(process, [('Assembly · ONT', 'completed'), ('Annotation', 'failed')],
                           latest_task_status='failed', can_retry_annotation=True, json_download_task_id=None)
 
+    def test_retry_button_retries_a_failed_annotation(self):
+        with FakeBioService():
+            self.run_assembly('ont')
+        process = self.latest_process()
+        with FakeBioService(status_sequence=['running', 'failed']):
+            self.annotate_assembly_of(process)
+        with FakeBioService() as bio:
+            self.retry(process)
+        self.assertEqual(len(bio.submissions_to('annotation/upload')), 1)
+        self.assertRow(process, status='completed', has_json=True, can_retry_annotation=False)
+
     def test_retrying_failed_annotation_produces_genes(self):
         with FakeBioService():
             self.run_assembly('ont')
@@ -462,24 +476,24 @@ class ProcessContractTests(ProcessContractMixin, TestCase):
         self.assertStatus(process, [('Assembly + Annotation · ONT', 'failed')], can_retry_assembly=True)
 
         with FakeBioService() as bio:
-            response = self.client.post(reverse('conversion:retry_assembly', args=[process.id]))
+            response = self.retry(process)
 
         self.assertRedirects(response, reverse('conversion:process_status', args=[process.id]), fetch_redirect_response=False)
         self.assertEqual(bio.submissions_to('assembly/ont')[0]['files']['reads'], b'R1-CONTENT')
         self.assertRow(process, status='completed', has_json=True)
         self.assertEqual(self.status_context(process)['can_retry_assembly'], False)
 
-    def test_assembly_retry_is_only_for_failed_assemblies_of_the_user(self):
+    def test_retry_is_only_for_failed_steps_of_the_user(self):
         with FakeBioService():
             self.run_assembly('ont')
         process = self.latest_process()
         self.assertEqual(self.status_context(process)['can_retry_assembly'], False)
         with FakeBioService() as bio:
-            self.client.post(reverse('conversion:retry_assembly', args=[process.id]))
+            self.retry(process)
         self.assertEqual(bio.submissions_to('assembly/ont'), [])
 
         self.client.login(username='other-user', password='pass1234')
-        self.assertEqual(self.client.post(reverse('conversion:retry_assembly', args=[process.id])).status_code, 404)
+        self.assertEqual(self.retry(process).status_code, 404)
 
     def test_annotation_of_uploaded_fasta(self):
         with FakeBioService():
