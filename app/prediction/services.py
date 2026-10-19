@@ -100,8 +100,10 @@ def start_prediction(user, model_names, antibiotics, process_id):
     run = PredictionRun.objects.create(process=process, selected_models=model_names,
                                        selected_antibiotics=valid_antibiotics)
     try:
-        nodes, inputs = _plan(process, run, [compatibility[name] for name in model_names], valid_antibiotics)
-        extend_plan(process, nodes, inputs)
+        plan = _PredictionPlan(process, run)
+        for model_name in model_names:
+            plan.add_model(compatibility[model_name], valid_antibiotics)
+        extend_plan(process, plan.nodes, plan.inputs)
     except PlanError:
         run.delete()
         raise ValueError('These models cannot be planned together on this sample.')
@@ -110,58 +112,64 @@ def start_prediction(user, model_names, antibiotics, process_id):
     return run
 
 
-def _plan(process, run, results, antibiotics):
-    """Plan nodes (and uploaded inputs) for the preparation steps and predictions of `results`.
+class _PredictionPlan:
+    """The plan nodes of one prediction request: preparation steps and one prediction per model.
 
-    A preparation step needed by several models is planned once. Each input comes either from a
-    node of this plan, from the completed node that produced a file of the sample, or, for a file
-    the user uploaded, as an uploaded input.
+    Each input of a node comes either from a node of this plan, from the completed node that
+    produced a file of the sample, or, for a file the user uploaded, as an uploaded input.
     """
-    # {(file id, role): node} for the outputs of completed nodes; a file can be several outputs
-    # (a Bakta JSON is the annotation of one node and the genes of another).
-    produced_by = {(file_id, role): node for file_id, role, node in
-                   TaskOutput.objects.filter(task__process=process, task__status=TaskStatus.COMPLETED)
-                   .values_list('file_id', 'role', 'task__plan_node')}
-    nodes, inputs, shared = [], {}, {}
 
-    def add(step, sources, path_nodes, extra=None):
-        after, uploaded = _resolve(sources, path_nodes, produced_by)
-        key = (step, tuple(sorted(after)), tuple(sorted((role, file.pk) for role, file in uploaded.items())))
-        if extra is None and key in shared:
-            return shared[key]
-        node_id = extra.pop('id') if extra else f'run{run.pk}_step{len(nodes) + 1}'
-        nodes.append({'id': node_id, 'step': step, 'after': after, **(extra or {})})
-        if uploaded:
-            inputs[node_id] = uploaded
-        if extra is None:
-            shared[key] = node_id
-        return node_id
+    def __init__(self, process, run):
+        self.run = run
+        self.nodes = []      # plan nodes, in order
+        self.inputs = {}     # {node id: {role: uploaded File}}
+        self._shared = {}    # {(step, after, uploaded): node id} of the preparation nodes
+        # {(file id, role): node} for the outputs of completed nodes; a file can be several outputs
+        # (a Bakta JSON is the annotation of one node and the genes of another).
+        self._produced_by = {
+            (file_id, role): node for file_id, role, node in
+            TaskOutput.objects.filter(task__process=process, task__status=TaskStatus.COMPLETED)
+            .values_list('file_id', 'role', 'task__plan_node')
+        }
 
-    for result in results:
+    def add_model(self, result, antibiotics):
+        """Add the preparation steps of a reachable or ready model, then its prediction."""
         path_nodes = []  # the node of each step of this model's preparation, in order
         for planned in result.steps:
-            path_nodes.append(add(planned.step, planned.inputs, path_nodes))
+            path_nodes.append(self.preparation_node(planned.step, planned.inputs, path_nodes))
         model_antibiotics = [a for a in antibiotics if a in get_model_supported_antibiotics(result.model)]
-        if not model_antibiotics:
-            continue  # its column shows no result
-        add(f'{PREDICTION_STEP_PREFIX}{result.model}', result.inputs, path_nodes, extra={
-            'id': f'run{run.pk}_{result.model}',
-            'run': run.pk,
-            'parameters': {'antibiotics': model_antibiotics},
-        })
-    return nodes, inputs
+        if model_antibiotics:  # otherwise the column of the model shows no result
+            self.prediction_node(result.model, result.inputs, path_nodes, model_antibiotics)
 
+    def preparation_node(self, step, sources, path_nodes):
+        """The node of a preparation step; a step already planned with the same inputs is reused."""
+        after, uploaded = self._resolve(sources, path_nodes)
+        key = (step, tuple(after), tuple(sorted((role, file.pk) for role, file in uploaded.items())))
+        if key not in self._shared:
+            self._shared[key] = self._add(f'run{self.run.pk}_step{len(self.nodes) + 1}', step, after, uploaded)
+        return self._shared[key]
 
-def _resolve(sources, path_nodes, produced_by):
-    """(nodes it runs after, {role: uploaded File}) for the inputs ((role, Source), ...) of a node."""
-    after, uploaded = [], {}
-    for role, source in sources:
-        if source.step is not None:
-            after.append(path_nodes[source.step])
-        elif (int(source.file), source.role) in produced_by:
-            after.append(produced_by[(int(source.file), source.role)])
-        else:
-            uploaded[role] = File.objects.get(pk=int(source.file))
-    if after and uploaded:
-        raise PlanError('A node cannot take both uploaded files and outputs of other nodes')
-    return sorted(set(after)), uploaded
+    def prediction_node(self, model, sources, path_nodes, antibiotics):
+        after, uploaded = self._resolve(sources, path_nodes)
+        return self._add(f'run{self.run.pk}_{model}', f'{PREDICTION_STEP_PREFIX}{model}', after, uploaded,
+                         run=self.run.pk, parameters={'antibiotics': antibiotics})
+
+    def _add(self, node_id, step, after, uploaded, **extra):
+        self.nodes.append({'id': node_id, 'step': step, 'after': after, **extra})
+        if uploaded:
+            self.inputs[node_id] = uploaded
+        return node_id
+
+    def _resolve(self, sources, path_nodes):
+        """(nodes to run after, {role: uploaded File}) for the inputs ((role, Source), ...) of a node."""
+        after, uploaded = [], {}
+        for role, source in sources:
+            if source.step is not None:
+                after.append(path_nodes[source.step])
+            elif (int(source.file), source.role) in self._produced_by:
+                after.append(self._produced_by[(int(source.file), source.role)])
+            else:
+                uploaded[role] = File.objects.get(pk=int(source.file))
+        if after and uploaded:
+            raise PlanError('A node cannot take both uploaded files and outputs of other nodes')
+        return sorted(set(after)), uploaded
