@@ -61,16 +61,16 @@
         <legend class="fieldset-legend text-base font-semibold">Prediction models</legend>
         <p class="text-sm opacity-70 mb-3">Select the models you want to use for the prediction.</p>
 
-        <div id="models-chips" class="flex flex-wrap items-center gap-2 min-h-8 mb-3">
-          <span class="text-sm text-base-content/50" data-chips-placeholder>No models selected yet</span>
+        <div id="models-chips" class="models-selected mb-3">
+          <span class="ms-placeholder" data-chips-placeholder>No models selected</span>
         </div>
 
         <details id="models-details" class="rounded-box border border-base-300 bg-base-100" open>
-          <summary class="cursor-pointer px-4 py-3 font-medium">
-            All models <span class="text-base-content/60">(<span id="models-count">0</span>)</span>
+          <summary class="cursor-pointer px-4 py-3 text-base font-semibold">
+            All models <span class="font-normal text-base-content/60">(<span id="models-count">0</span>)</span>
           </summary>
           {# The classes of each status are here so Tailwind generates them (it does not read the JS). #}
-          <ul id="models-list" class="px-2 pb-2 space-y-1"
+          <ul id="models-list" class="px-2 pb-2 space-y-1 max-h-96 overflow-y-auto"
               data-class-ready="badge-soft badge-success"
               data-class-reachable="badge-soft badge-warning"
               data-class-incompatible="badge-soft badge-neutral"
@@ -87,7 +87,7 @@
               <span class="flex items-start gap-3">
                 <input type="checkbox" class="checkbox checkbox-primary checkbox-sm mt-0.5" data-model-checkbox>
                 <span>
-                  <span class="font-medium" data-model-name></span>
+                  <span class="text-base font-medium" data-model-name></span>
                   <span class="block text-sm text-base-content/70" data-model-detail></span>
                   <span class="flex flex-wrap items-center gap-1 mt-1" data-model-steps></span>
                 </span>
@@ -104,10 +104,11 @@
           </span>
         </template>
 
+        {# Same chips as the multiselect of the antibiotics (daisy-multiselect.css). #}
         <template id="model-chip-template">
-          <span class="badge badge-primary gap-1">
-            <span data-chip-name></span>
-            <button type="button" class="cursor-pointer" aria-label="Remove" data-chip-remove>✕</button>
+          <span class="ms-tag">
+            <span class="ms-tag-label" data-chip-name></span>
+            <span class="ms-tag-x" role="button" aria-label="Remove" data-chip-remove>✕</span>
           </span>
         </template>
       </fieldset>
