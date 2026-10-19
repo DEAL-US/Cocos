@@ -1,11 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from core.models import ProcessGroup
 from prediction.adapters.registry import list_all_organisms
 from ..services.pipeline import (
     get_assembly_tasks_can_be_annotated, 
+    retry_assembly,
     start_annotation_from_assembly_task, 
     start_annotation_from_uploaded_fasta, 
     start_assembly, 
@@ -118,3 +120,15 @@ def parse_feature_file(request):
 
     return redirect('conversion:process_status', process_id=process.id)
 
+
+@require_POST
+@login_required
+def retry_assembly_view(request, process_id):
+    """Run the failed assembly of a process of the user again."""
+    process = get_object_or_404(ProcessGroup, id=process_id, user=request.user)
+    try:
+        retry_assembly(process)
+        messages.info(request, 'Assembly started again. You will be notified when it is complete.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('conversion:process_status', process_id=process.id)

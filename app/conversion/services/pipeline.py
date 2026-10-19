@@ -95,6 +95,15 @@ def start_assembly(user, assembly_type, fastq, fastq_2=None, annotate=False, com
 
 
 # Annotation
+def retry_assembly(process):
+    """Run the failed assembly of a process again with the same reads; what was planned after it follows."""
+    failed = [task for task in latest_tasks(process).values()
+              if task.get_step().category == 'assembly' and task.status == TaskStatus.FAILED]
+    if not failed:
+        raise ValueError('This process has no failed assembly to retry.')
+    retry_node(process, failed[0].plan_node)
+
+
 def start_annotation_from_assembly_task(user, source_task_id, complete_version):
     source_task = ConversionTask.objects.filter(
         process__user=user,

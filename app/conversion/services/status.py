@@ -266,6 +266,8 @@ def build_process_status_context(process, page=1):
     can_retry_annotation = (has_completed_assembly and latest_annotation is not None
         and view.status(latest_annotation) == TaskStatus.FAILED and not is_auto_annotated)
 
+    can_retry_assembly = bool(assembly_task and view.status(assembly_task) == TaskStatus.FAILED)
+
     process_kind = ('assembly' if assembly_task else 'json' if latest_json else 'annotation')
 
     pipeline_badges = [task.get_step().label for task in (assembly_task, latest_annotation, latest_json) if task]
@@ -322,6 +324,7 @@ def build_process_status_context(process, page=1):
         'json_download_task_id': _get_json_download_task_id(view, assembly_task, latest_annotation, latest_json, is_auto_annotated),
         'can_annotate': can_annotate,
         'can_retry_annotation': can_retry_annotation,
+        'can_retry_assembly': can_retry_assembly,
         'extracted_without_genes': view.extracted_without_genes(),
         'timeline': timeline,
         'assembly_task_id': assembly_task.id if assembly_task else None,

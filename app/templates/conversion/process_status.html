@@ -74,6 +74,14 @@
       </div>
 
         <div class="mt-3 flex flex-wrap gap-2">
+          {% if can_retry_assembly %}
+            <form method="post" action="{% url 'conversion:retry_assembly' process_id=process_id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-primary">
+                  Retry Assembly
+              </button>
+          </form>
+          {% endif %}
           {% if can_annotate %}
             <form method="post" action="{% url 'conversion:start_annotation_task' %}">
               {% csrf_token %}
