@@ -48,19 +48,54 @@
             </option>
           {% endfor %}
         </select>
+
+        {% if organisms_in_use %}
+          <p id="sample-organism" class="text-sm opacity-70 mt-2 hidden">
+            Organism: <span class="font-medium" data-organism-name></span>
+            · <a class="link" data-organism-link href="#">Set organism</a>
+          </p>
+        {% endif %}
       </fieldset>
 
       <fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4">
         <legend class="fieldset-legend text-base font-semibold">Prediction models</legend>
         <p class="text-sm opacity-70 mb-3">Select the models you want to use for the prediction.</p>
 
-        <multi-select placeholder="Select models…" id="models-select" class="multiselect w-full">
-          {% for model in available_models %}
-            <ms-option value="{{ model }}">{{ model }}</ms-option>
-          {% empty %}
-            <option value="" disabled>No available models</option>
-          {% endfor %}
-        </multi-select>
+        <p id="models-hint" class="text-sm opacity-70">Select a sample to see which models can run on it.</p>
+
+        <div id="models-panel" class="hidden">
+          <div id="models-chips" class="flex flex-wrap gap-2 mb-3"></div>
+
+          <details id="models-details" class="rounded-box border border-base-300 bg-base-100" open>
+            <summary class="cursor-pointer px-4 py-3 font-medium">
+              All models (<span id="models-count">0</span>)
+            </summary>
+            {# The classes of each status are here so Tailwind generates them (it does not read the JS). #}
+            <ul id="models-list" class="px-4 pb-3 space-y-3"
+                data-class-ready="badge-success" data-class-reachable="badge-warning"
+                data-class-incompatible="badge-ghost" data-class-unavailable="opacity-60"></ul>
+          </details>
+        </div>
+
+        <template id="model-row-template">
+          <li>
+            <label class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox checkbox-sm mt-0.5" data-model-checkbox>
+              <span>
+                <span class="font-medium" data-model-name></span>
+                <span class="badge badge-sm ml-1" data-model-status></span>
+                <span class="block text-sm opacity-70" data-model-detail></span>
+              </span>
+            </label>
+          </li>
+        </template>
+
+        <template id="model-chip-template">
+          <span class="badge badge-primary gap-1">
+            <span data-chip-name></span>
+            <button type="button" class="cursor-pointer" aria-label="Remove" data-chip-remove>✕</button>
+          </span>
+        </template>
       </fieldset>
 
       <fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4">
@@ -76,6 +111,14 @@
           {% endfor %}
         </multi-select>
       </fieldset>
+
+      <div id="preparation-note" role="status" class="alert alert-info alert-soft hidden">
+        <i class="bi bi-info-circle"></i>
+        <span>
+          <span data-preparation-models></span> need preparation first. Their prediction will start
+          automatically when it finishes; follow it on the sample page.
+        </span>
+      </div>
 
       <div>
         <button id="compute-matrix" class="btn btn-primary">Compute Prediction</button>

@@ -84,7 +84,7 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         response = self.client.get(reverse('prediction:prediction'))
         self.assertEqual(response.status_code, 200)
         self.assertIn(str(self.process.id), [option['id'] for option in response.context['sample_options']])
-        self.assertTrue(set(FAKE_MODELS) <= set(response.context['available_models']))
+        self.assertContains(response, 'id="models-list"')
         self.assertTrue({'amikacin', 'ampicillin'} <= set(response.context['available_antibiotics']))
 
     def test_a_sample_whose_annotation_could_not_be_read_needs_the_extraction_again(self):

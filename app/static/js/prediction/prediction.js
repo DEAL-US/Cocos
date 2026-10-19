@@ -1,75 +1,157 @@
 document.addEventListener('DOMContentLoaded', function () {
   const computeBtn = document.getElementById('compute-matrix');
   const sampleSelect = document.getElementById('sample-select');
-
   const predictionStatus = document.getElementById('prediction-status');
-
-  const modelsSelectEl = document.getElementById('models-select');
   const antibioticsSelectEl = document.getElementById('antibiotics-select');
+
+  const modelsHint = document.getElementById('models-hint');
+  const modelsPanel = document.getElementById('models-panel');
+  const modelsList = document.getElementById('models-list');
+  const modelsChips = document.getElementById('models-chips');
+  const modelsCount = document.getElementById('models-count');
+  const rowTemplate = document.getElementById('model-row-template');
+  const chipTemplate = document.getElementById('model-chip-template');
+  const preparationNote = document.getElementById('preparation-note');
+  const sampleOrganism = document.getElementById('sample-organism');
+
+  const STATUS_LABELS = { ready: 'Ready', reachable: 'Needs preparation', incompatible: 'Not available' };
 
   const csrftoken = (() => {
     const el = document.querySelector('input[name=csrfmiddlewaretoken]');
     return el ? el.value : null;
   })();
 
-  // Selection
+  // What the discovery says about each model for the selected sample
+  let models = [];
+  let sampleRequest = 0;
 
-  function initializeSelection() {
-    if (modelsSelectEl) {
-      modelsSelectEl.addEventListener('change', updateButtonsState);
+  // Models of the selected sample
+
+  async function loadModels() {
+    const sampleId = sampleSelect ? sampleSelect.value : '';
+    const request = ++sampleRequest;
+    models = [];
+    renderModels();
+    if (!sampleId) {
+      return;
     }
 
-    if (antibioticsSelectEl) {
-      antibioticsSelectEl.addEventListener('change', updateButtonsState);
+    try {
+      const response = await fetch(`/prediction/samples/${sampleId}/models/`);
+      const data = await response.json();
+      if (request !== sampleRequest) {
+        return;  // another sample was selected meanwhile
+      }
+      if (!response.ok) {
+        showError(data.error || 'Could not load the models of this sample.');
+        return;
+      }
+      models = data.models.map(model => ({ ...model, selected: false }));
+      renderOrganism(sampleId, data.organism);
+      renderModels();
+    } catch (error) {
+      console.error('Error loading models:', error);
+      showError('Could not load the models of this sample.');
+    }
+  }
+
+  function renderOrganism(sampleId, organism) {
+    if (!sampleOrganism) {
+      return;
+    }
+    sampleOrganism.querySelector('[data-organism-name]').textContent = organism || 'unknown';
+    sampleOrganism.querySelector('[data-organism-link]').href = `/processes/${sampleId}/#organism`;
+    sampleOrganism.classList.remove('hidden');
+  }
+
+  function renderModels() {
+    const hasSample = Boolean(sampleSelect && sampleSelect.value) && models.length > 0;
+    modelsHint.classList.toggle('hidden', hasSample);
+    modelsPanel.classList.toggle('hidden', !hasSample);
+    if (!hasSample && sampleOrganism) {
+      sampleOrganism.classList.add('hidden');
     }
 
-    if (sampleSelect) {
-      sampleSelect.addEventListener('change', updateButtonsState);
-    }
+    modelsList.replaceChildren(...models.map(renderRow));
+    modelsChips.replaceChildren(...models.filter(model => model.selected).map(renderChip));
+    modelsCount.textContent = models.length;
+
+    const preparing = models.filter(model => model.selected && model.status === 'reachable');
+    preparationNote.classList.toggle('hidden', preparing.length === 0);
+    preparationNote.querySelector('[data-preparation-models]').textContent =
+      preparing.map(model => model.model).join(', ');
 
     updateButtonsState();
   }
 
+  function renderRow(model) {
+    const row = rowTemplate.content.firstElementChild.cloneNode(true);
+    const checkbox = row.querySelector('[data-model-checkbox]');
+
+    checkbox.value = model.model;
+    checkbox.checked = model.selected;
+    checkbox.disabled = model.status === 'incompatible';
+    checkbox.addEventListener('change', () => {
+      model.selected = checkbox.checked;
+      renderModels();
+    });
+
+    row.querySelector('[data-model-name]').textContent = model.model;
+    const badge = row.querySelector('[data-model-status]');
+    badge.textContent = STATUS_LABELS[model.status];
+    badge.classList.add(modelsList.dataset[`class${capitalize(model.status)}`]);
+    row.querySelector('[data-model-detail]').textContent = describe(model);
+    if (checkbox.disabled) {
+      row.querySelector('label').classList.add(modelsList.dataset.classUnavailable);
+    }
+    return row;
+  }
+
+  function capitalize(text) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  function describe(model) {
+    if (model.status === 'reachable') {
+      return `Preparation: ${model.steps.join(' → ')}`;
+    }
+    if (model.status === 'incompatible') {
+      return model.reasons.join(' ');
+    }
+    return '';
+  }
+
+  function renderChip(model) {
+    const chip = chipTemplate.content.firstElementChild.cloneNode(true);
+    chip.querySelector('[data-chip-name]').textContent = model.model;
+    chip.querySelector('[data-chip-remove]').addEventListener('click', () => {
+      model.selected = false;
+      renderModels();
+    });
+    return chip;
+  }
+
+  // Selection
 
   function collectSelection() {
-    const models = (
-      modelsSelectEl &&
-      Array.isArray(modelsSelectEl.value)
-    )
-      ? modelsSelectEl.value.slice()
-      : [];
-
-    const antibiotics = (
-      antibioticsSelectEl &&
-      Array.isArray(antibioticsSelectEl.value)
-    )
+    const antibiotics = (antibioticsSelectEl && Array.isArray(antibioticsSelectEl.value))
       ? antibioticsSelectEl.value.slice()
       : [];
 
     return {
-      models: models,
+      models: models.filter(model => model.selected).map(model => model.model),
       antibiotics: antibiotics,
       sample_id: sampleSelect ? sampleSelect.value : '',
     };
   }
 
-
   function updateButtonsState() {
     if (!computeBtn) {
       return;
     }
-
     const selection = collectSelection();
-
-    const hasModels = selection.models.length > 0;
-    const hasAntibiotics = selection.antibiotics.length > 0;
-    const hasSample = Boolean(selection.sample_id);
-
-    const enabled = hasModels && hasAntibiotics && hasSample;
-
-    computeBtn.disabled = !enabled;
+    computeBtn.disabled = !(selection.models.length && selection.antibiotics.length && selection.sample_id);
   }
-
 
   // Prediction
 
@@ -137,11 +219,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-
-  // Multi-select initialization
+  if (sampleSelect) {
+    sampleSelect.addEventListener('change', () => {
+      hideError();
+      loadModels();
+    });
+  }
 
   customElements.whenDefined('multi-select').then(() => {
-    initializeSelection();
+    if (antibioticsSelectEl) {
+      antibioticsSelectEl.addEventListener('change', updateButtonsState);
+    }
+    updateButtonsState();
   });
 
   updateButtonsState();

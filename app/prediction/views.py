@@ -9,13 +9,13 @@ from django.views.decorators.http import require_GET, require_POST
 from core.models import TaskStatus
 from .models import PredictionRun
 from .services import describe_compatibility, get_sample_options, get_user_sample, is_processing, start_prediction
-from .adapters.registry import list_all_antibiotics, list_all_organisms, list_registered_models
+from .adapters.registry import list_all_antibiotics, list_all_organisms
 
 @login_required
 def prediction_ui(request):
     return render(request, 'prediction/prediction.html', {
         'sample_options': get_sample_options(request.user),
-        'available_models': list_registered_models(),
+        'organisms_in_use': bool(list_all_organisms()),
         'available_antibiotics': list_all_antibiotics(),
     })
 
