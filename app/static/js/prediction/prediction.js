@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const detail = row.querySelector('[data-model-detail]');
     const steps = row.querySelector('[data-model-steps]');
     if (model.status === 'reachable') {
-      detail.textContent = 'To use this model Cocos will have to run first:';
+      detail.textContent = 'To use this model, Cocos will have to run first:';
       steps.replaceChildren(...model.steps.map(renderStep));
     } else if (model.status === 'incompatible') {
       detail.textContent = model.reasons.join(' ');
