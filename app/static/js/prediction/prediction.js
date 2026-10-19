@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const stepTemplate = document.getElementById('model-step-template');
   const chipTemplate = document.getElementById('model-chip-template');
   const messageTemplate = document.getElementById('models-message-template');
-  const preparationNote = document.getElementById('preparation-note');
   const sampleOrganism = document.getElementById('sample-organism');
 
   const STATUS_LABELS = { ready: 'Ready', reachable: 'Needs preparation', incompatible: 'Not available' };
@@ -81,11 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // The chips row keeps its height, so the page does not move when the first model is selected.
     const selected = models.filter(model => model.selected);
     modelsChips.replaceChildren(...(selected.length ? selected.map(renderChip) : [chipsPlaceholder]));
-
-    const preparing = selected.filter(model => model.status === 'reachable');
-    preparationNote.classList.toggle('hidden', preparing.length === 0);
-    preparationNote.querySelector('[data-preparation-models]').textContent =
-      preparing.map(model => model.model).join(', ');
 
     updateButtonsState();
   }
