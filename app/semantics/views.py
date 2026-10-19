@@ -146,8 +146,8 @@ def registry_view(request):
         key=lambda tool: tool['name'],
     )
     return render(request, 'semantics/registry.html', {'sections': [
-        ('Prediction models', 'bi-cpu', [tool for tool in tools if tool['is_model']]),
         ('Processing steps', 'bi-diagram-3', [tool for tool in tools if not tool['is_model']]),
+        ('Prediction models', 'bi-cpu', [tool for tool in tools if tool['is_model']]),
     ]})
 
 
