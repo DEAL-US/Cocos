@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from rdflib import URIRef
 
 from ..namespaces import AMRF, BSC, EDAM, RDFS, SCHEMA
-from ..steps_graph import WEB_SERVICE
+from ..registry.steps import WEB_SERVICE
 from .results import Source
 
 NAMESPACES = {'schema': SCHEMA, 'bsc': BSC, 'edam': EDAM, 'amrf': AMRF, 'rdfs': RDFS}

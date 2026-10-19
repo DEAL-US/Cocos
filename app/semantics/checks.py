@@ -1,7 +1,7 @@
 """System checks: plug-ins that were not registered because of their descriptor or weights."""
 from django.core.checks import Warning, register
 
-from .plugins import REJECTED_PLUGINS
+from .registry.plugins import REJECTED_PLUGINS
 
 
 @register()

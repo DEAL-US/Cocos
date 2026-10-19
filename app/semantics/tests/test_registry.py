@@ -2,10 +2,10 @@ from django.test import SimpleTestCase
 from rdflib.namespace import RDF
 
 from core.steps import list_steps
-from semantics.mappings import data_term, format_term
+from semantics.registry.mappings import data_term, format_term
 from semantics.namespaces import BSC, SCHEMA
-from semantics.registry import build_registry_graph, step_resource
-from semantics.steps_graph import port_iri
+from semantics.registry.graph import build_registry_graph, step_resource
+from semantics.registry.steps import port_iri
 
 
 class RegistryGraphTests(SimpleTestCase):

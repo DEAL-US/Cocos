@@ -16,7 +16,7 @@ from rdflib.namespace import RDF
 from core.models import TaskStatus
 from core.steps import UnknownStepError
 
-from .mappings import data_term, format_term, sequencing_technique
+from .registry.mappings import data_term, format_term, sequencing_technique
 from .namespaces import OBO, SCHEMA, bind_prefixes
 
 

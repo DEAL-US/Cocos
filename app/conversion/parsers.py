@@ -6,7 +6,7 @@ import importlib
 import pkgutil
 
 import parsers
-from semantics.plugins import DescriptorError, accept_plugin, describe_parser, reject_plugin
+from semantics.registry.plugins import DescriptorError, accept_plugin, describe_parser, reject_plugin
 
 
 # --- Registry for parsers ---

@@ -8,8 +8,8 @@ from rdflib import BNode, Graph
 from rdflib.namespace import RDF, SH
 
 from .namespaces import bind_prefixes
-from .terms import terms_graph
-from .vocabulary import load_vocabulary
+from .registry.terms import terms_graph
+from .registry.vocabulary import load_vocabulary
 
 SHAPES_FILE = Path(__file__).resolve().parent / 'vocab' / 'shapes.ttl'
 

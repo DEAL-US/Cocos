@@ -12,9 +12,9 @@ import requests
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, OWL, RDF, RDFS, XSD
 
-from .namespaces import EDAM, OBO, bind_prefixes
+from ..namespaces import EDAM, OBO, bind_prefixes
 
-TERMS_FILE = Path(__file__).resolve().parent / 'vocab' / 'terms.ttl'
+TERMS_FILE = Path(__file__).resolve().parents[1] / 'vocab' / 'terms.ttl'
 OLS_API = 'https://www.ebi.ac.uk/ols4/api'
 
 # OBO prefix (as in obo:ARO_0000073) -> OLS ontology id.

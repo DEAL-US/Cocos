@@ -7,7 +7,7 @@ from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
 from core.models import ProcessGroup
 from core.testing import FakeBioService
 from semantics.namespaces import AMRF, EDAM, OBO, SCHEMA
-from semantics.sample_graph import sample_graph
+from semantics.sample import sample_graph
 from semantics.validation import validate, violations
 
 SAMPLE = 'https://cocos.example/processes/1'

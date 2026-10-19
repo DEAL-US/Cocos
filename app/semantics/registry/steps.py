@@ -11,7 +11,7 @@ from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, RDF
 
 from .mappings import data_term, format_term, operation_terms, sequencing_technique
-from .namespaces import BIOSCHEMAS, BSC, COCOS, SCHEMA, bind_prefixes
+from ..namespaces import BIOSCHEMAS, BSC, COCOS, SCHEMA, bind_prefixes
 
 # bio.tools tool type of the steps that run as jobs in the bio service.
 WEB_SERVICE = 'Web service'

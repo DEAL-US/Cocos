@@ -4,7 +4,7 @@ from rdflib.namespace import RDF, RDFS
 
 from semantics.discovery import Source, Status, discover
 from semantics.namespaces import AMRF, BIOSCHEMAS, BSC, EDAM, OBO, SCHEMA
-from semantics.registry import build_registry_graph
+from semantics.registry.graph import build_registry_graph
 
 SAMPLE = URIRef('https://cocos.example/processes/1')
 ILLUMINA, NANOPORE = OBO.NCIT_C146817, OBO.NCIT_C146818

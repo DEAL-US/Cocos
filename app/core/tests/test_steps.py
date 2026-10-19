@@ -17,7 +17,7 @@ from core.steps import (
 )
 from prediction.adapters.registry import ANY_ORGANISM, MODEL_REGISTRY
 from prediction.testing import register_fake_models
-from semantics.plugins import ParserDescription
+from semantics.registry.plugins import ParserDescription
 
 FASTQ, FASTA, JSON = File.FileType.FASTQ, File.FileType.FASTA, File.FileType.JSON
 

@@ -6,9 +6,9 @@ from rdflib import Graph
 from core.models import File
 from core.steps import DataKind, Port
 from semantics.checks import check_rejected_plugins
-from semantics.descriptors import load_descriptor, model_descriptor_path
+from semantics.registry.descriptors import load_descriptor, model_descriptor_path
 from semantics.namespaces import SCHEMA
-from semantics.plugins import REJECTED_PLUGINS, DescriptorError, describe_model, describe_parser
+from semantics.registry.plugins import REJECTED_PLUGINS, DescriptorError, describe_model, describe_parser
 
 GENES = Port('genes', DataKind.GENE_SET, File.FileType.JSON)
 
@@ -25,7 +25,7 @@ class DescribeModelTests(SimpleTestCase):
         self.assertEqual(description.antibiotics, ('amikacin', 'cefotaxime', 'gentamicin'))
 
     def test_a_term_without_label_asks_to_fetch_the_terms(self):
-        with mock.patch('semantics.plugins.terms_graph', return_value=Graph()):
+        with mock.patch('semantics.registry.plugins.terms_graph', return_value=Graph()):
             with self.assertRaisesRegex(DescriptorError, 'fetch_terms'):
                 describe_model('base_bakta_50')
 
@@ -51,7 +51,7 @@ class InvalidDescriptorTests(SimpleTestCase):
         graph = load_descriptor(model_descriptor_path('base_bakta_50'))
         graph.remove((None, SCHEMA.url, None))
 
-        with mock.patch('semantics.plugins.load_descriptor', return_value=graph):
+        with mock.patch('semantics.registry.plugins.load_descriptor', return_value=graph):
             with self.assertRaisesRegex(DescriptorError, 'schema:url'):
                 describe_model('base_bakta_50')
 

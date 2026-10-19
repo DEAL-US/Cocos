@@ -1,10 +1,10 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from semantics.descriptors import all_descriptor_paths, load_descriptor
-from semantics.registry import framework_steps
-from semantics.steps_graph import steps_graph
-from semantics.vocabulary import load_vocabulary
-from semantics.terms import TERMS_FILE, TermError, fetch_terms, reused_terms, write_terms
+from semantics.registry.descriptors import all_descriptor_paths, load_descriptor
+from semantics.registry.graph import framework_steps
+from semantics.registry.steps import steps_graph
+from semantics.registry.vocabulary import load_vocabulary
+from semantics.registry.terms import TERMS_FILE, TermError, fetch_terms, reused_terms, write_terms
 
 
 class Command(BaseCommand):

@@ -19,7 +19,7 @@ from prediction.adapters.registry import (
     list_registered_models,
     register_model,
 )
-from semantics.plugins import REJECTED_PLUGINS, ModelDescription
+from semantics.registry.plugins import REJECTED_PLUGINS, ModelDescription
 
 GENES = (Port('genes', DataKind.GENE_SET, File.FileType.JSON),)
 PREDICTIONS = (Port('predictions', DataKind.RESISTANCE_PREDICTION, File.FileType.CSV),)

@@ -16,9 +16,9 @@ from core.steps import Port
 
 from .descriptors import load_descriptor, model_descriptor_path, model_iri, parser_descriptor_path
 from .mappings import file_type_of, kind_of
-from .namespaces import AMRF, BSC, COCOS, OBO, SCHEMA
+from ..namespaces import AMRF, BSC, COCOS, OBO, SCHEMA
 from .terms import terms_graph
-from .validation import validate, violations
+from ..validation import validate, violations
 
 logger = logging.getLogger(__name__)
 

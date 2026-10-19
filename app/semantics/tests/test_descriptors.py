@@ -6,7 +6,7 @@ from rdflib.namespace import RDF
 
 import parsers
 from prediction.adapters.registry import list_registered_models
-from semantics.descriptors import load_descriptor, model_descriptor_path, model_iri, parser_descriptor_path
+from semantics.registry.descriptors import load_descriptor, model_descriptor_path, model_iri, parser_descriptor_path
 from semantics.namespaces import COCOS, SCHEMA
 
 

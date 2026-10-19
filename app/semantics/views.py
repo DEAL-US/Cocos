@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from core.models import ProcessGroup
 
-from .sample_graph import sample_graph
+from .sample import sample_graph
 
 JSON_LD = 'application/ld+json'
 TURTLE = 'text/turtle'

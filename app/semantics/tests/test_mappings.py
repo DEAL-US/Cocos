@@ -2,7 +2,7 @@ from django.test import SimpleTestCase
 
 from core.models import File
 from core.steps import DataKind, get_step, list_steps
-from semantics.mappings import DATA, FORMATS, data_term, format_term, operation_terms, sequencing_technique
+from semantics.registry.mappings import DATA, FORMATS, data_term, format_term, operation_terms, sequencing_technique
 from semantics.namespaces import AMRF, EDAM, OBO
 
 

@@ -4,7 +4,7 @@ from rdflib.namespace import RDF
 
 from core.steps import get_step
 from semantics.namespaces import AMRF, BIOSCHEMAS, BSC, COCOS, EDAM, OBO, SCHEMA
-from semantics.steps_graph import steps_graph
+from semantics.registry.steps import steps_graph
 
 
 class StepsGraphTests(SimpleTestCase):

@@ -6,7 +6,7 @@ are described by hand in their descriptors.
 from core.models import File
 from core.steps import DataKind
 
-from .namespaces import AMRF, EDAM, OBO
+from ..namespaces import AMRF, EDAM, OBO
 
 DATA = {
     DataKind.READS: EDAM.data_3494,                  # DNA sequence (EDAM has no "sequencing reads")

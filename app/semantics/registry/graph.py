@@ -18,8 +18,8 @@ from core.steps import list_steps
 from prediction.adapters.registry import list_registered_models
 
 from .descriptors import load_descriptor, model_descriptor_path, model_iri, parser_descriptor_path
-from .namespaces import bind_prefixes
-from .steps_graph import step_iri, steps_graph
+from ..namespaces import bind_prefixes
+from .steps import step_iri, steps_graph
 from .terms import TERMS_FILE
 from .vocabulary import load_vocabulary
 

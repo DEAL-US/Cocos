@@ -2,9 +2,9 @@ from django.test import SimpleTestCase
 from rdflib import Literal
 from rdflib.namespace import RDFS
 
-from semantics.descriptors import load_descriptor, model_descriptor_path, model_iri
+from semantics.registry.descriptors import load_descriptor, model_descriptor_path, model_iri
 from semantics.namespaces import AMRF, OBO, SCHEMA
-from semantics.registry import build_registry_graph
+from semantics.registry.graph import build_registry_graph
 from semantics.validation import validate, violations
 
 MODEL = model_iri('base_bakta_50')

@@ -6,7 +6,7 @@ semantic layer when the model is registered.
 import inspect
 from pathlib import Path
 
-from semantics.plugins import DescriptorError, accept_plugin, describe_model, reject_plugin
+from semantics.registry.plugins import DescriptorError, accept_plugin, describe_model, reject_plugin
 
 MODEL_REGISTRY = {
     # 'model_name': ModelAdapterClass,

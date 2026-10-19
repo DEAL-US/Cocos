@@ -4,7 +4,7 @@ from pathlib import Path
 from django.conf import settings
 from rdflib import Graph
 
-from .namespaces import COCOS, bind_prefixes
+from ..namespaces import COCOS, bind_prefixes
 
 DESCRIPTOR_FILENAME = 'descriptor.ttl'
 
