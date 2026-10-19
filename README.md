@@ -296,6 +296,28 @@ app/semantics/
 
 The prediction page is built on it. It offers every sample of the user (those still being processed are disabled until they finish) and shows, for the selected sample, which models are ready, which need preparation (and which steps) and which are not available (and why). When the user predicts, the server runs the discovery again and adds to the plan of the sample the preparation steps the selected models need, once even if several models need them, followed by the predictions. If a preparation step fails, the predictions that depended on it are cancelled and appear without result; if every model was cancelled, the prediction fails. The organism of a sample can be set or changed later from its page.
 
+### Public Registry and SPARQL Endpoint
+
+The registry (steps, models, the AMRF vocabulary and shapes) is public; the data of the users never is. Every IRI of the registry has a page on the server, which `https://w3id.org/cocos/...` and `https://w3id.org/amrf/...` will redirect to. Browsers get HTML; RDF clients get Turtle or JSON-LD (`Accept` header, or `?format=ttl` / `?format=jsonld`):
+
+| Path | What |
+|---|---|
+| `/registry/` | every step and model (and the whole registry as RDF) |
+| `/model/<name>`, `/step/<key>` | one model or step, with its inputs and outputs |
+| `/amrf/`, `/amrf/<term>` | the AMRF vocabulary and its terms |
+| `/amrf/shapes` | the AMRF SHACL shapes |
+| `/sparql` | read-only SPARQL endpoint over the registry |
+
+The SPARQL endpoint follows the SPARQL 1.1 protocol (`GET ?query=...`, or `POST` as a form or as `application/sparql-query`) and allows cross-origin requests. `SELECT` and `ASK` results are JSON (default), XML or CSV; `CONSTRUCT` and `DESCRIBE` results are Turtle or JSON-LD. The prefixes `schema:`, `edam:`, `obo:`, `bsc:`, `amrf:` and `rdfs:` are predefined. Updates, `SERVICE` and queries longer than 10,000 characters are refused. For example, the models and the antibiotics they predict:
+
+```bash
+curl -G http://localhost:8080/sparql --data-urlencode 'query=
+SELECT ?model ?antibiotic WHERE {
+  ?model schema:featureList edam:operation_3482 ; amrf:predictsResistanceTo ?drug .
+  ?drug rdfs:label ?antibiotic .
+}'
+```
+
 ### Sample Descriptions (RDF)
 
 Each process can be retrieved as an RDF description of the sample, for integration with other tools (it is not linked from the web interface). Only its owner can get it, logged in:
