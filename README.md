@@ -276,7 +276,25 @@ See `app/parsers/bakta_json/` for a complete example.
 
 ---
 
-## Sample Descriptions (RDF)
+## Semantic Layer
+
+COCOS describes what it can do, and what each sample has, in RDF, and uses those descriptions to decide which models can run on a sample. The code is in `app/semantics/`:
+
+```
+app/semantics/
+├── vocab/          amrf.ttl (the AMRF vocabulary), shapes.ttl (SHACL shapes), terms.ttl (reused ontology terms)
+├── registry/       what COCOS offers: the steps (generated from the code), the plug-in descriptors
+│                   and the registry graph that joins them with the vocabulary and terms.ttl
+├── validation.py   SHACL validation of descriptors and samples against shapes.ttl
+├── sample.py       the RDF description of a sample
+└── discovery/      which models can run on a sample
+```
+
+### Discovery
+
+`semantics.discovery.discover(registry, sample, antibiotics=None)` decides, for every model, whether a sample is **ready** (it has every input of the model), **reachable** (some preparation steps, such as assembly, annotation or gene extraction, produce the missing inputs; it returns them, with the file of the sample that feeds each step) or **incompatible** (with the reasons: no steps can produce the inputs, the model is not for the organism of the sample, or it predicts none of the requested antibiotics). It only reads the RDF graphs, with SPARQL: what steps and models consume and produce (EDAM data and format, and the sequencing technique of reads), and the hierarchy of the terms, so a Bakta JSON file is accepted where any JSON is. Among the shortest preparations it chooses the one that recomputes the least data the sample already has, then the one that runs the fewest jobs in the bio service.
+
+### Sample Descriptions (RDF)
 
 Each process can be retrieved as an RDF description of the sample, for integration with other tools (it is not linked from the web interface). Only its owner can get it, logged in:
 
