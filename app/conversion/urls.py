@@ -12,6 +12,7 @@ urlpatterns = [
     path('processes/', status.process_list_view, name='process_list'),
     path('processes/<int:process_id>/', status.process_status_view, name='process_status'),
     path('processes/<int:process_id>/rename/', status.rename_process_view, name='rename_process'),
+    path('processes/<int:process_id>/organism/', status.set_organism_view, name='set_organism'),
     path('processes/<int:process_id>/files/<int:file_id>/', status.download_process_file_view, name='process_file'),
     path('processes/<int:process_id>/retry-assembly/', pipeline.retry_assembly_view, name='retry_assembly'),
     path('tasks/<int:task_id>/download-json/', status.download_json_view, name='download_json'),

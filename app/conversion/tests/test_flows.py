@@ -694,6 +694,40 @@ class OrganismTests(ConversionFlowMixin, TestCase):
                 self.client.post(reverse(url), data={**data, 'organism': TUBERCULOSIS[0]})
                 self.assertEqual(self.latest_process().organism, TUBERCULOSIS[0])
 
+    def upload_json(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+        return self.latest_process()
+
+    def test_the_organism_of_a_sample_can_be_set_and_changed_later(self):
+        process = self.upload_json()
+        page = reverse('conversion:process_status', args=[process.id])
+        self.assertNotContains(self.client.get(page), 'id="organism"')
+
+        self.declare_tuberculosis_model()
+        self.assertContains(self.client.get(page), 'id="organism"')
+        set_organism = reverse('conversion:set_organism', args=[process.id])
+        self.client.post(set_organism, data={'organism': TUBERCULOSIS[0]})
+        process.refresh_from_db()
+        self.assertEqual(process.organism, TUBERCULOSIS[0])
+
+        self.client.post(set_organism, data={'organism': 'NCBITaxon:562'})  # not offered by any model
+        process.refresh_from_db()
+        self.assertEqual(process.organism, TUBERCULOSIS[0])
+
+        self.client.post(set_organism, data={'organism': ''})
+        process.refresh_from_db()
+        self.assertEqual(process.organism, '')
+
+    def test_other_users_cannot_set_the_organism(self):
+        process = self.upload_json()
+        self.declare_tuberculosis_model()
+        self.client.login(username='other-user', password='pass1234')
+
+        response = self.client.post(reverse('conversion:set_organism', args=[process.id]), data={'organism': TUBERCULOSIS[0]})
+
+        self.assertEqual(response.status_code, 404)
+
     def test_unknown_organism_is_rejected(self):
         self.declare_tuberculosis_model()
         with FakeBioService():

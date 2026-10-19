@@ -19,6 +19,7 @@ from ..services.status import (
     get_json_upload_for_task,
     get_process_files,
     rename_process,
+    set_process_organism,
 )
 from ..models import ConversionTask
 
@@ -146,6 +147,18 @@ def download_process_file_view(request, process_id, file_id):
     process = get_object_or_404(ProcessGroup, id=process_id, user=request.user)
     file = get_object_or_404(get_process_files(process), id=file_id)
     return FileResponse(file.file.open('rb'), as_attachment=True, filename=os.path.basename(file.file.name))
+
+
+@require_POST
+@login_required
+def set_organism_view(request, process_id):
+    process = get_object_or_404(ProcessGroup, id=process_id, user=request.user)
+    try:
+        set_process_organism(process, (request.POST.get('organism') or '').strip())
+        messages.success(request, 'Organism updated.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('conversion:process_status', process_id=process.id)
 
 
 @require_POST

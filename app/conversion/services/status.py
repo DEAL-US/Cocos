@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from django.urls import reverse
 
 from ..models import ConversionTask
+from prediction.adapters.registry import list_all_organisms
 from prediction.models import PredictionRun
 from core.models import File, ProcessGroup, TaskInput, TaskOutput, TaskStatus
 from ..steps import GENE_EXTRACTION_STEP_PREFIX
@@ -314,6 +315,9 @@ def build_process_status_context(process, page=1):
     return {
         'process_name': process.name,
         'process_id': process.id,
+        'organism': process.organism,
+        # The organism can only be chosen once some model declares specific organisms.
+        'organism_options': list_all_organisms(),
         'process_kind': process_kind,
         'pipeline_badges': pipeline_badges,
         'latest_task_status': latest_status,
@@ -382,6 +386,16 @@ def _build_timeline_entry(view, task):
 def rename_process(process, new_name):
     process.name = new_name
     process.save(update_fields=["name"])
+
+def set_process_organism(process, organism):
+    """Set the organism of a process: blank (other / unknown) or one the prediction models declare.
+
+    Earlier predictions keep their results; what can run on the sample is decided with the new one.
+    """
+    if organism and organism not in dict(list_all_organisms()):
+        raise ValueError('Unknown organism.')
+    process.organism = organism
+    process.save(update_fields=['organism'])
 
 def get_process_files(process):
     """Files consumed or produced by the tasks of a process."""
