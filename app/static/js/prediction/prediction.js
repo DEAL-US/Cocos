@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   const computeBtn = document.getElementById('compute-matrix');
-  const fileSelect = document.getElementById('file_id_batch');
+  const sampleSelect = document.getElementById('sample-select');
 
   const predictionStatus = document.getElementById('prediction-status');
 
@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', function () {
       antibioticsSelectEl.addEventListener('change', updateButtonsState);
     }
 
-    if (fileSelect) {
-      fileSelect.addEventListener('change', updateButtonsState);
+    if (sampleSelect) {
+      sampleSelect.addEventListener('change', updateButtonsState);
     }
 
     updateButtonsState();
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return {
       models: models,
       antibiotics: antibiotics,
-      file_id: fileSelect ? fileSelect.value : '',
+      sample_id: sampleSelect ? sampleSelect.value : '',
     };
   }
 
@@ -63,9 +63,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const hasModels = selection.models.length > 0;
     const hasAntibiotics = selection.antibiotics.length > 0;
-    const hasFile = Boolean(selection.file_id);
+    const hasSample = Boolean(selection.sample_id);
 
-    const enabled = hasModels && hasAntibiotics && hasFile;
+    const enabled = hasModels && hasAntibiotics && hasSample;
 
     computeBtn.disabled = !enabled;
   }
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
       params.append('antibiotics', antibiotic);
     });
 
-    params.append('file_id', selection.file_id);
+    params.append('sample_id', selection.sample_id);
 
     hideError();
 

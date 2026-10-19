@@ -33,16 +33,18 @@
     <div class="space-y-6">
       <fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4">
         <legend class="fieldset-legend text-base font-semibold">Sample selection</legend>
-        <p class="text-sm opacity-70 mb-3">Select an annotated sample to use as input for the prediction models.</p>
+        <p class="text-sm opacity-70 mb-3">Select one of your samples. Samples still being processed can be used once they finish.</p>
 
-        <select id="file_id_batch" class="select select-bordered w-full source-job-select">
+        <select id="sample-select" class="select select-bordered w-full source-job-select">
           <option value="">Select a sample</option>
 
-          {% for upload in input_file_options %}
-            <option value="{{ upload.id }}">{{ upload.label }}</option>
+          {% for sample in sample_options %}
+            <option value="{{ sample.id }}"{% if sample.processing %} disabled{% endif %}>
+              {{ sample.label }}{% if sample.processing %} · processing…{% endif %}
+            </option>
           {% empty %}
             <option value="" disabled>
-              No available samples for prediction
+              You have no samples yet
             </option>
           {% endfor %}
         </select>

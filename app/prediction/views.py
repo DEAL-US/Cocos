@@ -4,17 +4,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from core.models import TaskStatus
 from .models import PredictionRun
-from .services import get_prediction_input_options, start_prediction
-from .adapters.registry import list_registered_models, list_all_antibiotics
+from .services import describe_compatibility, get_sample_options, get_user_sample, is_processing, start_prediction
+from .adapters.registry import list_all_antibiotics, list_all_organisms, list_registered_models
 
 @login_required
 def prediction_ui(request):
     return render(request, 'prediction/prediction.html', {
-        'input_file_options': get_prediction_input_options(request.user),
+        'sample_options': get_sample_options(request.user),
         'available_models': list_registered_models(),
         'available_antibiotics': list_all_antibiotics(),
     })
@@ -24,7 +24,7 @@ def prediction_ui(request):
 def make_prediction_view(request):
     model_names = request.POST.getlist('models')
     antibiotics = request.POST.getlist('antibiotics')
-    file_id = request.POST.get('file_id', '').strip() or None
+    sample_id = request.POST.get('sample_id', '').strip() or None
     task = None
 
     try:
@@ -32,7 +32,7 @@ def make_prediction_view(request):
             user=request.user,
             model_names=model_names,
             antibiotics=antibiotics,
-            file_id=file_id,
+            process_id=sample_id,
         )
     except ValueError as e:
         messages.error(request, str(e))
@@ -45,6 +45,21 @@ def make_prediction_view(request):
         )
     
     return JsonResponse({'run_id': run.id, 'process_id': run.process.id}, status=202)
+
+@login_required
+@require_GET
+def sample_models_view(request, process_id):
+    """What every model can do with a sample of the user: ready, needs preparation, or not available."""
+    try:
+        process = get_user_sample(request.user, process_id)
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=404)
+    organisms = dict(list_all_organisms())
+    return JsonResponse({
+        'processing': is_processing(process),
+        'organism': organisms.get(process.organism, process.organism) or None,
+        'models': describe_compatibility(process),
+    })
 
 @login_required
 @require_POST
