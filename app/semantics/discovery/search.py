@@ -12,7 +12,7 @@
 from dataclasses import dataclass
 
 from ..namespaces import OBO
-from .graphs import Item, Terms, read_sample, read_tools
+from .graphs import Item, is_a, label, read_sample, read_tools
 from .results import Compatibility, PlannedStep, Source, Status
 
 # A model for Bacteria accepts a sample of any organism (v1: no other taxonomy reasoning).
@@ -29,37 +29,36 @@ def discover(registry, sample, antibiotics=None):
     tools = read_tools(registry)
     steps = [tool for tool in tools if not tool.is_model]
     items, organism = read_sample(sample)
-    terms = Terms(registry)
-    return [verdict(model, steps, items, organism, antibiotics, terms) for model in tools if model.is_model]
+    return [verdict(model, steps, items, organism, antibiotics, registry) for model in tools if model.is_model]
 
 
 # --- 1. The verdict for one model
 
-def verdict(model, steps, items, organism, antibiotics, terms):
-    reasons = organism_reasons(model, organism, terms) + antibiotic_reasons(model, antibiotics)
+def verdict(model, steps, items, organism, antibiotics, registry):
+    reasons = organism_reasons(model, organism, registry) + antibiotic_reasons(model, antibiotics)
 
-    inputs = assign(model.inputs, items, terms)
+    inputs = assign(model.inputs, items, registry)
     if inputs is not None:
         status, path = Status.READY, Path(items=items)
     else:
-        path, inputs = shortest_preparation(model, steps, items, terms)
+        path, inputs = shortest_preparation(model, steps, items, registry)
         status = Status.REACHABLE
         if path is None:
-            reasons.append(data_reason(model, terms))
+            reasons.append(data_reason(model, registry))
 
     if reasons:
         return Compatibility(model.identifier, Status.INCOMPATIBLE, reasons=tuple(reasons))
     return Compatibility(model.identifier, status, steps=path.steps, inputs=tuple(inputs))
 
 
-def organism_reasons(model, organism, terms):
+def organism_reasons(model, organism, registry):
     if ANY_BACTERIA in model.organisms:
         return []
     names = ', '.join(sorted(model.organisms.values()))
     if organism is None:
         return [f'This model is only for {names}, and the organism of this sample is unknown.']
     if organism not in model.organisms:
-        return [f'This model is only for {names}, and this sample is {terms.label(organism)}.']
+        return [f'This model is only for {names}, and this sample is {label(registry, organism)}.']
     return []
 
 
@@ -69,8 +68,8 @@ def antibiotic_reasons(model, antibiotics):
     return []
 
 
-def data_reason(model, terms):
-    needed = ', '.join(f'{terms.label(p.kind.data)} ({terms.label(p.kind.format)})' for p in model.inputs)
+def data_reason(model, registry):
+    needed = ', '.join(f'{label(registry, p.kind.data)} ({label(registry, p.kind.format)})' for p in model.inputs)
     return f'This model needs {needed}, and no steps can obtain it from the data of this sample.'
 
 
@@ -103,7 +102,7 @@ class Path:
         return (len(self.steps), self.recomputed, self.jobs, tuple(step.step for step in self.steps))
 
 
-def shortest_preparation(model, steps, items, terms):
+def shortest_preparation(model, steps, items, registry):
     """(path, model inputs) of the cheapest shortest path of steps that gives `model` its inputs,
     or (None, None) if there is none within MAX_STEPS.
 
@@ -116,11 +115,11 @@ def shortest_preparation(model, steps, items, terms):
         next_level, found = [], []
         for path in level:
             for step in steps:
-                inputs = assign(step.inputs, path.items, terms)
+                inputs = assign(step.inputs, path.items, registry)
                 if inputs is None or step_adds_nothing(step, path):
                     continue
                 longer = path.extend(step, inputs)
-                model_inputs = assign(model.inputs, longer.items, terms)
+                model_inputs = assign(model.inputs, longer.items, registry)
                 if model_inputs is not None:
                     found.append((longer, model_inputs))
                 elif frozenset(longer.kinds()) not in seen:
@@ -139,7 +138,7 @@ def step_adds_nothing(step, path):
 
 # --- 3. Matching data to inputs
 
-def assign(parameters, items, terms):
+def assign(parameters, items, registry):
     """Give each parameter a different item that satisfies it: [(role, Source), ...], or None.
 
     Items with the same role as the parameter, then items produced by the path (the latest
@@ -148,7 +147,7 @@ def assign(parameters, items, terms):
     used, assigned = set(), []
     for parameter in parameters:
         candidates = [index for index, item in enumerate(items)
-                      if index not in used and satisfies(item.kind, parameter.kind, terms)]
+                      if index not in used and satisfies(item.kind, parameter.kind, registry)]
         if not candidates:
             return None
         best = max(candidates, key=lambda index: (items[index].source.role == parameter.role,
@@ -158,7 +157,7 @@ def assign(parameters, items, terms):
     return assigned
 
 
-def satisfies(offered, required, terms):
+def satisfies(offered, required, registry):
     if required.technique is not None and offered.technique != required.technique:
         return False
-    return terms.is_a(offered.data, required.data) and terms.is_a(offered.format, required.format)
+    return is_a(registry, offered.data, required.data) and is_a(registry, offered.format, required.format)

@@ -1,10 +1,11 @@
 """What discovery reads from the graphs, with SPARQL, turned into plain Python objects.
 
 From the registry graph: the steps and models (read_tools). From the sample graph: the data it
-has and its organism (read_sample). And, through Terms, whether a term is a kind of another and
-how it is called.
+has and its organism (read_sample). And whether a term is a kind of another (is_a) and how it is
+called (label).
 """
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 from rdflib import URIRef
 
@@ -135,32 +136,25 @@ def read_sample(sample):
     return items, (organisms[0] if organisms else None)
 
 
-# --- Terms
+# --- Terms (questions answered by the registry graph)
 
 SUBCLASS_QUERY = 'ASK { ?narrower rdfs:subClassOf* ?broader }'
 LABEL_QUERY = 'SELECT ?label WHERE { ?term rdfs:label ?label } LIMIT 1'
 
 
-class Terms:
-    """Questions about the terms, answered by the registry graph (it includes terms.ttl)."""
+@lru_cache(maxsize=4096)
+def is_a(registry, narrower, broader):
+    """Whether `narrower` is `broader` or a kind of it (e.g. Bakta JSON is a JSON), in the registry
+    graph, which includes terms.ttl. Cached: the search asks the same questions many times."""
+    if narrower == broader:
+        return True
+    answer = registry.query(SUBCLASS_QUERY, initNs=NAMESPACES, initBindings={'narrower': narrower, 'broader': broader})
+    return bool(answer.askAnswer)
 
-    def __init__(self, registry):
-        self.registry = registry
-        self._is_a = {}
 
-    def is_a(self, narrower, broader):
-        """Whether `narrower` is `broader` or a kind of it (e.g. Bakta JSON is a JSON)."""
-        if narrower == broader:
-            return True
-        if (narrower, broader) not in self._is_a:
-            answer = self.registry.query(SUBCLASS_QUERY, initNs=NAMESPACES,
-                                         initBindings={'narrower': narrower, 'broader': broader})
-            self._is_a[(narrower, broader)] = bool(answer.askAnswer)
-        return self._is_a[(narrower, broader)]
-
-    def label(self, term):
-        rows = list(self.registry.query(LABEL_QUERY, initNs=NAMESPACES, initBindings={'term': term}))
-        return str(rows[0].label) if rows else _short(term)
+def label(registry, term):
+    rows = list(registry.query(LABEL_QUERY, initNs=NAMESPACES, initBindings={'term': term}))
+    return str(rows[0].label) if rows else _short(term)
 
 
 def _sorted_by_role(parameters):
