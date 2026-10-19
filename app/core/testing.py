@@ -1,6 +1,7 @@
 """
 Test support: a fake bio service mocked at HTTP level and a mixin for end-to-end flow tests.
 """
+import itertools
 import json
 import re
 import shutil
@@ -22,6 +23,11 @@ BAKTA_JSON = json.loads((FIXTURES_DIR / 'small.json').read_text(encoding='utf-8'
 ASSEMBLY_FASTA = b'>contig_1\nATGCATGCATGC\n'
 
 
+# Job ids are unique across every FakeBioService of a test run, like the ids of the real service:
+# a task of a later request must not get the id of an earlier one (external_job_id is unique).
+_job_ids = itertools.count(1)
+
+
 class FakeBioService:
     """In-memory imitation of the bio service HTTP API.
 
@@ -40,7 +46,6 @@ class FakeBioService:
         self.missing_jobs = missing_jobs
         self.jobs = {}
         self.submissions = []
-        self._next_id = 1
         self._mock = responses.RequestsMock(assert_all_requests_are_fired=False)
 
     # --- lifecycle
@@ -64,8 +69,7 @@ class FakeBioService:
 
     # --- callbacks
     def _new_job(self, kind, annotate):
-        job_id = f'job-{self._next_id}'
-        self._next_id += 1
+        job_id = f'job-{next(_job_ids)}'
         if self.status_sequence is not None:
             sequence = list(self.status_sequence)
         elif kind == 'annotation' or annotate:
