@@ -15,7 +15,7 @@
 # What a valid description of an antimicrobial resistance prediction model, and of the steps that
 # prepare its inputs, looks like. Checking that a term "is an antibiotic" or "is an EDAM format"
 # follows rdfs:subClassOf up to the root, so the hierarchy of the reused terms must be in the data
-# graph (COCOS adds terms.ttl).
+# graph (Cocos adds terms.ttl).
 
 amrfsh:
     a owl:Ontology ;

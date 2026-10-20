@@ -2,7 +2,7 @@
 
 Framework for integrating and deploying antibiotic resistance prediction models in genomic analysis workflows.
 
-COCOS provides a web interface that allows users to process genomic data and obtain antibiotic resistance predictions from multiple registered prediction models. The framework is designed to facilitate the use of research models by users without requiring direct interaction with the underlying machine learning implementations.
+Cocos provides a web interface that allows users to process genomic data and obtain antibiotic resistance predictions from multiple registered prediction models. The framework is designed to facilitate the use of research models by users without requiring direct interaction with the underlying machine learning implementations.
 
 ---
 
@@ -177,13 +177,13 @@ Environment files are not committed. `.env.example` and `.env.prod.example` are 
 
 ---
 
-## Extending COCOS
+## Extending Cocos
 
-Prediction models and annotation parsers are plug-ins: each one is a folder that COCOS discovers when it starts, so adding one does not require changing the rest of the code.
+Prediction models and annotation parsers are plug-ins: each one is a folder that Cocos discovers when it starts, so adding one does not require changing the rest of the code.
 
-Each plug-in has a **`descriptor.ttl`**: an RDF description (Turtle) of what it consumes and produces and, for models, which organisms and antibiotics it supports. The descriptor is the source of truth: COCOS reads it to decide what a plug-in can be used for. It reuses existing ontologies: [EDAM](https://edamontology.org) for data, formats and operations, [ARO](https://obofoundry.org/ontology/aro.html) for antibiotics, [NCBITaxon](https://obofoundry.org/ontology/ncbitaxon.html) for organisms and [Bioschemas](https://bioschemas.org/profiles/ComputationalTool) for the overall structure, plus the AMRF vocabulary of COCOS (`app/semantics/vocab/amrf.ttl`) for what they do not cover. Copy the descriptor of an existing plug-in and adapt it.
+Each plug-in has a **`descriptor.ttl`**: an RDF description (Turtle) of what it consumes and produces and, for models, which organisms and antibiotics it supports. The descriptor is the source of truth: Cocos reads it to decide what a plug-in can be used for. It reuses existing ontologies: [EDAM](https://edamontology.org) for data, formats and operations, [ARO](https://obofoundry.org/ontology/aro.html) for antibiotics, [NCBITaxon](https://obofoundry.org/ontology/ncbitaxon.html) for organisms and [Bioschemas](https://bioschemas.org/profiles/ComputationalTool) for the overall structure, plus the AMRF vocabulary of Cocos (`app/semantics/vocab/amrf.ttl`) for what they do not cover. Copy the descriptor of an existing plug-in and adapt it.
 
-Every descriptor is validated with the [SHACL](https://www.w3.org/TR/shacl/) shapes in `app/semantics/vocab/shapes.ttl` when the plug-in is registered. They require what [Bioschemas ComputationalTool](https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE) requires (`name`, `description`, `url`), EDAM terms for operations, inputs and outputs and, for models, a version, ARO antibiotics and NCBITaxon organisms; `author`, `license` and `citation` are recommended. **A plug-in whose descriptor is invalid is not registered**: the rest of COCOS keeps working, and `python manage.py check` reports why (`semantics.W001`). The test suite fails while any plug-in is invalid.
+Every descriptor is validated with the [SHACL](https://www.w3.org/TR/shacl/) shapes in `app/semantics/vocab/shapes.ttl` when the plug-in is registered. They require what [Bioschemas ComputationalTool](https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE) requires (`name`, `description`, `url`), EDAM terms for operations, inputs and outputs and, for models, a version, ARO antibiotics and NCBITaxon organisms; `author`, `license` and `citation` are recommended. **A plug-in whose descriptor is invalid is not registered**: the rest of Cocos keeps working, and `python manage.py check` reports why (`semantics.W001`). The test suite fails while any plug-in is invalid.
 
 **Checklist** to add or change a plug-in (commands run from `app/`, or in the dev container with `docker exec bio-web-web-1 python manage.py ...`):
 
@@ -194,10 +194,10 @@ Every descriptor is validated with the [SHACL](https://www.w3.org/TR/shacl/) sha
 
 If you forget step 2, the plug-in does not appear: without the hierarchy of its terms its descriptor cannot be validated, so `python manage.py check` reports it as not registered and suggests running `fetch_terms`. The test suite fails for the same reason.
 
-| To add | Create | Becomes the step |
-|---|---|---|
-| A prediction model | `app/ai_models/<model_name>/` | `predict_<model_name>` |
-| An annotation parser | `app/parsers/<parser_name>/` | `extract_<parser_name>` |
+| To add               | Create                        | Becomes the step        |
+| -------------------- | ----------------------------- | ----------------------- |
+| A prediction model   | `app/ai_models/<model_name>/` | `predict_<model_name>`  |
+| An annotation parser | `app/parsers/<parser_name>/`  | `extract_<parser_name>` |
 
 ### Add New Prediction Models
 
@@ -278,12 +278,12 @@ See `app/parsers/bakta_json/` for a complete example.
 
 ## Semantic Layer
 
-COCOS describes what it can do, and what each sample has, in RDF, and uses those descriptions to decide which models can run on a sample. The code is in `app/semantics/`:
+Cocos describes what it can do, and what each sample has, in RDF, and uses those descriptions to decide which models can run on a sample. The code is in `app/semantics/`:
 
 ```
 app/semantics/
 ├── vocab/          amrf.ttl (the AMRF vocabulary), shapes.ttl (SHACL shapes), terms.ttl (reused ontology terms)
-├── registry/       what COCOS offers: the steps (generated from the code), the plug-in descriptors
+├── registry/       what Cocos offers: the steps (generated from the code), the plug-in descriptors
 │                   and the registry graph that joins them with the vocabulary and terms.ttl
 ├── validation.py   SHACL validation of descriptors and samples against shapes.ttl
 ├── sample.py       the RDF description of a sample
@@ -300,13 +300,13 @@ The prediction page is built on it. It offers every sample of the user (those st
 
 The registry (steps, models, the AMRF vocabulary and shapes) is public; the data of the users never is. Every IRI of the registry has a page on the server, which `https://w3id.org/cocos/...` and `https://w3id.org/amrf/...` will redirect to. Browsers get HTML; RDF clients get Turtle or JSON-LD (`Accept` header, or `?format=ttl` / `?format=jsonld`):
 
-| Path | What |
-|---|---|
-| `/registry/` | every step and model (and the whole registry as RDF) |
-| `/model/<name>`, `/step/<key>` | one model or step, with its inputs and outputs |
-| `/amrf/`, `/amrf/<term>` | the AMRF vocabulary and its terms |
-| `/amrf/shapes` | the AMRF SHACL shapes |
-| `/sparql` | read-only SPARQL endpoint over the registry |
+| Path                           | What                                                 |
+| ------------------------------ | ---------------------------------------------------- |
+| `/registry/`                   | every step and model (and the whole registry as RDF) |
+| `/model/<name>`, `/step/<key>` | one model or step, with its inputs and outputs       |
+| `/amrf/`, `/amrf/<term>`       | the AMRF vocabulary and its terms                    |
+| `/amrf/shapes`                 | the AMRF SHACL shapes                                |
+| `/sparql`                      | read-only SPARQL endpoint over the registry          |
 
 Without a browser, ask for the format you want:
 

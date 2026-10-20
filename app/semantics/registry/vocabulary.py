@@ -1,4 +1,4 @@
-"""The AMRF vocabulary: the few terms COCOS defines because no reused ontology has them."""
+"""The AMRF vocabulary: the few terms Cocos defines because no reused ontology has them."""
 from pathlib import Path
 
 from rdflib import Graph

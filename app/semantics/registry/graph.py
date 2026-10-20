@@ -1,4 +1,4 @@
-"""The registry graph: every step and model COCOS offers, described in RDF.
+"""The registry graph: every step and model Cocos offers, described in RDF.
 
 It joins the AMRF vocabulary, the steps of the framework (generated from the code), the
 descriptors of the parsers and models (written by hand) and the labels and hierarchy of the

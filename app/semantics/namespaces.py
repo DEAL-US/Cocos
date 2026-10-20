@@ -1,12 +1,12 @@
 """RDF namespaces used by the semantic layer.
 
-COCOS reuses existing ontologies wherever a term exists and only defines its own terms in the
+Cocos reuses existing ontologies wherever a term exists and only defines its own terms in the
 AMRF vocabulary (AntiMicrobial Resistance Framework) when none fits.
 """
 from rdflib import Namespace
 from rdflib.namespace import DCTERMS, OWL, RDF, RDFS, SKOS, XSD
 
-# Own vocabulary and the resources of this COCOS instance (steps, models, samples).
+# Own vocabulary and the resources of this Cocos instance (steps, models, samples).
 AMRF = Namespace('https://w3id.org/amrf/')
 COCOS = Namespace('https://w3id.org/cocos/')
 
@@ -39,7 +39,7 @@ PREFIXES = {
 
 
 def bind_prefixes(graph):
-    """Bind the COCOS prefixes so serialized graphs use them."""
+    """Bind the Cocos prefixes so serialized graphs use them."""
     for prefix, namespace in PREFIXES.items():
         graph.bind(prefix, namespace, override=True, replace=True)
     return graph

@@ -23,7 +23,7 @@ FORMATS = {
     File.FileType.CSV: EDAM.format_3752,
 }
 
-# Formats more specific than the file type for some kinds of data. Every annotation COCOS
+# Formats more specific than the file type for some kinds of data. Every annotation Cocos
 # produces is written by Bakta.
 SPECIFIC_FORMATS = {
     (DataKind.ANNOTATED_GENOME, File.FileType.JSON): AMRF.BaktaJSON,
