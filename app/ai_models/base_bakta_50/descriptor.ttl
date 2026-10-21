@@ -6,19 +6,19 @@
 @prefix obo:        <http://purl.obolibrary.org/obo/> .
 @prefix schema:     <https://schema.org/> .
 
-# TODO (tutor): the description, version and author are placeholders; add schema:license and
-# schema:citation once they are known.
+# TODO: add schema:citation once the paper describing the models is accepted.
 
 <https://w3id.org/cocos/model/base_bakta_50>
     a schema:SoftwareApplication ;
     dcterms:conformsTo <https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE> ;
     schema:identifier "base_bakta_50" ;
     schema:name "base_bakta_50" ;
-    schema:description "TODO: baseline multilayer perceptron over the presence of Bakta-annotated genes (50)."@en ;
+    schema:description "Predicts antibiotic resistance from the presence or absence, in the isolate genome, of genes belonging to UniRef50 clusters."@en ;
     schema:url <https://github.com/mquirosq/cocos/tree/main/app/ai_models/base_bakta_50> ;
-    schema:softwareVersion "0.0.0" ;
-    schema:author [ a schema:Person ; schema:name "TODO" ] ;
+    schema:softwareVersion "1.0.0" ;
+    schema:author <https://orcid.org/0000-0003-1685-3270> ;
     schema:featureList edam:operation_3482 ;
+    schema:isBasedOn <https://www.ebi.ac.uk/biostudies/studies/S-BSST2698> ;
     bsc:input <https://w3id.org/cocos/model/base_bakta_50#genes> ;
     bsc:output <https://w3id.org/cocos/model/base_bakta_50#predictions> ;
     schema:taxonomicRange obo:NCBITaxon_2 ;
@@ -39,3 +39,7 @@
     schema:name "predictions" ;
     schema:additionalType edam:data_2048 ;
     schema:encodingFormat edam:format_3752 .
+
+<https://orcid.org/0000-0003-1685-3270>
+    a schema:Person ;
+    schema:name "Fernando Sola" .
