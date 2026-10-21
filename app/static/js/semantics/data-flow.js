@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const colors = {
     page: themeColor('--color-base-100', '#ffffff'),
     data: themeColor('--color-base-200', '#eef3f4'),
+    muted: themeColor('--color-base-300', '#dfe6e8'),
     text: themeColor('--color-base-content', '#1f2a33'),
     step: themeColor('--color-primary', '#1e9aa0'),
     stepText: themeColor('--color-primary-content', '#ffffff'),
@@ -381,7 +382,9 @@ document.addEventListener('DOMContentLoaded', function () {
       { selector: 'node.failed', style: { 'background-color': colors.error, 'border-color': colors.error, 'color': colors.errorText } },
       { selector: 'node[type = "step"].planned', style: { 'background-color': colors.page, 'border-color': colors.step, 'border-width': 2, 'border-style': 'dashed', 'color': colors.step } },
       { selector: 'node[type = "model"].planned', style: { 'background-color': colors.page, 'border-color': colors.model, 'border-width': 2, 'border-style': 'dashed', 'color': colors.model } },
-      { selector: '.absent', style: { 'opacity': 0.3 } },
+      // Not used or not available: grey, so it does not look like a step that was done
+      { selector: 'node.absent', style: { 'background-color': colors.data, 'border-color': colors.muted, 'border-opacity': 1, 'color': colors.text, 'text-opacity': 0.4, 'font-weight': 'normal' } },
+      { selector: 'edge.absent', style: { 'line-opacity': 0.2, 'text-opacity': 0.4 } },
       // Selection
       { selector: '.faded', style: { 'opacity': 0.12 } },
       {
