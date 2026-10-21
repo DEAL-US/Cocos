@@ -1,18 +1,63 @@
-<footer class="site-footer footer footer-horizontal bg-neutral text-neutral-content p-10" role="contentinfo" aria-label="Site footer">
-  <aside class="space-y-1 text-center sm:text-left ml-10 sm:ml-24">
-    <p class="text-lg font-semibold tracking-wide">Cocos</p>
-    <p class="text-sm opacity-80">Framework for genome parsing, conversion and prediction by María Quirós Quiroga</p>
-    <p class="text-xs opacity-70 tracking-wide">Parse and convert genomic data in order to predict antibiotic resistance</p>
-    <p class="text-xs opacity-70">&copy; <span id="tfg-year"></span> Cocos</p>
-  </aside>
-  <nav class="grid grid-flow-col gap-4 text-sm">
-    <a href="https://github.com/mquirosq/cocos" target="_blank" rel="noreferrer" title="GitHub repository" class="btn btn-ghost btn-md text-base text-neutral-content gap-2 px-4 hover:bg-neutral-content/10 hover:text-neutral-content">
-      <i class="bi bi-github text-2xl" aria-hidden="true"></i>
-      GitHub
-    </a>
-  </nav>
+{% load static %}
+<footer class="site-footer bg-neutral text-neutral-content" role="contentinfo" aria-label="Site footer">
+  <div class="site-shell px-6 sm:px-10">
+    <div class="grid grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-8 py-10">
+      <div class="col-span-2 lg:col-span-4 space-y-3">
+        <a href="{% url 'home' %}" class="inline-flex items-center gap-1 text-lg font-semibold tracking-wide">
+          <img src="{% static 'images/logo.svg' %}" alt="" class="footer-logo">
+          Cocos
+        </a>
+        <p class="text-sm opacity-80">Parse and convert genomic data to predict antibiotic resistance.</p>
+        <p class="text-sm opacity-80">Developed by María Quirós Quiroga</p>
+      </div>
+
+      <nav class="lg:col-span-2" aria-label="Tools">
+        <h2 class="footer-heading">Tools</h2>
+        <ul class="footer-links">
+          {% if user.is_authenticated %}
+          <li><a href="{% url 'conversion:assembly_ui' %}">Assembly</a></li>
+          <li><a href="{% url 'conversion:annotation_ui' %}">Annotation</a></li>
+          <li><a href="{% url 'prediction:prediction' %}">Prediction</a></li>
+          {% endif %}
+          <li><a href="{% url 'semantics:registry' %}">Registry</a></li>
+        </ul>
+      </nav>
+
+      <nav class="lg:col-span-2" aria-label="Resources">
+        <h2 class="footer-heading">Resources</h2>
+        <ul class="footer-links">
+          <li><a href="https://github.com/mquirosq/cocos" target="_blank" rel="noopener"><i class="bi bi-github mr-1" aria-hidden="true"></i>GitHub</a></li>
+          <li><a href="{% url 'semantics:vocabulary' %}">AMRF vocabulary</a></li>
+          <li><a href="{% url 'semantics:sparql' %}">SPARQL endpoint</a></li>
+        </ul>
+      </nav>
+
+      <div class="col-span-2 lg:col-span-4">
+        <h2 class="footer-heading">Contact</h2>
+        <address class="not-italic text-sm opacity-80 leading-relaxed">
+          <a href="https://deal.us.es/" target="_blank" rel="noopener" class="link link-hover">Data Engineering Applications Laboratory</a><br>
+          ETSII. Avda. Reina Mercedes, s/n<br>
+          41012 Seville, Spain
+        </address>
+        <p class="mt-3 text-sm opacity-80 flex flex-wrap items-center gap-x-2">
+          <i class="bi bi-envelope" aria-hidden="true"></i>
+          <span>Facing any issue? Write to us at</span>
+          <!-- The address is drawn as an image so it never appears as text in the page source -->
+          <span class="footer-email" role="img" aria-label="Contact email address (shown as an image)"></span>
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:justify-between gap-2 py-5 border-t border-neutral-content/15 text-xs opacity-70">
+      <span>Copyright &copy; <span id="footer-year"></span> <a href="https://deal.us.es/" target="_blank" rel="noopener" class="link link-hover">DEAL</a> · Universidad de Sevilla</span>
+      <span>
+        Code under the <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener" class="link link-hover">GNU GPL v3</a>
+        · Vocabulary under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="link link-hover">CC BY 4.0</a>
+      </span>
+    </div>
+  </div>
 </footer>
 
 <script>
-  (function(){var y=new Date().getFullYear();var el=document.getElementById('tfg-year');if(el)el.textContent=y;})();
+  (function(){var y=new Date().getFullYear();var el=document.getElementById('footer-year');if(el)el.textContent=y;})();
 </script>

@@ -7,3 +7,46 @@ body {
 .site-footer {
     margin-top: auto;
 }
+
+/* logo.svg is black; the filter turns it white on the dark footer */
+.footer-logo {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+.footer-heading {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+    margin-bottom: 0.75rem;
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.footer-links a {
+    opacity: 0.8;
+}
+
+.footer-links a:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+/* The email is an SVG of glyph outlines used as a mask, so it takes the text colour */
+.footer-email {
+    display: inline-block;
+    height: 1.2rem;
+    aspect-ratio: 7539 / 1300;
+    background: currentColor;
+    -webkit-mask: url('../../images/contact-email.svg') no-repeat left center / contain;
+    mask: url('../../images/contact-email.svg') no-repeat left center / contain;
+}
