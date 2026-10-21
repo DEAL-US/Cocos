@@ -42,3 +42,34 @@ class ProcessRdfViewTests(ConversionFlowMixin, TestCase):
 
         self.client.logout()
         self.assertEqual(self.client.get(self.url).status_code, 302)
+
+
+class ProcessFlowViewTests(ConversionFlowMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+        self.process = self.latest_process()
+        self.url = reverse('semantics:process_flow', args=[self.process.id])
+
+    def test_the_flow_with_the_state_of_the_sample_and_links_to_its_files(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        nodes = {node['data']['id']: node['data'] for node in response.context['flow']['nodes']}
+        self.assertEqual(nodes['step-extract_bakta_json']['state'], 'completed')
+        self.assertEqual(nodes['model-base_bakta_50']['compatibility'], 'ready')
+        files = response.context['files']
+        annotation = next(node for node in nodes.values() if node.get('label') == 'Feature table')
+        self.assertEqual(self.client.get(files[annotation['files'][0]]['url']).status_code, 200)
+        self.assertContains(response, 'id="flow-files"')
+
+    def test_the_page_of_the_process_links_to_it(self):
+        self.assertContains(self.client.get(reverse('conversion:process_status', args=[self.process.id])), self.url)
+
+    def test_only_the_owner_gets_it(self):
+        self.client.login(username='other-user', password='pass1234')
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+        self.client.logout()
+        self.assertEqual(self.client.get(self.url).status_code, 302)

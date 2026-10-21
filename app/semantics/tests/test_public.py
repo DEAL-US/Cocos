@@ -50,7 +50,7 @@ class ResourcePagesTests(TestCase):
 
     def test_the_registry_draws_its_data_flow(self):
         response = self.client.get('/registry/', HTTP_ACCEPT='text/html')
-        self.assertContains(response, 'id="registry-flow-data"')
+        self.assertContains(response, 'id="flow-data"')
         self.assertContains(response, '"url": "/model/base_bakta_50"')
         self.assertContains(response, 'vendor/cytoscape.min.js')
 

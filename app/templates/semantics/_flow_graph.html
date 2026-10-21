@@ -1,0 +1,37 @@
+{% comment %}
+The data flow graph (drawn by js/semantics/data-flow.js): legend, controls, the graph and the
+details panel. `mode` is 'registry' or 'sample' (the flow with the state of a sample, which also
+needs `files`); `description` is the text alternative of the graph.
+{% endcomment %}
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-base-content/80">
+    {% if mode == 'sample' %}
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-base-200 border-2 border-primary"></span>Data it has</span>
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-primary"></span>Step done</span>
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-warning"></span>In progress</span>
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-error"></span>Failed</span>
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm border-2 border-dashed border-primary"></span>Would be done to prepare a model</span>
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-secondary"></span>Model ready</span>
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm border-2 border-dashed border-secondary"></span>Model needs preparation</span>
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-base-300 opacity-60"></span>Not used / not available</span>
+    {% else %}
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-base-200 border border-dashed border-base-content/50"></span>Data</span>
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-primary"></span>Processing step</span>
+      <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-secondary"></span>Prediction model</span>
+    {% endif %}
+  </div>
+  <div class="join">
+    <button type="button" class="btn btn-sm join-item" data-flow-action="zoom-in" aria-label="Zoom in"><i class="bi bi-zoom-in"></i></button>
+    <button type="button" class="btn btn-sm join-item" data-flow-action="zoom-out" aria-label="Zoom out"><i class="bi bi-zoom-out"></i></button>
+    <button type="button" class="btn btn-sm join-item" data-flow-action="fit" aria-label="Fit to the view"><i class="bi bi-arrows-fullscreen"></i></button>
+    <button type="button" class="btn btn-sm join-item" data-flow-action="png" aria-label="Download as PNG"><i class="bi bi-image"></i> PNG</button>
+  </div>
+</div>
+
+<div id="flow-graph" data-flow-mode="{{ mode }}" class="h-176 rounded-box border border-base-300 bg-base-100"
+     role="img" aria-label="{{ description }}"></div>
+<aside id="flow-details" class="rounded-box border border-base-300 bg-base-200/50 px-6 py-4 text-sm" aria-live="polite">
+  <p class="text-base-content/70">Select a box in the graph to see its details.</p>
+</aside>
+{{ flow|json_script:'flow-data' }}
+{% if mode == 'sample' %}{{ files|json_script:'flow-files' }}{% endif %}

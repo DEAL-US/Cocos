@@ -1,17 +1,37 @@
-// Data flow of the registry page, drawn with Cytoscape.js and laid out with dagre (top to bottom:
-// the flow is a long chain, so it reads larger than left to right).
-// The nodes and edges come from semantics/flow.py, in the registry-flow-data script tag.
+// Data flow graph, drawn with Cytoscape.js and laid out with dagre (top to bottom: the flow is a
+// long chain, so it reads larger than left to right). The nodes and edges come from
+// semantics/flow.py, in the flow-data script tag. On the registry page it shows the registry; on
+// the flow page of a sample (data-flow-mode="sample") it also shows the state of the sample.
 document.addEventListener('DOMContentLoaded', function () {
-  const container = document.getElementById('registry-flow');
-  const flowData = document.getElementById('registry-flow-data');
-  const details = document.getElementById('registry-flow-details');
+  const container = document.getElementById('flow-graph');
+  const flowData = document.getElementById('flow-data');
+  const details = document.getElementById('flow-details');
   if (!container || !flowData || typeof cytoscape === 'undefined') {
     return;
   }
   cytoscape.use(cytoscapeDagre);
 
+  const sampleMode = container.dataset.flowMode === 'sample';
+  const filesData = document.getElementById('flow-files');
+  const files = filesData ? JSON.parse(filesData.textContent) : {};
+
   const TYPE_LABELS = { data: 'Data', step: 'Processing step', model: 'Prediction model' };
+  const STEP_STATES = {
+    completed: ['Done', 'badge-success'],
+    running: ['Running', 'badge-warning'],
+    pending: ['Waiting to run', 'badge-warning'],
+    failed: ['Failed', 'badge-error'],
+    planned: ['Would run to prepare a model', 'badge-primary'],
+    unused: ['Not used for this sample', 'badge-ghost'],
+  };
+  const MODEL_STATES = {
+    ready: ['Ready', 'badge-success'],
+    reachable: ['Needs preparation', 'badge-info'],
+    incompatible: ['Not available', 'badge-ghost'],
+  };
+  const RUN_STATES = { completed: 'Prediction done', running: 'Prediction running', pending: 'Prediction waiting to run', failed: 'Prediction failed' };
   const FONT_SIZE = 13;
+  const NODE_SEP = 20;
   // Cytoscape needs the family without quotes, and a fallback
   const fontFamily = getComputedStyle(document.body).fontFamily.replace(/["']/g, '') + ', sans-serif';
   const colors = {
@@ -22,11 +42,21 @@ document.addEventListener('DOMContentLoaded', function () {
     stepText: themeColor('--color-primary-content', '#ffffff'),
     model: themeColor('--color-secondary', '#2f5d7c'),
     modelText: themeColor('--color-secondary-content', '#ffffff'),
+    accent: themeColor('--color-accent', '#2ec4c0'),
+    warning: themeColor('--color-warning', '#c9a227'),
+    warningText: themeColor('--color-warning-content', '#3a2d05'),
+    error: themeColor('--color-error', '#e0605a'),
+    errorText: themeColor('--color-error-content', '#3d0f0d'),
     line: themeColor('--color-neutral', '#3c4a57'),
   };
 
   const flow = JSON.parse(flowData.textContent);
-  flow.nodes.forEach(function (node, index) { node.data.order = index; });  // the order of the registry
+  flow.nodes.forEach(function (node, index) {
+    node.data.order = index;  // the order of the registry
+    if (sampleMode) {
+      node.classes = stateClass(node.data);
+    }
+  });
   flow.edges.forEach(function (edge) {
     // Several inputs fed by the same kind of data (Illumina r1 and r2) share one edge
     edge.data.label = edge.data.roles.length > 1 ? edge.data.roles.join(' + ') : '';
@@ -43,13 +73,25 @@ document.addEventListener('DOMContentLoaded', function () {
     boxSelectionEnabled: false,
     autounselectify: true,
   });
-  const NODE_SEP = 20;
+  if (sampleMode) {
+    // Data the sample does not have but the planned preparation would produce is on the path too
+    cy.nodes('[type = "data"].absent').forEach(function (node) {
+      if (node.incomers('node.planned').nonempty()) {
+        node.removeClass('absent').addClass('planned');
+      }
+    });
+    cy.edges().forEach(function (edge) {
+      if (edge.source().hasClass('absent') || edge.target().hasClass('absent')) {
+        edge.addClass('absent');
+      }
+    });
+  }
   const layout = cy.layout({ name: 'dagre', rankDir: 'TB', nodeSep: NODE_SEP, rankSep: 35, edgeSep: 10 });
-  layout.one('layoutstop', keepRegistryOrder);
+  layout.one('layoutstop', orderLevels);
   layout.run();
   cy.fit(undefined, 24);
 
-  // A link to /registry/?focus=<node id> (from the page of a step or model) selects that node
+  // A link to ?focus=<node id> (from the page of a step or model) selects that node
   const focused = cy.getElementById(new URLSearchParams(window.location.search).get('focus') || '');
   if (focused.nonempty()) {
     focus(focused);
@@ -66,9 +108,11 @@ document.addEventListener('DOMContentLoaded', function () {
     button.addEventListener('click', function () { act(button.dataset.flowAction); });
   });
 
-  // dagre orders each level to cross as few edges as possible; put its nodes back in the order of
-  // the registry (Illumina before ONT, assembly before assembly + annotation), keeping the level centred
-  function keepRegistryOrder() {
+  // dagre orders each level to cross as few edges as possible. Put it in a fixed, symmetric order
+  // instead: the nodes that come from the same node together, in the order of the registry, and
+  // mirrored on the left half of the level (Assembly + Annotation · Illumina, Assembly · Illumina,
+  // Assembly · ONT, Assembly + Annotation · ONT). The level stays centred where dagre put it.
+  function orderLevels() {
     const levels = {};
     cy.nodes().forEach(function (node) {
       const y = Math.round(node.position('y'));
@@ -82,11 +126,26 @@ document.addEventListener('DOMContentLoaded', function () {
       const right = Math.max.apply(null, nodes.map(function (node) { return node.position('x') + node.width() / 2; }));
       const total = nodes.reduce(function (sum, node) { return sum + node.width(); }, NODE_SEP * (nodes.length - 1));
       let x = (left + right) / 2 - total / 2;
-      nodes.sort(function (a, b) { return a.data('order') - b.data('order'); }).forEach(function (node) {
+      symmetricOrder(nodes).forEach(function (node) {
         node.position('x', x + node.width() / 2);
         x += node.width() + NODE_SEP;
       });
     });
+  }
+
+  function symmetricOrder(nodes) {
+    const groups = {};
+    nodes.forEach(function (node) {
+      const parents = node.incomers('node').map(function (parent) { return parent.data('order'); });
+      const key = parents.length ? Math.min.apply(null, parents) : node.data('order');
+      (groups[key] = groups[key] || []).push(node);
+    });
+    const ordered = Object.keys(groups).map(Number).sort(function (a, b) { return a - b; }).map(function (key) {
+      return groups[key].sort(function (a, b) { return a.data('order') - b.data('order'); });
+    });
+    return ordered.reduce(function (all, group, index) {
+      return all.concat(index < Math.floor(ordered.length / 2) ? group.slice().reverse() : group);
+    }, []);
   }
 
   // Highlight a node with everything that leads to it and everything it leads to
@@ -113,9 +172,54 @@ document.addEventListener('DOMContentLoaded', function () {
     } else if (action === 'png') {
       const link = document.createElement('a');
       link.href = cy.png({ full: true, scale: 4, bg: colors.page });
-      link.download = 'cocos-data-flow.png';
+      link.download = sampleMode ? 'cocos-sample-data-flow.png' : 'cocos-data-flow.png';
       link.click();
     }
+  }
+
+  // State of the sample (sample mode)
+
+  function stateClass(data) {
+    if (data.type === 'data') {
+      return data.files.length ? 'available' : 'absent';
+    }
+    if (data.type === 'step') {
+      return { completed: 'done', running: 'in-progress', pending: 'in-progress', failed: 'failed', planned: 'planned', unused: 'absent' }[data.state];
+    }
+    return { ready: 'ready', reachable: 'planned', incompatible: 'absent' }[data.compatibility];
+  }
+
+  function stateBadge(node) {
+    const data = node.data();
+    let state;
+    if (data.type === 'step') {
+      state = STEP_STATES[data.state];
+    } else if (data.type === 'model') {
+      state = MODEL_STATES[data.compatibility];
+    } else {
+      const planned = node.hasClass('planned');
+      state = data.files.length ? ['This sample has it', 'badge-success']
+        : planned ? ['The preparation of a model would produce it', 'badge-primary'] : ['This sample does not have it', 'badge-ghost'];
+    }
+    return element('span', 'badge badge-sm ' + state[1], state[0]);
+  }
+
+  function stateSections(node) {
+    const data = node.data();
+    if (data.type === 'data') {
+      return [linkList('Files of this sample', data.files.map(function (id) { return files[id]; }).filter(Boolean))];
+    }
+    if (data.type === 'step') {
+      return [textList('Would prepare', data.for_models)];
+    }
+    const preparation = cy.nodes('[type = "step"]').filter(function (step) {
+      return step.data('state') === 'planned' && step.data('for_models').indexOf(data.identifier) !== -1;
+    }).map(function (step) { return step.data('label'); });
+    return [
+      textList('Preparation it needs', preparation),
+      textList('Why not', data.reasons),
+      textList('Prediction', data.run ? [RUN_STATES[data.run]] : []),
+    ];
   }
 
   // Details panel
@@ -125,6 +229,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const header = element('div', 'flex flex-wrap items-center gap-x-3 gap-y-1 mb-3');
     header.appendChild(element('span', 'badge badge-sm badge-soft ' + (data.type === 'data' ? 'badge-neutral' : data.type === 'step' ? 'badge-primary' : 'badge-secondary'), TYPE_LABELS[data.type]));
     header.appendChild(element('h3', 'text-base font-semibold break-words', data.label));
+    if (sampleMode) {
+      header.appendChild(stateBadge(node));
+    }
     let sections;
 
     if (data.type === 'data') {
@@ -142,6 +249,9 @@ document.addEventListener('DOMContentLoaded', function () {
       } else if (data.web_service) {
         sections.push(textList('Runs in', ['Bioinformatics service, as a job']));
       }
+    }
+    if (sampleMode) {
+      sections = stateSections(node).concat(sections);
     }
 
     const grid = element('div', 'flex flex-wrap justify-center gap-x-16 gap-y-4');
@@ -174,16 +284,22 @@ document.addEventListener('DOMContentLoaded', function () {
     return section;
   }
 
-  function termLinks(terms) {
+  function linkList(title, links) {
+    if (!links.length) {
+      return null;
+    }
     const section = element('div', 'space-y-1');
-    section.appendChild(element('p', 'font-semibold', 'Ontology terms'));
-    terms.forEach(function (term) {
-      const link = element('a', 'link link-primary block break-all', term.label);
-      link.href = term.url;
-      link.title = term.iri;
+    section.appendChild(element('p', 'font-semibold', title));
+    links.forEach(function (target) {
+      const link = element('a', 'link link-primary block break-all', target.name);
+      link.href = target.url;
       section.appendChild(link);
     });
     return section;
+  }
+
+  function termLinks(terms) {
+    return linkList('Ontology terms', terms.map(function (term) { return { name: term.label, url: term.url }; }));
   }
 
   function element(tag, className, text) {
@@ -258,8 +374,29 @@ document.addEventListener('DOMContentLoaded', function () {
           'transition-duration': 150,
         },
       },
-      { selector: '.faded', style: { 'opacity': 0.15 } },
-      { selector: 'node.focused', style: { 'border-width': 3, 'border-color': colors.text, 'border-opacity': 1 } },
+      // State of a sample
+      { selector: 'node.available', style: { 'border-style': 'solid', 'border-width': 2, 'border-color': colors.step, 'border-opacity': 1 } },
+      { selector: 'node[type = "data"].planned', style: { 'border-width': 2, 'border-color': colors.step, 'border-opacity': 1, 'background-color': colors.page } },
+      { selector: 'node.in-progress', style: { 'background-color': colors.warning, 'border-color': colors.warning, 'color': colors.warningText } },
+      { selector: 'node.failed', style: { 'background-color': colors.error, 'border-color': colors.error, 'color': colors.errorText } },
+      { selector: 'node[type = "step"].planned', style: { 'background-color': colors.page, 'border-color': colors.step, 'border-width': 2, 'border-style': 'dashed', 'color': colors.step } },
+      { selector: 'node[type = "model"].planned', style: { 'background-color': colors.page, 'border-color': colors.model, 'border-width': 2, 'border-style': 'dashed', 'color': colors.model } },
+      { selector: '.absent', style: { 'opacity': 0.3 } },
+      // Selection
+      { selector: '.faded', style: { 'opacity': 0.12 } },
+      {
+        selector: 'node.focused',
+        style: {
+          'opacity': 1,
+          'border-width': 2,
+          'border-color': colors.accent,
+          'border-opacity': 1,
+          'underlay-color': colors.accent,
+          'underlay-opacity': 0.3,
+          'underlay-padding': 6,
+          'underlay-shape': 'round-rectangle',
+        },
+      },
     ];
   }
 

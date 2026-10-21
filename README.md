@@ -341,6 +341,8 @@ GET /processes/<id>/rdf/?format=jsonld     JSON-LD (or send Accept: application/
 
 The sample is a `schema:Dataset` named by the URL of its process page, with the organism chosen by the user (`schema:taxonomicRange`, absent if unknown) and the data it has as `schema:DataDownload` parts: the files the user uploaded and the outputs of completed tasks. Each part is a file in the role it plays (e.g. `reads`, `assembly`, `annotation`, `genes`), described with the same EDAM data and format terms as the inputs of steps and models, and with a `schema:contentUrl` to download that file (`/processes/<id>/files/<file id>/`). A Bakta JSON appears twice: as the annotation and, once its genes are extracted, as the genes.
 
+The page of each process links to the **data flow of the sample** (`/processes/<id>/flow/`, only for its owner, built by `semantics.flow.sample_flow` from this description and the discovery): the data flow of the registry with the data the sample has (and its files), the state of the latest task of each step and model, the preparation steps the discovery would run for each model, and whether each model is ready, needs preparation or is not available (and why).
+
 ---
 
 ## Testing

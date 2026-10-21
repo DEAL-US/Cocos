@@ -88,31 +88,12 @@
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-4 text-sm text-base-content/80">
-          <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-base-200 border border-dashed border-base-content/50"></span>Data</span>
-          <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-primary"></span>Processing step</span>
-          <span class="flex items-center gap-2"><span class="inline-block w-4 h-3 rounded-sm bg-secondary"></span>Prediction model</span>
-        </div>
-        <div class="join">
-          <button type="button" class="btn btn-sm join-item" data-flow-action="zoom-in" aria-label="Zoom in"><i class="bi bi-zoom-in"></i></button>
-          <button type="button" class="btn btn-sm join-item" data-flow-action="zoom-out" aria-label="Zoom out"><i class="bi bi-zoom-out"></i></button>
-          <button type="button" class="btn btn-sm join-item" data-flow-action="fit" aria-label="Fit to the view"><i class="bi bi-arrows-fullscreen"></i></button>
-          <button type="button" class="btn btn-sm join-item" data-flow-action="png" aria-label="Download as PNG"><i class="bi bi-image"></i> PNG</button>
-        </div>
-      </div>
-
-      <div id="registry-flow" class="h-176 rounded-box border border-base-300 bg-base-100"
-           role="img" aria-label="Data flow of the registry. The lists below describe the same steps and models."></div>
-      <aside id="registry-flow-details" class="rounded-box border border-base-300 bg-base-200/50 px-6 py-4 text-sm" aria-live="polite">
-        <p class="text-base-content/70">Select a box in the graph to see its details.</p>
-      </aside>
-      {{ flow|json_script:'registry-flow-data' }}
+      {% include 'semantics/_flow_graph.html' with mode='registry' description='Data flow of the registry. The lists above describe the same steps and models.' %}
     </div>
   </div>
 </div>
 
 <script src="{% static 'vendor/cytoscape.min.js' %}"></script>
 <script src="{% static 'vendor/cytoscape-dagre.min.js' %}"></script>
-<script src="{% static 'js/semantics/registry-flow.js' %}"></script>
+<script src="{% static 'js/semantics/data-flow.js' %}"></script>
 {% endblock %}

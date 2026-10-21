@@ -1,9 +1,11 @@
-"""RDF views: the description of a sample (private, for its owner) and the public registry.
+"""RDF views: the description and the data flow of a sample (private, for its owner) and the public registry.
 
 The registry is public: a read-only SPARQL endpoint over it, and a page for each step, model,
 AMRF term and the shapes, so that their IRIs (https://w3id.org/cocos/..., https://w3id.org/amrf/...)
 resolve once w3id redirects them here. Browsers get HTML; RDF clients get Turtle or JSON-LD.
 """
+import os
+
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -16,8 +18,9 @@ from rdflib.plugins.sparql import prepareQuery
 from rdflib.plugins.sparql.parserutils import CompValue
 
 from core.models import ProcessGroup
+from core.steps import UnknownStepError
 
-from .flow import registry_flow, tool_node_id
+from .flow import registry_flow, sample_flow, tool_node_id
 from .namespaces import AMRF, COCOS, PREFIXES, SCHEMA, bind_prefixes
 from .registry.graph import registry_graph
 from .registry.vocabulary import load_vocabulary
@@ -69,6 +72,38 @@ def process_rdf_view(request, process_id):
     )
     rdf = rdf_format(request)
     return rdf_response(graph, 'turtle' if rdf == 'html' else rdf)
+
+
+@login_required
+def process_flow_view(request, process_id):
+    """The data flow of the registry with the state of a process of the user on it."""
+    process = get_object_or_404(ProcessGroup, id=process_id, user=request.user)
+    graph = sample_graph(process, sample_iri=f'urn:cocos:process:{process.pk}')
+    files = {
+        str(file.pk): {'name': os.path.basename(file.file.name),
+                       'url': reverse('conversion:process_file', args=[process.id, file.pk])}
+        for file in {link.file for task in process.tasks.all() for link in (*task.task_inputs.all(), *task.task_outputs.all())}
+    }
+    return render(request, 'semantics/sample_flow.html', {
+        'process': process,
+        'flow': sample_flow(registry_graph(), graph, _latest_runs(process), local_url),
+        'files': files,
+    })
+
+
+def _latest_runs(process):
+    """{flow node id: status of the latest task of that step or model} of a process."""
+    runs = {}
+    for task in process.tasks.order_by('id'):
+        try:
+            step = task.get_step()
+        except UnknownStepError:
+            continue
+        if step.category == 'prediction':
+            runs[tool_node_id(step.model_name, is_model=True)] = task.status
+        else:
+            runs[tool_node_id(step.key, is_model=False)] = task.status
+    return runs
 
 
 # --- The public registry: SPARQL endpoint

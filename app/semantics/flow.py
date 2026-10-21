@@ -6,15 +6,56 @@ model it can feed and a step points to the data it produces, decided with the sa
 (read_tools) and matching (satisfies) as the discovery, so the drawing shows the paths the
 discovery can take.
 
+The flow of a sample (sample_flow) is the same drawing with the state of the sample on it: the data
+it has, what its steps did, which steps the discovery would run to prepare a model, and whether
+each model is ready, needs preparation or is not available.
+
 The result is plain data in the elements format of Cytoscape.js.
 """
-from .discovery.graphs import label, read_tools
+from .discovery import discover
+from .discovery.graphs import label, read_sample, read_tools
 from .discovery.search import satisfies
 
 
 def registry_flow(registry, url_of=str):
     """{'nodes': [...], 'edges': [...]} of `registry` (a graph). `url_of(iri)` gives the page of a
     step, model or ontology term."""
+    return _flow(registry, url_of)[0]
+
+
+def sample_flow(registry, sample, runs, url_of=str):
+    """The flow of `registry` with the state of `sample` (its graph) in the data of each node.
+
+    `runs` is {node id: status of the latest task of that step or model} for the sample. Data
+    nodes get `files` (ids of the files of the sample that are that data), steps get `state` (a task
+    status, 'planned' or 'unused') and `for_models` (the models whose preparation would run
+    them), and models get `compatibility`, `reasons` and `run`.
+    """
+    flow, kinds = _flow(registry, url_of)
+    items, _ = read_sample(sample)
+    results = {tool_node_id(result.model, is_model=True): result for result in discover(registry, sample)}
+    planned = {}
+    for result in results.values():
+        for step in result.steps:
+            planned.setdefault(tool_node_id(step.step, is_model=False), []).append(result.model)
+
+    for node in flow['nodes']:
+        data = node['data']
+        if data['type'] == 'data':
+            data['files'] = sorted({item.source.file for item in items if satisfies(item.kind, kinds[data['id']], registry)})
+        elif data['type'] == 'step':
+            data['state'] = runs.get(data['id']) or ('planned' if data['id'] in planned else 'unused')
+            data['for_models'] = sorted(planned.get(data['id'], []))
+        else:
+            result = results[data['id']]
+            data['compatibility'] = result.status.value
+            data['reasons'] = list(result.reasons)
+            data['run'] = runs.get(data['id'])
+    return flow
+
+
+def _flow(registry, url_of):
+    """(flow, {data node id: Kind})."""
     tools = read_tools(registry)
     kinds = sorted({parameter.kind for tool in tools for parameter in tool.inputs + tool.outputs},
                    key=lambda kind: _kind_label(registry, kind))
@@ -35,7 +76,7 @@ def registry_flow(registry, url_of=str):
             edges.append(_edge(kind_ids[kind], tool_id, kind_roles))
         for output in tool.outputs:
             edges.append(_edge(tool_id, kind_ids[output.kind], [output.role]))
-    return {'nodes': nodes, 'edges': edges}
+    return {'nodes': nodes, 'edges': edges}, {node_id: kind for kind, node_id in kind_ids.items()}
 
 
 def tool_node_id(identifier, is_model):
@@ -59,6 +100,7 @@ def _tool_node(tool, url_of):
         'id': tool_node_id(tool.identifier, tool.is_model),
         'type': 'model' if tool.is_model else 'step',
         'label': tool.name or tool.identifier,
+        'identifier': tool.identifier,
         'url': url_of(tool.iri),
         'description': tool.description,
         'web_service': tool.web_service,
