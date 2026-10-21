@@ -68,9 +68,6 @@
       <div class="mt-3 text-sm text-base-content/70">
         <p>Created {{ created_at|timesince }} ago</p>
         <p>Last update: {{ last_updated|date:'d-m-Y H:i' }}</p>
-        <a href="{% url 'semantics:process_flow' process_id=process_id %}" class="link link-primary inline-flex items-center gap-1 mt-1">
-          <i class="bi bi-share"></i>View the data flow of this sample
-        </a>
       </div>
 
       <div class="mt-4">
@@ -94,6 +91,11 @@
             <button class="btn btn-sm process-download-btn" disabled><i class="bi bi-download"></i>JSON</button>
           {% endif %}
         </div>
+      </div>
+
+      <div class="mt-4">
+        <h2 class="font-semibold mb-2">Data flow</h2>
+        <a href="{% url 'semantics:process_flow' process_id=process_id %}" class="btn btn-sm process-download-btn"><i class="bi bi-share"></i>View data flow</a>
       </div>
 
         <div class="mt-3 flex flex-wrap gap-2">
