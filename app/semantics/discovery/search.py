@@ -6,8 +6,9 @@
    The first level that reaches the inputs of the model has the shortest paths; among them, the
    cheapest (Path.cost) wins.
 3. assign(): whether some data satisfies the inputs of a step or model. A piece of data satisfies an
-   input if its data and format are the requested ones or kinds of them, and its sequencing
-   technique is the requested one, if any.
+   input if its data and format are the requested ones or kinds of them (data Cocos keeps in its
+   database, with no format, only satisfies inputs with no format), and its sequencing technique is
+   the requested one, if any.
 """
 from dataclasses import dataclass
 
@@ -69,7 +70,8 @@ def antibiotic_reasons(model, antibiotics):
 
 
 def data_reason(model, registry):
-    needed = ', '.join(f'{label(registry, p.kind.data)} ({label(registry, p.kind.format)})' for p in model.inputs)
+    needed = ', '.join(label(registry, p.kind.data) + (f' ({label(registry, p.kind.format)})' if p.kind.format else '')
+                       for p in model.inputs)
     return f'This model needs {needed}, and no steps can obtain it from the data of this sample.'
 
 
@@ -160,4 +162,7 @@ def assign(parameters, items, registry):
 def satisfies(offered, required, registry):
     if required.technique is not None and offered.technique != required.technique:
         return False
-    return is_a(registry, offered.data, required.data) and is_a(registry, offered.format, required.format)
+    if (offered.format is None) != (required.format is None):
+        return False  # data kept by Cocos (no format) and files do not stand for each other
+    formats_match = required.format is None or is_a(registry, offered.format, required.format)
+    return is_a(registry, offered.data, required.data) and formats_match

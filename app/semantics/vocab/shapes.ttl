@@ -73,9 +73,16 @@ amrfsh:ParameterShape
         sh:path schema:additionalType ; sh:minCount 1 ; sh:maxCount 1 ; sh:node amrfsh:EdamData ;
         sh:message "A parameter needs exactly one schema:additionalType, an EDAM data term."@en ;
     ] , [
-        sh:path schema:encodingFormat ; sh:minCount 1 ; sh:maxCount 1 ; sh:node amrfsh:EdamFormat ;
-        sh:message "A parameter needs exactly one schema:encodingFormat, an EDAM format term."@en ;
-    ] .
+        sh:path schema:encodingFormat ; sh:maxCount 1 ; sh:node amrfsh:EdamFormat ;
+        sh:message "A parameter has at most one schema:encodingFormat, an EDAM format term."@en ;
+    ] ;
+    # Every parameter is a file with a format, except the genes (EDAM Gene report), which Cocos
+    # keeps in its database, linked to the annotation they come from.
+    sh:or (
+        [ sh:path schema:encodingFormat ; sh:minCount 1 ]
+        [ sh:path schema:additionalType ; sh:hasValue edam:data_0916 ]
+    ) ;
+    sh:message "A parameter needs a schema:encodingFormat, unless it is a Gene report (edam:data_0916)."@en .
 
 # --- Models: tools that perform EDAM Antimicrobial resistance prediction
 
@@ -205,6 +212,12 @@ amrfsh:DataEntryShape
         sh:path schema:additionalType ; sh:minCount 1 ; sh:maxCount 1 ; sh:node amrfsh:EdamData ;
         sh:message "A piece of data needs exactly one schema:additionalType, an EDAM data term."@en ;
     ] , [
-        sh:path schema:encodingFormat ; sh:minCount 1 ; sh:maxCount 1 ; sh:node amrfsh:EdamFormat ;
-        sh:message "A piece of data needs exactly one schema:encodingFormat, an EDAM format term."@en ;
-    ] .
+        sh:path schema:encodingFormat ; sh:maxCount 1 ; sh:node amrfsh:EdamFormat ;
+        sh:message "A piece of data has at most one schema:encodingFormat, an EDAM format term."@en ;
+    ] ;
+    # As for parameters: every piece of data is a file with a format, except the genes.
+    sh:or (
+        [ sh:path schema:encodingFormat ; sh:minCount 1 ]
+        [ sh:path schema:additionalType ; sh:hasValue edam:data_0916 ]
+    ) ;
+    sh:message "A piece of data needs a schema:encodingFormat, unless it is a Gene report (edam:data_0916)."@en .

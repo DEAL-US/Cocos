@@ -29,6 +29,13 @@ SPECIFIC_FORMATS = {
     (DataKind.ANNOTATED_GENOME, File.FileType.JSON): AMRF.BaktaJSON,
 }
 
+# Kinds of data that are not files: Cocos keeps them in its database, linked to the file they come
+# from. The genes are rows linked to the annotation they were extracted from, so in the code a
+# gene set is that file (of this type), but it is described without a file format.
+STORED_BY_COCOS = {
+    DataKind.GENE_SET: File.FileType.JSON,
+}
+
 OPERATIONS = {
     'assembly': EDAM.operation_0525,     # Genome assembly
     'annotation': EDAM.operation_0362,   # Genome annotation
@@ -47,6 +54,9 @@ def data_term(kind):
 
 
 def format_term(kind, file_type):
+    """The EDAM format of a kind of data stored as `file_type`, or None if Cocos stores it itself."""
+    if kind in STORED_BY_COCOS:
+        return None
     return SPECIFIC_FORMATS.get((kind, file_type)) or FORMATS[file_type]
 
 
@@ -72,8 +82,11 @@ def kind_of(data_iri):
     raise KeyError(f'No data kind for {data_iri}')
 
 
-def file_type_of(format_iri):
-    """The File.FileType a format term is stored as."""
+def file_type_of(format_iri, kind=None):
+    """The File.FileType a format term is stored as; without a format, the file a kind of data
+    stored by Cocos is linked to."""
+    if format_iri is None and kind in STORED_BY_COCOS:
+        return STORED_BY_COCOS[kind]
     for (_, file_type), term in SPECIFIC_FORMATS.items():
         if term == format_iri:
             return file_type

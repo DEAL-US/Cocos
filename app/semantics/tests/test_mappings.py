@@ -2,7 +2,8 @@ from django.test import SimpleTestCase
 
 from core.models import File
 from core.steps import DataKind, get_step, list_steps
-from semantics.registry.mappings import DATA, FORMATS, data_term, format_term, operation_terms, sequencing_technique
+from semantics.registry.mappings import (DATA, FORMATS, data_term, file_type_of, format_term, operation_terms,
+                                         sequencing_technique)
 from semantics.namespaces import AMRF, EDAM, OBO
 
 
@@ -22,7 +23,11 @@ class MappingTests(SimpleTestCase):
 
     def test_annotations_are_bakta_json_and_other_json_is_generic(self):
         self.assertEqual(format_term(DataKind.ANNOTATED_GENOME, File.FileType.JSON), AMRF.BaktaJSON)
-        self.assertEqual(format_term(DataKind.GENE_SET, File.FileType.JSON), EDAM.format_3464)
+        self.assertEqual(format_term(DataKind.ANNOTATED_GENOME, File.FileType.CSV), EDAM.format_3752)
+
+    def test_the_genes_have_no_format_and_are_linked_to_a_json_file(self):
+        self.assertIsNone(format_term(DataKind.GENE_SET, File.FileType.JSON))
+        self.assertEqual(file_type_of(None, DataKind.GENE_SET), File.FileType.JSON)
 
     def test_an_assembly_that_annotates_performs_both_operations(self):
         self.assertEqual(operation_terms(get_step('assembly_ont_annotated')),

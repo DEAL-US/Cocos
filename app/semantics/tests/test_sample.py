@@ -38,7 +38,7 @@ class SampleGraphTests(ConversionFlowMixin, TestCase):
         self.assertIsNone(graph.value(sample, SCHEMA.taxonomicRange))
         self.assertEqual(self.parts(graph), {
             ('annotation', EDAM.data_1270, AMRF.BaktaJSON, None),
-            ('genes', EDAM.data_0916, EDAM.format_3464, None),
+            ('genes', EDAM.data_0916, None, None),  # kept in the database of Cocos, not a file
         })
         self.assertEqual(violations(validate(graph)), [])
 
@@ -51,7 +51,7 @@ class SampleGraphTests(ConversionFlowMixin, TestCase):
             ('reads', EDAM.data_3494, EDAM.format_1930, OBO.NCIT_C146818),
             ('assembly', EDAM.data_0925, EDAM.format_1929, None),
             ('annotation', EDAM.data_1270, AMRF.BaktaJSON, None),
-            ('genes', EDAM.data_0916, EDAM.format_3464, None),
+            ('genes', EDAM.data_0916, None, None),
         })
         self.assertEqual(violations(validate(graph)), [])
 

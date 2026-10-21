@@ -4,7 +4,8 @@ It is generated on demand from the database and never stored. The sample is a sc
 each piece of data is a schema:DataDownload part: a file read in the role it plays in a step,
 described with the same terms as the ports of the steps and models (EDAM data and format), so
 that what a sample has can be compared with what a model consumes. A file can be two pieces of
-data: a Bakta JSON is both the annotation and, once extracted, the genes.
+data: a Bakta JSON is both the annotation and, once extracted, the genes. The genes are kept in the
+database of Cocos, linked to that file, so they have no file format and no download link.
 
 The sample has the files the user uploaded and the outputs of its completed tasks.
 """
@@ -64,9 +65,12 @@ def sample_graph(process, sample_iri, content_url=None):
         graph.add((node, SCHEMA.identifier, Literal(str(file.pk))))
         graph.add((node, SCHEMA.name, Literal(role)))
         graph.add((node, SCHEMA.additionalType, data_term(port.kind)))
-        graph.add((node, SCHEMA.encodingFormat, format_term(port.kind, port.format)))
+        file_format = format_term(port.kind, port.format)
         if technique is not None:
             graph.add((node, SCHEMA.measurementTechnique, technique))
-        if content_url is not None:
-            graph.add((node, SCHEMA.contentUrl, URIRef(content_url(file))))
+        # Data Cocos stores itself (the genes) has no format and is not downloaded as that file
+        if file_format is not None:
+            graph.add((node, SCHEMA.encodingFormat, file_format))
+            if content_url is not None:
+                graph.add((node, SCHEMA.contentUrl, URIRef(content_url(file))))
     return graph

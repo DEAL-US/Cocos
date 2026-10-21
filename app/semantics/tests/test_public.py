@@ -28,7 +28,7 @@ class ResourcePagesTests(TestCase):
         turtle = Graph().parse(data=self.client.get('/model/base_bakta_50', HTTP_ACCEPT='text/turtle').content,
                                format='turtle')
         self.assertIn((MODEL, SCHEMA.featureList, EDAM.operation_3482), turtle)
-        self.assertIn((URIRef(f'{MODEL}#genes'), SCHEMA.encodingFormat, EDAM.format_3464), turtle)
+        self.assertEqual(turtle.value(URIRef(f'{MODEL}#genes'), SCHEMA.additionalType), EDAM.data_0916)
 
         json_ld = Graph().parse(data=self.client.get('/model/base_bakta_50?format=jsonld').content, format='json-ld')
         self.assertTrue(isomorphic(json_ld, turtle))  # the same graph (its blank nodes get new ids)

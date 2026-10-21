@@ -18,9 +18,10 @@ NAMESPACES = {'schema': SCHEMA, 'bsc': BSC, 'edam': EDAM, 'amrf': AMRF, 'rdfs': 
 
 @dataclass(frozen=True)
 class Kind:
-    """What a piece of data is: EDAM data and format, and the sequencing technique of reads."""
+    """What a piece of data is: EDAM data and format (None for data Cocos keeps in its database, such
+    as the genes), and the sequencing technique of reads."""
     data: URIRef
-    format: URIRef
+    format: URIRef | None
     technique: URIRef | None = None
 
 
@@ -69,7 +70,8 @@ SELECT ?tool ?direction ?role ?data ?format ?technique WHERE {
     { ?tool bsc:input ?parameter . BIND("input" AS ?direction) }
     UNION
     { ?tool bsc:output ?parameter . BIND("output" AS ?direction) }
-    ?parameter schema:name ?role ; schema:additionalType ?data ; schema:encodingFormat ?format .
+    ?parameter schema:name ?role ; schema:additionalType ?data .
+    OPTIONAL { ?parameter schema:encodingFormat ?format }
     OPTIONAL { ?parameter schema:measurementTechnique ?technique }
 }
 """
@@ -128,8 +130,8 @@ def read_tools(registry):
 SAMPLE_QUERY = """
 SELECT ?file ?role ?data ?format ?technique WHERE {
     ?sample a schema:Dataset ; schema:hasPart ?entry .
-    ?entry schema:identifier ?file ; schema:name ?role ;
-           schema:additionalType ?data ; schema:encodingFormat ?format .
+    ?entry schema:identifier ?file ; schema:name ?role ; schema:additionalType ?data .
+    OPTIONAL { ?entry schema:encodingFormat ?format }
     OPTIONAL { ?entry schema:measurementTechnique ?technique }
 }
 """

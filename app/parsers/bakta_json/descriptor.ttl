@@ -29,5 +29,4 @@
     a bioschemas:FormalParameter ;
     dcterms:conformsTo <https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE> ;
     schema:name "genes" ;
-    schema:additionalType edam:data_0916 ;
-    schema:encodingFormat edam:format_3464 .
+    schema:additionalType edam:data_0916 .  # kept in the database of Cocos, linked to the annotation

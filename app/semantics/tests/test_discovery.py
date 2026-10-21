@@ -12,7 +12,7 @@ ILLUMINA, NANOPORE = OBO.NCIT_C146817, OBO.NCIT_C146818
 READS = (EDAM.data_3494, EDAM.format_1930)
 ASSEMBLY = (EDAM.data_0925, EDAM.format_1929)
 ANNOTATION = (EDAM.data_1270, AMRF.BaktaJSON)
-GENES = (EDAM.data_0916, EDAM.format_3464)
+GENES = (EDAM.data_0916, None)  # kept in the database of Cocos: no file format
 
 
 def sample(*entries, taxon=None):
@@ -27,7 +27,8 @@ def sample(*entries, taxon=None):
         graph.add((node, SCHEMA.identifier, Literal(file_id)))
         graph.add((node, SCHEMA.name, Literal(role)))
         graph.add((node, SCHEMA.additionalType, data))
-        graph.add((node, SCHEMA.encodingFormat, file_format))
+        if file_format is not None:
+            graph.add((node, SCHEMA.encodingFormat, file_format))
         if technique:
             graph.add((node, SCHEMA.measurementTechnique, technique[0]))
     return graph
@@ -44,7 +45,8 @@ def add_model(graph, identifier, consumes, taxa=(OBO.NCBITaxon_2,), antibiotics=
     graph.add((parameter, RDF.type, BIOSCHEMAS.FormalParameter))
     graph.add((parameter, SCHEMA.name, Literal('input')))
     graph.add((parameter, SCHEMA.additionalType, consumes[0]))
-    graph.add((parameter, SCHEMA.encodingFormat, consumes[1]))
+    if consumes[1] is not None:
+        graph.add((parameter, SCHEMA.encodingFormat, consumes[1]))
     for taxon in taxa:
         graph.add((model, SCHEMA.taxonomicRange, taxon))
     for antibiotic in antibiotics:
@@ -108,6 +110,11 @@ class DiscoveryTests(SimpleTestCase):
         result = self.compatibility(sample(('7', 'reads', READS, NANOPORE)), 'fasta_model', registry)
 
         self.assertEqual(self.steps(result), ['assembly_ont'])
+
+    def test_a_json_file_of_genes_is_not_the_genes_cocos_extracted(self):
+        result = self.compatibility(sample(('9', 'genes', (EDAM.data_0916, EDAM.format_3464))))
+
+        self.assertEqual(result.status, Status.INCOMPATIBLE)
 
     def test_a_bakta_annotation_is_json_but_json_is_not_a_bakta_annotation(self):
         registry = build_registry_graph()

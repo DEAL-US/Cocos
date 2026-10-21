@@ -57,7 +57,9 @@ def describe_step(graph, step):
             graph.add((port_node, DCTERMS.conformsTo, FORMAL_PARAMETER_PROFILE))
             graph.add((port_node, SCHEMA.name, Literal(port.role)))
             graph.add((port_node, SCHEMA.additionalType, data_term(port.kind)))
-            graph.add((port_node, SCHEMA.encodingFormat, format_term(port.kind, port.format)))
+            file_format = format_term(port.kind, port.format)
+            if file_format is not None:
+                graph.add((port_node, SCHEMA.encodingFormat, file_format))
             if technique is not None and predicate == BSC.input:
                 graph.add((port_node, SCHEMA.measurementTechnique, technique))
     return step_node

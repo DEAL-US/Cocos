@@ -16,6 +16,9 @@ from .discovery import discover
 from .discovery.graphs import label, read_sample, read_tools
 from .discovery.search import satisfies
 
+# What a kind of data with no file format (the genes) is, in the drawing
+STORED_BY_COCOS = 'Stored in Cocos'
+
 
 def registry_flow(registry, url_of=str):
     """{'nodes': [...], 'edges': [...]} of `registry` (a graph). `url_of(iri)` gives the page of a
@@ -90,7 +93,7 @@ def _data_node(registry, kind, node_id, url_of):
         'id': node_id,
         'type': 'data',
         'label': label(registry, kind.data),
-        'detail': ' · '.join(label(registry, term) for term in terms[1:]),
+        'detail': ' · '.join(label(registry, term) for term in terms[1:]) or STORED_BY_COCOS,
         'terms': [{'label': label(registry, term), 'iri': str(term), 'url': url_of(term)} for term in terms],
     }}
 
@@ -108,6 +111,7 @@ def _tool_node(tool, url_of):
     if tool.is_model:
         data['organisms'] = sorted(tool.organisms.values())
         data['antibiotics'] = sorted(tool.antibiotics)
+        data['antibiotics_number'] = len(tool.antibiotics)
     return {'data': data}
 
 
@@ -116,5 +120,4 @@ def _edge(source, target, roles):
 
 
 def _kind_label(registry, kind):
-    technique = label(registry, kind.technique) if kind.technique is not None else ''
-    return (label(registry, kind.data), label(registry, kind.format), technique)
+    return tuple(label(registry, term) if term is not None else '' for term in (kind.data, kind.format, kind.technique))

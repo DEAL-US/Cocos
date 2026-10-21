@@ -9,6 +9,7 @@ from semantics.validation import validate, violations
 
 MODEL = model_iri('base_bakta_50')
 GENES = f'{MODEL}#genes'
+PREDICTIONS = f'{MODEL}#predictions'
 
 
 def problems_of(graph):
@@ -43,9 +44,12 @@ class ShapesCatchMistakesTests(SimpleTestCase):
         self.graph.remove((MODEL, SCHEMA.taxonomicRange, None))
         self.assertViolation(MODEL, 'schema:taxonomicRange')
 
-    def test_a_parameter_without_format(self):
+    def test_a_file_parameter_without_format(self):
         self.graph.remove((None, SCHEMA.encodingFormat, None))
-        self.assertViolation(GENES, 'schema:encodingFormat')
+        self.assertViolation(PREDICTIONS, '')  # the sh:or of the parameter shape
+
+    def test_the_genes_need_no_format(self):
+        self.assertNotIn(str(GENES), {focus for focus, _, severity in problems_of(self.graph) if severity == 'Violation'})
 
     def test_an_own_term_without_justification(self):
         self.graph.add((AMRF.newTerm, RDFS.label, Literal('new term')))

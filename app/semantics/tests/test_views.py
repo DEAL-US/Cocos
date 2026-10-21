@@ -22,11 +22,11 @@ class ProcessRdfViewTests(ConversionFlowMixin, TestCase):
         self.assertEqual(response['Content-Type'], 'text/turtle; charset=utf-8')
         graph = Graph().parse(data=response.content, format='turtle')
         parts = set(graph.objects(self.sample, SCHEMA.hasPart))
-        self.assertEqual(len(parts), 2)
-        for part in parts:
-            with self.subTest(part=part):
-                download = self.client.get(str(graph.value(part, SCHEMA.contentUrl)).removeprefix('http://testserver'))
-                self.assertEqual(download.status_code, 200)
+        self.assertEqual(len(parts), 2)  # the annotation and the genes
+        downloads = [graph.value(part, SCHEMA.contentUrl) for part in parts]
+        self.assertEqual(downloads.count(None), 1)  # the genes are in the database, not a file
+        for url in filter(None, downloads):
+            self.assertEqual(self.client.get(str(url).removeprefix('http://testserver')).status_code, 200)
 
     def test_json_ld_when_asked_for(self):
         for kwargs in ({'data': {'format': 'jsonld'}}, {'HTTP_ACCEPT': 'application/ld+json'}):

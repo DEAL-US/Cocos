@@ -112,7 +112,8 @@ def _ports(graph, resource, predicate):
         role = graph.value(node, SCHEMA.name)
         data, file_format = graph.value(node, SCHEMA.additionalType), graph.value(node, SCHEMA.encodingFormat)
         try:
-            ports.append(Port(str(role), kind_of(data), file_type_of(file_format)))
+            kind = kind_of(data)
+            ports.append(Port(str(role), kind, file_type_of(file_format, kind)))
         except KeyError as error:
             raise DescriptorError(f'{node}: {error.args[0]}')
     return tuple(sorted(ports, key=lambda port: port.role))

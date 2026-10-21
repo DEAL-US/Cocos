@@ -30,8 +30,7 @@
     a bioschemas:FormalParameter ;
     dcterms:conformsTo <https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE> ;
     schema:name "genes" ;
-    schema:additionalType edam:data_0916 ;
-    schema:encodingFormat edam:format_3464 .
+    schema:additionalType edam:data_0916 .  # the genes Cocos extracted and keeps in its database
 
 <https://w3id.org/cocos/model/base_bakta_90#predictions>
     a bioschemas:FormalParameter ;

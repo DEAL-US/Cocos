@@ -62,5 +62,6 @@ def _describe(models):
         graph.add((parameter, RDF.type, BIOSCHEMAS.FormalParameter))
         graph.add((parameter, SCHEMA.name, Literal(genes.role)))
         graph.add((parameter, SCHEMA.additionalType, data_term(genes.kind)))
-        graph.add((parameter, SCHEMA.encodingFormat, format_term(genes.kind, genes.format)))
+        if format_term(genes.kind, genes.format) is not None:
+            graph.add((parameter, SCHEMA.encodingFormat, format_term(genes.kind, genes.format)))
     return graph
