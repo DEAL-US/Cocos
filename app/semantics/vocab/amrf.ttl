@@ -29,7 +29,7 @@ amrf:predictsResistanceTo
     rdfs:subPropertyOf obo:IAO_0000136 ;
     rdfs:range obo:ARO_1000003 ;
     rdfs:isDefinedBy <https://w3id.org/amrf/> ;
-    skos:editorialNote "IAO 'is about' (obo:IAO_0000136) and schema:about only state that a model concerns an antibiotic, not that it predicts resistance to it rather than, for instance, susceptibility or minimum inhibitory concentration. ARO 'confers_resistance_to_antibiotic' (obo:ARO_2000000) relates genes and variants, not models. It is declared a subproperty of 'is about' so that consumers unaware of AMRF still read the model as being about the antibiotic."@en .
+    skos:editorialNote "IAO 'is about' (obo:IAO_0000136) and schema:about only state that a model concerns an antibiotic, not that it predicts resistance to it rather than, for instance, susceptibility or minimum inhibitory concentration. ARO 'confers_resistance_to_antibiotic' (obo:ARO_2000000) relates genes and variants, not models. It is declared a subproperty of 'is about' so that consumers unaware of AMRF still read the model as being about the antibiotic. Proposed to ARO in https://github.com/arpcard/aro/issues/28; if accepted, this term will be deprecated in favour of the ARO one."@en .
 
 amrf:BaktaJSON
     a owl:Class ;
