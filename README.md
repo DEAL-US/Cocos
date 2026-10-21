@@ -287,6 +287,7 @@ app/semantics/
 │                   and the registry graph that joins them with the vocabulary and terms.ttl
 ├── validation.py   SHACL validation of descriptors and samples against shapes.ttl
 ├── sample.py       the RDF description of a sample
+├── flow.py         the registry as a data flow, drawn on the registry page
 └── discovery/      which models can run on a sample
 ```
 
@@ -300,13 +301,13 @@ The prediction page is built on it. It offers every sample of the user (those st
 
 The registry (steps, models, the AMRF vocabulary and shapes) is public; the data of the users never is. Every IRI of the registry has a page on the server, which `https://w3id.org/cocos/...` and `https://w3id.org/amrf/...` will redirect to. Browsers get HTML; RDF clients get Turtle or JSON-LD (`Accept` header, or `?format=ttl` / `?format=jsonld`):
 
-| Path                           | What                                                 |
-| ------------------------------ | ---------------------------------------------------- |
-| `/registry/`                   | every step and model (and the whole registry as RDF) |
-| `/model/<name>`, `/step/<key>` | one model or step, with its inputs and outputs       |
-| `/amrf/`, `/amrf/<term>`       | the AMRF vocabulary and its terms                    |
-| `/amrf/shapes`                 | the AMRF SHACL shapes                                |
-| `/sparql`                      | read-only SPARQL endpoint over the registry          |
+| Path                           | What                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------- |
+| `/registry/`                   | every step and model, and their data flow (and the whole registry as RDF) |
+| `/model/<name>`, `/step/<key>` | one model or step, with its inputs and outputs                            |
+| `/amrf/`, `/amrf/<term>`       | the AMRF vocabulary and its terms                                         |
+| `/amrf/shapes`                 | the AMRF SHACL shapes                                                     |
+| `/sparql`                      | read-only SPARQL endpoint over the registry                               |
 
 Without a browser, ask for the format you want:
 
@@ -316,6 +317,8 @@ curl "http://localhost:8080/registry/?format=jsonld" -o registry.jsonld        #
 ```
 
 RDF libraries send that `Accept` header themselves, so in Python `rdflib.Graph().parse("http://localhost:8080/registry/")` is enough.
+
+The registry page draws the **data flow** of the registry (`semantics/flow.py`, drawn with Cytoscape.js and dagre): the kinds of data (EDAM data and format, and the sequencing technique of reads), the steps and the models, with an arrow from each kind of data to every step or model it can feed and from each step to what it produces. It is built with the same reading and matching as the discovery, so it shows the paths the discovery can take. Selecting a box highlights everything that leads to it and everything it leads to, and lists what it needs and produces; the page of each step and model links to its box (`/registry/?focus=model-base_bakta_50`). The graph can be downloaded as a PNG.
 
 The SPARQL endpoint follows the SPARQL 1.1 protocol (`GET ?query=...`, or `POST` as a form or as `application/sparql-query`) and allows cross-origin requests. `SELECT` and `ASK` results are JSON (default), XML or CSV; `CONSTRUCT` and `DESCRIBE` results are Turtle or JSON-LD. The prefixes `schema:`, `edam:`, `obo:`, `bsc:`, `amrf:` and `rdfs:` are predefined. Updates, `SERVICE` and queries longer than 10,000 characters are refused. For example, the models and the antibiotics they predict:
 

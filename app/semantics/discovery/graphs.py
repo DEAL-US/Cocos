@@ -37,6 +37,9 @@ class Tool:
     identifier: str
     inputs: tuple
     outputs: tuple
+    iri: URIRef | None = None
+    name: str = ''
+    description: str = ''
     is_model: bool = False
     web_service: bool = False                      # runs as a job in the bio service
     organisms: dict = field(default_factory=dict)  # {NCBITaxon IRI: name}
@@ -53,8 +56,10 @@ class Item:
 # --- Registry
 
 TOOLS_QUERY = """
-SELECT ?tool ?identifier ?operation ?category WHERE {
+SELECT ?tool ?identifier ?name ?description ?operation ?category WHERE {
     ?tool a schema:SoftwareApplication ; schema:identifier ?identifier ; schema:featureList ?operation .
+    OPTIONAL { ?tool schema:name ?name }
+    OPTIONAL { ?tool schema:description ?description }
     OPTIONAL { ?tool schema:applicationCategory ?category }
 }
 """
@@ -95,7 +100,9 @@ def read_tools(registry):
 
     tools = {}
     for row in registry.query(TOOLS_QUERY, initNs=NAMESPACES):
-        tool = tools.setdefault(row.tool, {'identifier': str(row.identifier), 'model': False, 'web': False})
+        tool = tools.setdefault(row.tool, {'identifier': str(row.identifier), 'name': str(row.name or row.identifier),
+                                           'description': str(row.description or ''),
+                                           'model': False, 'web': False})
         tool['model'] |= row.operation == EDAM.operation_3482
         tool['web'] |= row.category is not None and str(row.category) == WEB_SERVICE
 
@@ -104,6 +111,9 @@ def read_tools(registry):
             identifier=tool['identifier'],
             inputs=_sorted_by_role(parameters.get((iri, 'input'), [])),
             outputs=_sorted_by_role(parameters.get((iri, 'output'), [])),
+            iri=iri,
+            name=tool['name'],
+            description=tool['description'],
             is_model=tool['model'],
             web_service=tool['web'],
             organisms=organisms.get(iri, {}),

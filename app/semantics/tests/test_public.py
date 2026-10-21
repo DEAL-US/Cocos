@@ -48,6 +48,18 @@ class ResourcePagesTests(TestCase):
         self.assertContains(response, 'href="/model/base_bakta_50"')
         self.assertContains(response, 'href="/step/bakta_annotation"')
 
+    def test_the_registry_draws_its_data_flow(self):
+        response = self.client.get('/registry/', HTTP_ACCEPT='text/html')
+        self.assertContains(response, 'id="registry-flow-data"')
+        self.assertContains(response, '"url": "/model/base_bakta_50"')
+        self.assertContains(response, 'vendor/cytoscape.min.js')
+
+    def test_steps_and_models_link_to_their_node_in_the_data_flow(self):
+        self.assertContains(self.client.get('/model/base_bakta_50', HTTP_ACCEPT='text/html'),
+                            '/registry/?focus=model-base_bakta_50#data-flow')
+        self.assertContains(self.client.get('/step/bakta_annotation', HTTP_ACCEPT='text/html'),
+                            '/registry/?focus=step-bakta_annotation#data-flow')
+
     def test_unknown_resources_are_not_found(self):
         self.assertEqual(self.client.get('/model/no_such_model').status_code, 404)
         self.assertEqual(self.client.get('/amrf/noSuchTerm').status_code, 404)

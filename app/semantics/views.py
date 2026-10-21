@@ -17,6 +17,7 @@ from rdflib.plugins.sparql.parserutils import CompValue
 
 from core.models import ProcessGroup
 
+from .flow import registry_flow, tool_node_id
 from .namespaces import AMRF, COCOS, PREFIXES, SCHEMA, bind_prefixes
 from .registry.graph import registry_graph
 from .registry.vocabulary import load_vocabulary
@@ -145,18 +146,21 @@ def registry_view(request):
          for tool in graph.subjects(RDF.type, SCHEMA.SoftwareApplication)),
         key=lambda tool: tool['name'],
     )
-    return render(request, 'semantics/registry.html', {'sections': [
-        ('Processing steps', 'bi-diagram-3', [tool for tool in tools if not tool['is_model']]),
-        ('Prediction models', 'bi-cpu', [tool for tool in tools if tool['is_model']]),
-    ]})
+    return render(request, 'semantics/registry.html', {
+        'sections': [
+            ('Processing steps', 'bi-diagram-3', [tool for tool in tools if not tool['is_model']]),
+            ('Prediction models', 'bi-cpu', [tool for tool in tools if tool['is_model']]),
+        ],
+        'flow': registry_flow(graph, local_url),
+    })
 
 
 def step_view(request, key):
-    return _resource(request, registry_graph(), COCOS[f'step/{key}'])
+    return _resource(request, registry_graph(), COCOS[f'step/{key}'], flow_node=tool_node_id(key, is_model=False))
 
 
 def model_view(request, name):
-    return _resource(request, registry_graph(), COCOS[f'model/{name}'])
+    return _resource(request, registry_graph(), COCOS[f'model/{name}'], flow_node=tool_node_id(name, is_model=True))
 
 
 def vocabulary_view(request):
@@ -189,7 +193,8 @@ def shapes_view(request):
     })
 
 
-def _resource(request, graph, iri):
+def _resource(request, graph, iri, flow_node=None):
+    """The page or the RDF of `iri`. `flow_node` is its node in the data flow of the registry, if any."""
     description = describe(graph, iri)
     if not len(description):
         raise Http404(f'{iri} is not in the registry')
@@ -202,6 +207,7 @@ def _resource(request, graph, iri):
         'iri': str(iri),
         'filename': str(iri).rstrip('/').rsplit('/', 1)[-1],
         'subjects': [_subject(graph, subject) for subject in subjects],
+        'flow_node': flow_node,
     })
 
 

@@ -19,7 +19,14 @@
         <h1 class="text-3xl font-bold mb-1">{{ title }}</h1>
         <p class="text-sm text-base-content/70 break-all"><code>{{ iri }}</code></p>
       </div>
-      {% include 'semantics/_download.html' %}
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        {% include 'semantics/_download.html' %}
+        {% if flow_node %}
+          <a href="{% url 'semantics:registry' %}?focus={{ flow_node|urlencode }}#data-flow" class="btn btn-sm btn-primary btn-outline">
+            <i class="bi bi-share"></i>Show in the data flow
+          </a>
+        {% endif %}
+      </div>
     </div>
   </div>
 
