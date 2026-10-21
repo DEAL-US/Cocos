@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   const flow = JSON.parse(flowData.textContent);
+  flow.nodes.forEach(function (node, index) { node.data.order = index; });  // the order of the registry
   flow.edges.forEach(function (edge) {
     // Several inputs fed by the same kind of data (Illumina r1 and r2) share one edge
     edge.data.label = edge.data.roles.length > 1 ? edge.data.roles.join(' + ') : '';
@@ -35,13 +36,17 @@ document.addEventListener('DOMContentLoaded', function () {
     container: container,
     elements: flow,
     style: graphStyle(),
-    layout: { name: 'dagre', rankDir: 'TB', nodeSep: 20, rankSep: 35, edgeSep: 10 },
+    layout: { name: 'preset' },
     minZoom: 0.3,
     maxZoom: 2.5,
     userZoomingEnabled: false,  // the mouse wheel scrolls the page; zoom with the buttons
     boxSelectionEnabled: false,
     autounselectify: true,
   });
+  const NODE_SEP = 20;
+  const layout = cy.layout({ name: 'dagre', rankDir: 'TB', nodeSep: NODE_SEP, rankSep: 35, edgeSep: 10 });
+  layout.one('layoutstop', keepRegistryOrder);
+  layout.run();
   cy.fit(undefined, 24);
 
   // A link to /registry/?focus=<node id> (from the page of a step or model) selects that node
@@ -60,6 +65,29 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('[data-flow-action]').forEach(function (button) {
     button.addEventListener('click', function () { act(button.dataset.flowAction); });
   });
+
+  // dagre orders each level to cross as few edges as possible; put its nodes back in the order of
+  // the registry (Illumina before ONT, assembly before assembly + annotation), keeping the level centred
+  function keepRegistryOrder() {
+    const levels = {};
+    cy.nodes().forEach(function (node) {
+      const y = Math.round(node.position('y'));
+      (levels[y] = levels[y] || []).push(node);
+    });
+    Object.values(levels).forEach(function (nodes) {
+      if (nodes.length < 2) {
+        return;
+      }
+      const left = Math.min.apply(null, nodes.map(function (node) { return node.position('x') - node.width() / 2; }));
+      const right = Math.max.apply(null, nodes.map(function (node) { return node.position('x') + node.width() / 2; }));
+      const total = nodes.reduce(function (sum, node) { return sum + node.width(); }, NODE_SEP * (nodes.length - 1));
+      let x = (left + right) / 2 - total / 2;
+      nodes.sort(function (a, b) { return a.data('order') - b.data('order'); }).forEach(function (node) {
+        node.position('x', x + node.width() / 2);
+        x += node.width() + NODE_SEP;
+      });
+    });
+  }
 
   // Highlight a node with everything that leads to it and everything it leads to
 
@@ -103,18 +131,20 @@ document.addEventListener('DOMContentLoaded', function () {
       header.appendChild(element('span', 'text-base-content/70', data.detail));
       sections = [list('Produced by', node.incomers('node')), list('Used by', node.outgoers('node')), termLinks(data.terms)];
     } else {
-      const link = element('a', 'link link-primary ml-auto', 'Open its page');
+      const link = element('a', 'btn btn-sm btn-outline btn-primary ml-auto');
       link.href = data.url;
+      link.appendChild(element('i', 'bi bi-box-arrow-up-right'));
+      link.appendChild(document.createTextNode('Open its page'));
       header.appendChild(link);
       sections = [list('Needs', node.incomers('node')), list('Produces', node.outgoers('node'))];
       if (data.type === 'model') {
         sections.push(textList('Antibiotics', data.antibiotics), textList('Organisms', data.organisms));
       } else if (data.web_service) {
-        sections.push(textList('Runs in', ['the bioinformatics service, as a job']));
+        sections.push(textList('Runs in', ['Bioinformatics service, as a job']));
       }
     }
 
-    const grid = element('div', 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4');
+    const grid = element('div', 'flex flex-wrap justify-center gap-x-16 gap-y-4');
     sections.filter(Boolean).forEach(function (section) { grid.appendChild(section); });
     const children = [header];
     if (data.description) {
@@ -192,11 +222,10 @@ document.addEventListener('DOMContentLoaded', function () {
         selector: 'node[type = "data"]',
         style: {
           'label': function (node) { return nodeText(node); },
-          'shape': 'rhomboid',
-          'width': function (node) { return textWidth(nodeText(node)) + 64; },  // room for the slanted sides
           'background-color': colors.data,
           'border-color': colors.text,
-          'border-opacity': 0.4,
+          'border-opacity': 0.5,
+          'border-style': 'dashed',
           'color': colors.text,
         },
       },
