@@ -16,18 +16,19 @@ document.addEventListener('DOMContentLoaded', function () {
   const files = filesData ? JSON.parse(filesData.textContent) : {};
 
   const TYPE_LABELS = { data: 'Data', step: 'Processing step', model: 'Prediction model' };
+  // State badges: soft, with the colours of the prediction page
   const STEP_STATES = {
     completed: ['Done', 'badge-success'],
     running: ['Running', 'badge-warning'],
     pending: ['Waiting to run', 'badge-warning'],
     failed: ['Failed', 'badge-error'],
     planned: ['Would run to prepare a model', 'badge-primary'],
-    unused: ['Not used for this sample', 'badge-ghost'],
+    unused: ['Not used for this sample', 'badge-neutral'],
   };
   const MODEL_STATES = {
     ready: ['Ready', 'badge-success'],
-    reachable: ['Needs preparation', 'badge-info'],
-    incompatible: ['Not available', 'badge-ghost'],
+    reachable: ['Needs preparation', 'badge-warning'],
+    incompatible: ['Not available', 'badge-neutral'],
   };
   const RUN_STATES = { completed: 'Prediction done', running: 'Prediction running', pending: 'Prediction waiting to run', failed: 'Prediction failed' };
   const FONT_SIZE = 13;
@@ -200,9 +201,9 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
       const planned = node.hasClass('planned');
       state = data.files.length ? ['This sample has it', 'badge-success']
-        : planned ? ['The preparation of a model would produce it', 'badge-primary'] : ['This sample does not have it', 'badge-ghost'];
+        : planned ? ['The preparation of a model would produce it', 'badge-primary'] : ['This sample does not have it', 'badge-neutral'];
     }
-    return element('span', 'badge badge-sm ' + state[1], state[0]);
+    return element('span', 'badge badge-sm badge-soft ' + state[1], state[0]);
   }
 
   function stateSections(node) {
@@ -329,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
           'text-wrap': 'wrap',
           'shape': 'round-rectangle',
           'width': function (node) { return textWidth(nodeText(node)) + 28; },
-          'height': function (node) { return node.data('type') === 'data' ? 44 : 34; },
+          'height': function (node) { return node.data('type') === 'step' ? 34 : 44; },  // data and models have two lines
           'border-width': 1,
           'transition-property': 'opacity',
           'transition-duration': 150,
@@ -352,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       {
         selector: 'node[type = "model"]',
-        style: { 'background-color': colors.model, 'border-color': colors.model, 'color': colors.modelText, 'font-weight': 'bold' },
+        style: { 'label': function (node) { return nodeText(node); }, 'background-color': colors.model, 'border-color': colors.model, 'color': colors.modelText },
       },
       {
         selector: 'edge',
@@ -405,7 +406,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function nodeText(node) {
     const data = node.data();
-    return data.type === 'data' ? data.label + '\n' + data.detail : data.label;
+    if (data.type === 'data') {
+      return data.label + '\n' + data.detail;
+    }
+    if (data.type === 'model') {
+      const count = data.antibiotics.length;
+      return data.label + '\n' + count + (count === 1 ? ' antibiotic' : ' antibiotics');
+    }
+    return data.label;
   }
 
   function textWidth(text) {
