@@ -38,4 +38,4 @@ amrf:BaktaJSON
     rdfs:subClassOf edam:format_3464 ;
     rdfs:seeAlso <https://github.com/oschwengers/bakta> , <https://bio.tools/bakta> ;
     rdfs:isDefinedBy <https://w3id.org/amrf/> ;
-    skos:editorialNote "EDAM has no format for Bakta's JSON output; bio.tools lists it only as generic JSON (edam:format_3464). A specific format is needed so that a parser of Bakta JSON is not offered any JSON feature table. It is a subclass of EDAM JSON so that consumers that accept any JSON accept it. To be proposed to EDAM; if accepted, this term will be deprecated in favour of the EDAM one."@en .
+    skos:editorialNote "EDAM has no format for Bakta's JSON output; bio.tools lists it only as generic JSON (edam:format_3464). A specific format is needed so that a parser of Bakta JSON is not offered any JSON feature table. It is a subclass of EDAM JSON so that consumers that accept any JSON accept it. Proposed to EDAM in https://github.com/edamontology/edamontology/issues/960; if accepted, this term will be deprecated in favour of the EDAM one."@en .
