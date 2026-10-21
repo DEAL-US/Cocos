@@ -6,7 +6,7 @@ COPY app/package.json app/package-lock.json ./
 RUN npm ci
 
 COPY app/ ./
-RUN npm run build:css
+RUN npm run build
 
 
 FROM python:3.11-slim
@@ -25,9 +25,10 @@ COPY app /app
 
 COPY --from=frontend /frontend/static /app/static/
 
-# Guardar el CSS fuera de /app para que el volumen no lo oculte. Odio TailWind
+# Guardar el CSS y las librerías JS fuera de /app para que el volumen no los oculte. Odio TailWind
 RUN mkdir -p /opt/frontend && \
-    cp /app/static/css/tailwind.css /opt/frontend/tailwind.css
+    cp /app/static/css/tailwind.css /opt/frontend/tailwind.css && \
+    cp -r /app/static/vendor /opt/frontend/vendor
 
 
 # Non-root user for security

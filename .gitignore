@@ -9,6 +9,7 @@ uploads/
 app/ai_models/*/weights/*
 app/node_modules/
 app/static/css/tailwind.css
+app/static/vendor/
 
 *.gz
 example_files/ATCC25922.fastq.gz

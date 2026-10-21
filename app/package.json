@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "npm run build:css && npm run build:vendor",
     "build:css": "npx @tailwindcss/cli -i ./static_src/tailwind.css -o ./static/css/tailwind.css --minify",
-    "watch:css": "npx @tailwindcss/cli -i ./static_src/tailwind.css -o ./static/css/tailwind.css --watch"
+    "watch:css": "npx @tailwindcss/cli -i ./static_src/tailwind.css -o ./static/css/tailwind.css --watch",
+    "build:vendor": "node static_src/copy-vendor.js"
   },
   "keywords": [],
   "author": "",
@@ -15,5 +17,9 @@
     "@tailwindcss/cli": "^4.2.2",
     "daisyui": "^5.5.19",
     "tailwindcss": "^4.2.2"
+  },
+  "dependencies": {
+    "cytoscape": "3.34.4",
+    "cytoscape-dagre": "4.0.1"
   }
 }

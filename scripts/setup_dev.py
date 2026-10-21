@@ -75,15 +75,15 @@ def main():
         return 1
     
     # Install frontend dependencies
-    print("\nInstalling frontend dependencies (Tailwind + daisyUI)...")
+    print("\nInstalling frontend dependencies (Tailwind + daisyUI, Cytoscape.js)...")
     if run_command(["npm", "install"], cwd=app_dir):
         print("Failed to install npm dependencies")
         return 1
-    
-    # Build CSS
-    print("\nBuilding frontend CSS bundle...")
-    if run_command(["npm", "run", "build:css"], cwd=app_dir):
-        print("Failed to build CSS")
+
+    # Build CSS and copy the JavaScript libraries to static/vendor/
+    print("\nBuilding frontend CSS bundle and JavaScript libraries...")
+    if run_command(["npm", "run", "build"], cwd=app_dir):
+        print("Failed to build the frontend")
         return 1
     
     print("\n" + "=" * 50)

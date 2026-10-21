@@ -10,5 +10,6 @@ venv/
 app/node_modules/
 app/.npm/
 app/static/css/tailwind.css
+app/static/vendor/
 app/media/
 app/uploads/

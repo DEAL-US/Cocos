@@ -20,8 +20,8 @@ This sets up:
 
 - `.env`, copied from `.env.example` if it does not exist yet
 - Python dependencies from `requirements.txt`
-- Frontend dependencies (`tailwindcss` + `daisyui`) from `app/package.json`
-- Compiled CSS output at `app/static/css/tailwind.css`
+- Frontend dependencies (`tailwindcss` + `daisyui`, `cytoscape` + `cytoscape-dagre`) from `app/package.json`
+- Compiled CSS output at `app/static/css/tailwind.css` and the JavaScript libraries in `app/static/vendor/` (`npm run build`)
 
 Then start the dev server:
 
