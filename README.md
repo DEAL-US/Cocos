@@ -371,3 +371,7 @@ Measure test coverage:
 python -m coverage run --source=. --omit="*/migrations/*,*/tests/*,manage.py,app/wsgi.py,app/asgi.py,core/testing.py" manage.py test
 python -m coverage report
 ```
+
+## License
+
+The Cocos source code is free software under the [GNU General Public License v3](LICENSE). The AMRF vocabulary and its SHACL shapes (`app/semantics/vocab/`) are published under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
