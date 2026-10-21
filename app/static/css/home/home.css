@@ -127,3 +127,130 @@
 		box-shadow: none !important;
 	}
 }
+
+/* Hero illustration (templates/home/hero_illustration.html) */
+.hi {
+	display: block;
+	width: 100%;
+	height: auto;
+	--hi-r: var(--color-error);
+	--hi-s: var(--color-success);
+}
+
+.hi-bg-start { stop-color: var(--color-primary); stop-opacity: 0.12; }
+.hi-bg-end { stop-color: var(--color-primary); stop-opacity: 0; }
+.hi-cell-fill-start { stop-color: var(--color-base-100); }
+.hi-cell-fill-end { stop-color: color-mix(in oklab, var(--color-primary) 14%, var(--color-base-100)); }
+
+.hi-cell {
+	stroke: var(--color-primary);
+	stroke-width: 3;
+	filter: drop-shadow(0 10px 18px color-mix(in oklab, var(--color-primary) 22%, transparent));
+}
+.hi-cell-inner {
+	stroke: color-mix(in oklab, var(--color-primary) 40%, transparent);
+	stroke-width: 1.5;
+	stroke-dasharray: 2 7;
+	stroke-linecap: round;
+}
+.hi-flagellum,
+.hi-pili {
+	stroke: color-mix(in oklab, var(--color-primary) 55%, transparent);
+	stroke-width: 2.5;
+	stroke-linecap: round;
+}
+.hi-dots { fill: color-mix(in oklab, var(--color-secondary) 30%, transparent); }
+
+.hi-backbone {
+	stroke: color-mix(in oklab, var(--color-secondary) 25%, transparent);
+	stroke-width: 1.5;
+}
+.hi-g1 { fill: var(--color-primary); }
+.hi-g2 { fill: var(--color-secondary); }
+.hi-g3 { fill: var(--color-accent); }
+.hi-g4 { fill: color-mix(in oklab, var(--color-primary) 45%, var(--color-base-100)); }
+.hi-res {
+	fill: var(--hi-r);
+	filter: url(#hi-glow);
+	animation: hi-pulse 2.8s ease-in-out infinite;
+}
+.hi-tick {
+	stroke: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+	stroke-width: 1.2;
+	stroke-linecap: round;
+}
+.hi-gc {
+	fill: color-mix(in oklab, var(--color-primary) 10%, transparent);
+	stroke: color-mix(in oklab, var(--color-primary) 55%, transparent);
+	stroke-width: 1.2;
+	stroke-linejoin: round;
+}
+
+.hi-read { animation: hi-drift 7s ease-in-out infinite; }
+.hi-read-a { fill: color-mix(in oklab, var(--color-primary) 55%, transparent); }
+.hi-read-b { fill: color-mix(in oklab, var(--color-accent) 55%, transparent); }
+
+.hi-drug-path {
+	stroke-width: 1.8;
+	stroke-dasharray: 4 5;
+	stroke-linecap: round;
+	animation: hi-dash 1.6s linear infinite;
+}
+.hi-drug-r { --hi-c: var(--hi-r); }
+.hi-drug-s { --hi-c: var(--hi-s); }
+.hi-drug-r .hi-drug-path { stroke: color-mix(in oklab, var(--hi-r) 70%, transparent); }
+.hi-drug-s .hi-drug-path {
+	stroke: color-mix(in oklab, var(--hi-s) 80%, transparent);
+	marker-end: url(#hi-arrow);
+}
+.hi-arrow-head { fill: var(--hi-s); }
+.hi-block {
+	stroke: var(--hi-r);
+	stroke-width: 4;
+	stroke-linecap: round;
+}
+.hi-molecule {
+	fill: var(--color-base-100);
+	stroke: var(--hi-c);
+	stroke-width: 2.2;
+	stroke-linejoin: round;
+}
+.hi-molecule-core { fill: var(--hi-c); }
+.hi-float { animation: hi-float 4.5s ease-in-out infinite; }
+.hi-drug-s .hi-float { animation-delay: -2s; }
+
+.hi-chip {
+	fill: var(--color-base-100);
+	stroke: color-mix(in oklab, var(--hi-c) 40%, var(--color-base-300));
+	filter: drop-shadow(0 3px 6px color-mix(in oklab, var(--color-base-content) 10%, transparent));
+}
+.hi-chip-text {
+	font-family: 'JetBrains Mono', monospace;
+	font-size: 11px;
+	font-weight: 600;
+	fill: var(--color-base-content);
+}
+.hi-badge { fill: var(--hi-c); }
+.hi-badge-text {
+	font-family: 'IBM Plex Sans', sans-serif;
+	font-size: 10px;
+	font-weight: 700;
+	fill: var(--color-base-100);
+}
+
+.hi-spin {
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: hi-spin 90s linear infinite;
+}
+.hi-spin-reverse { animation-duration: 40s; animation-direction: reverse; }
+
+@keyframes hi-spin { to { transform: rotate(360deg); } }
+@keyframes hi-pulse { 50% { opacity: 0.55; } }
+@keyframes hi-float { 50% { transform: translateY(-4px); } }
+@keyframes hi-drift { 50% { transform: translateX(8px); opacity: 0.5; } }
+@keyframes hi-dash { to { stroke-dashoffset: -18; } }
+
+@media (prefers-reduced-motion: reduce) {
+	.hi * { animation: none !important; }
+}

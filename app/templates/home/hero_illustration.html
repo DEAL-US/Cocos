@@ -1,0 +1,178 @@
+{% comment %}
+Decorative hero illustration: a bacterium whose chromosome is drawn as an annotated
+circular genome map, plus plasmids. Resistance genes glow; antibiotics bounce off (R)
+or get in (S). It shows what Cocos reads and predicts, not the pipeline steps, so it
+does not need to change when new steps are added. Colours come from the theme.
+{% endcomment %}
+<svg class="hi" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+	<defs>
+		<radialGradient id="hi-bg" cx="0.5" cy="0.5" r="0.5">
+			<stop offset="0" class="hi-bg-start"/>
+			<stop offset="1" class="hi-bg-end"/>
+		</radialGradient>
+		<radialGradient id="hi-cell-fill" cx="0.4" cy="0.45" r="0.7">
+			<stop offset="0" class="hi-cell-fill-start"/>
+			<stop offset="1" class="hi-cell-fill-end"/>
+		</radialGradient>
+		<filter id="hi-glow" x="-50%" y="-50%" width="200%" height="200%">
+			<feGaussianBlur stdDeviation="3" result="blur"/>
+			<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+		</filter>
+		<marker id="hi-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+			<path class="hi-arrow-head" d="M0 0L10 5L0 10Z"/>
+		</marker>
+	</defs>
+
+	<!-- soft halo, fades into the hero background -->
+	<ellipse cx="300" cy="200" rx="300" ry="200" fill="url(#hi-bg)"/>
+
+	<!-- sequencing reads drifting in -->
+	<g>
+		<rect class="hi-read hi-read-a" x="232" y="32" width="22" height="4" rx="2" style="animation-delay:-0s"/>
+		<rect class="hi-read hi-read-b" x="262" y="46" width="14" height="4" rx="2" style="animation-delay:-1.2s"/>
+		<rect class="hi-read hi-read-a" x="290" y="28" width="26" height="4" rx="2" style="animation-delay:-2.1s"/>
+		<rect class="hi-read hi-read-b" x="322" y="42" width="18" height="4" rx="2" style="animation-delay:-0.6s"/>
+		<rect class="hi-read hi-read-a" x="352" y="30" width="12" height="4" rx="2" style="animation-delay:-1.7s"/>
+		<rect class="hi-read hi-read-b" x="246" y="60" width="16" height="4" rx="2" style="animation-delay:-2.6s"/>
+		<rect class="hi-read hi-read-a" x="306" y="62" width="20" height="4" rx="2" style="animation-delay:-3.1s"/>
+		<rect class="hi-read hi-read-b" x="340" y="64" width="12" height="4" rx="2" style="animation-delay:-0.3s"/>
+	</g>
+
+	<!-- flagellum and pili -->
+	<path class="hi-flagellum" d="M500 206C520 194 532 226 552 214S580 200 592 222"/>
+	<path class="hi-pili" d="M235 100l-3 -12M295 100l2 -12M355 100l-2 -12M255 300l-3 12M345 300l3 12M106.0 165.8l-11.3 -4.1M106.0 234.2l-11.3 4.1M476.6 264.3l9.2 7.7"/>
+
+	<!-- cell envelope -->
+	<rect class="hi-cell" x="100" y="100" width="400" height="200" rx="100" fill="url(#hi-cell-fill)"/>
+	<rect class="hi-cell-inner" x="109" y="109" width="382" height="182" rx="91"/>
+
+	<!-- ribosomes -->
+	<g class="hi-dots">
+		<circle cx="340" cy="135" r="2.5"/>
+		<circle cx="350" cy="265" r="2.5"/>
+		<circle cx="300" cy="282" r="2.5"/>
+		<circle cx="165" cy="160" r="2.5"/>
+		<circle cx="150" cy="240" r="2.5"/>
+		<circle cx="470" cy="195" r="2.5"/>
+		<circle cx="395" cy="258" r="2.5"/>
+		<circle cx="375" cy="120" r="2.5"/>
+	</g>
+
+	<!-- chromosome: circular genome map -->
+	<g transform="translate(250 200) scale(0.82)">
+		<circle class="hi-backbone" r="74"/>
+		<g class="hi-spin">
+				<!-- chromosome: forward strand -->
+				<path class="hi-g1" d="M1.3 -90.0A90 90 0 0 1 16.2 -88.5L13.7 -74.8A76 76 0 0 0 1.1 -76.0Z"/>
+				<path class="hi-g3" d="M22.3 -87.2A90 90 0 0 1 30.1 -84.8L25.4 -71.6A76 76 0 0 0 18.8 -73.6Z"/>
+				<path class="hi-g3" d="M33.3 -83.6A90 90 0 0 1 52.2 -73.4L44.0 -61.9A76 76 0 0 0 28.1 -70.6Z"/>
+				<path class="hi-res" d="M55.8 -70.6A90 90 0 0 1 62.6 -64.7L52.9 -54.6A76 76 0 0 0 47.1 -59.6Z"/>
+				<path class="hi-g3" d="M67.1 -60.0A90 90 0 0 1 75.0 -49.8L63.3 -42.0A76 76 0 0 0 56.6 -50.7Z"/>
+				<path class="hi-g1" d="M78.4 -44.2A90 90 0 0 1 88.1 -18.4L74.4 -15.5A76 76 0 0 0 66.2 -37.3Z"/>
+				<path class="hi-g3" d="M89.7 -7.1A90 90 0 0 1 88.6 15.6L74.8 13.2A76 76 0 0 0 75.8 -6.0Z"/>
+				<path class="hi-g2" d="M85.9 26.7A90 90 0 0 1 77.2 46.2L65.2 39.0A76 76 0 0 0 72.6 22.6Z"/>
+				<path class="hi-g3" d="M75.6 48.8A90 90 0 0 1 68.2 58.7L57.6 49.6A76 76 0 0 0 63.9 41.2Z"/>
+				<path class="hi-g1" d="M60.8 66.3A90 90 0 0 1 49.6 75.1L41.9 63.4A76 76 0 0 0 51.4 56.0Z"/>
+				<path class="hi-g3" d="M43.1 79.0A90 90 0 0 1 23.4 86.9L19.8 73.4A76 76 0 0 0 36.4 66.7Z"/>
+				<path class="hi-g3" d="M13.5 89.0A90 90 0 0 1 2.1 90.0L1.7 76.0A76 76 0 0 0 11.4 75.1Z"/>
+				<path class="hi-g1" d="M-5.8 89.8A90 90 0 0 1 -17.4 88.3L-14.7 74.6A76 76 0 0 0 -4.9 75.8Z"/>
+				<path class="hi-g1" d="M-24.8 86.5A90 90 0 0 1 -32.9 83.8L-27.8 70.8A76 76 0 0 0 -21.0 73.1Z"/>
+				<path class="hi-g3" d="M-40.5 80.4A90 90 0 0 1 -56.7 69.9L-47.9 59.0A76 76 0 0 0 -34.2 67.9Z"/>
+				<path class="hi-g3" d="M-61.7 65.6A90 90 0 0 1 -71.6 54.6L-60.4 46.1A76 76 0 0 0 -52.1 55.4Z"/>
+				<path class="hi-g1" d="M-77.8 45.3A90 90 0 0 1 -84.6 30.8L-71.4 26.0A76 76 0 0 0 -65.7 38.2Z"/>
+				<path class="hi-g1" d="M-87.5 21.2A90 90 0 0 1 -89.9 -3.1L-76.0 -2.6A76 76 0 0 0 -73.9 17.9Z"/>
+				<path class="hi-g2" d="M-89.8 -6.3A90 90 0 0 1 -87.6 -20.6L-74.0 -17.4A76 76 0 0 0 -75.8 -5.3Z"/>
+				<path class="hi-g2" d="M-84.5 -30.9A90 90 0 0 1 -72.7 -53.1L-61.4 -44.8A76 76 0 0 0 -71.4 -26.1Z"/>
+				<path class="hi-g3" d="M-67.5 -59.5A90 90 0 0 1 -61.4 -65.8L-51.8 -55.6A76 76 0 0 0 -57.0 -50.3Z"/>
+				<path class="hi-g1" d="M-56.5 -70.0A90 90 0 0 1 -34.3 -83.2L-29.0 -70.3A76 76 0 0 0 -47.7 -59.1Z"/>
+				<path class="hi-g3" d="M-23.6 -86.9A90 90 0 0 1 -6.4 -89.8L-5.4 -75.8A76 76 0 0 0 -19.9 -73.3Z"/>
+				<!-- chromosome: reverse strand -->
+				<path class="hi-g3" d="M1.0 -72.0A72 72 0 0 1 17.6 -69.8L14.2 -56.2A58 58 0 0 0 0.8 -58.0Z"/>
+				<path class="hi-g3" d="M23.2 -68.2A72 72 0 0 1 34.7 -63.1L27.9 -50.8A58 58 0 0 0 18.7 -54.9Z"/>
+				<path class="hi-g2" d="M41.9 -58.5A72 72 0 0 1 52.9 -48.8L42.6 -39.3A58 58 0 0 0 33.8 -47.2Z"/>
+				<path class="hi-g4" d="M60.7 -38.8A72 72 0 0 1 67.4 -25.3L54.3 -20.4A58 58 0 0 0 48.9 -31.2Z"/>
+				<path class="hi-g3" d="M68.3 -22.7A72 72 0 0 1 71.9 -2.9L58.0 -2.3A58 58 0 0 0 55.0 -18.3Z"/>
+				<path class="hi-g3" d="M71.7 6.4A72 72 0 0 1 65.0 30.9L52.4 24.9A58 58 0 0 0 57.8 5.2Z"/>
+				<path class="hi-g4" d="M62.6 35.5A72 72 0 0 1 55.0 46.4L44.3 37.4A58 58 0 0 0 50.5 28.6Z"/>
+				<path class="hi-g3" d="M51.0 50.8A72 72 0 0 1 31.2 64.9L25.1 52.3A58 58 0 0 0 41.1 40.9Z"/>
+				<path class="hi-g2" d="M27.7 66.5A72 72 0 0 1 20.2 69.1L16.3 55.7A58 58 0 0 0 22.3 53.6Z"/>
+				<path class="hi-res" d="M15.9 70.2A72 72 0 0 1 4.7 71.8L3.8 57.9A58 58 0 0 0 12.8 56.6Z"/>
+				<path class="hi-g3" d="M-5.6 71.8A72 72 0 0 1 -19.0 69.5L-15.3 56.0A58 58 0 0 0 -4.5 57.8Z"/>
+				<path class="hi-g4" d="M-21.8 68.6A72 72 0 0 1 -35.1 62.9L-28.3 50.6A58 58 0 0 0 -17.5 55.3Z"/>
+				<path class="hi-g3" d="M-39.5 60.2A72 72 0 0 1 -46.2 55.3L-37.2 44.5A58 58 0 0 0 -31.8 48.5Z"/>
+				<path class="hi-g3" d="M-54.5 47.0A72 72 0 0 1 -61.1 38.0L-49.2 30.7A58 58 0 0 0 -43.9 37.9Z"/>
+				<path class="hi-g3" d="M-67.0 26.3A72 72 0 0 1 -71.6 7.7L-57.7 6.2A58 58 0 0 0 -54.0 21.2Z"/>
+				<path class="hi-g2" d="M-71.8 -5.2A72 72 0 0 1 -70.7 -13.7L-56.9 -11.0A58 58 0 0 0 -57.9 -4.2Z"/>
+				<path class="hi-g2" d="M-69.9 -17.3A72 72 0 0 1 -63.1 -34.7L-50.8 -28.0A58 58 0 0 0 -56.3 -13.9Z"/>
+				<path class="hi-g3" d="M-59.1 -41.1A72 72 0 0 1 -47.6 -54.0L-38.3 -43.5A58 58 0 0 0 -47.6 -33.1Z"/>
+				<path class="hi-g4" d="M-43.6 -57.3A72 72 0 0 1 -36.6 -62.0L-29.4 -50.0A58 58 0 0 0 -35.1 -46.2Z"/>
+				<path class="hi-g2" d="M-31.1 -64.9A72 72 0 0 1 -15.1 -70.4L-12.2 -56.7A58 58 0 0 0 -25.0 -52.3Z"/>
+				<path class="hi-g4" d="M-5.4 -71.8A72 72 0 0 1 -3.5 -71.9L-2.8 -57.9A58 58 0 0 0 -4.4 -57.8Z"/>
+				<path class="hi-tick" d="M0.0 -95.0L0.0 -99.0M16.5 -93.6L16.8 -95.5M32.5 -89.3L33.2 -91.2M47.5 -82.3L49.5 -85.7M61.1 -72.8L62.4 -74.3M72.8 -61.1L74.3 -62.4M82.3 -47.5L85.7 -49.5M89.3 -32.5L91.2 -33.2M93.6 -16.5L95.5 -16.8M95.0 0.0L99.0 0.0M93.6 16.5L95.5 16.8M89.3 32.5L91.2 33.2M82.3 47.5L85.7 49.5M72.8 61.1L74.3 62.4M61.1 72.8L62.4 74.3M47.5 82.3L49.5 85.7M32.5 89.3L33.2 91.2M16.5 93.6L16.8 95.5M0.0 95.0L0.0 99.0M-16.5 93.6L-16.8 95.5M-32.5 89.3L-33.2 91.2M-47.5 82.3L-49.5 85.7M-61.1 72.8L-62.4 74.3M-72.8 61.1L-74.3 62.4M-82.3 47.5L-85.7 49.5M-89.3 32.5L-91.2 33.2M-93.6 16.5L-95.5 16.8M-95.0 0.0L-99.0 0.0M-93.6 -16.5L-95.5 -16.8M-89.3 -32.5L-91.2 -33.2M-82.3 -47.5L-85.7 -49.5M-72.8 -61.1L-74.3 -62.4M-61.1 -72.8L-62.4 -74.3M-47.5 -82.3L-49.5 -85.7M-32.5 -89.3L-33.2 -91.2M-16.5 -93.6L-16.8 -95.5"/>
+				<path class="hi-gc" d="M0.0 -47.6L3.4 -49.0L7.0 -49.6L10.5 -49.3L13.8 -48.2L16.9 -46.5L19.8 -44.4L22.5 -42.3L25.2 -40.3L27.9 -38.4L30.8 -36.7L33.7 -34.9L36.4 -32.8L38.9 -30.4L40.8 -27.5L42.0 -24.2L42.4 -20.7L42.1 -17.0L41.3 -13.4L40.5 -10.1L39.8 -7.0L39.5 -4.1L39.8 -1.4L40.5 1.4L41.6 4.4L42.7 7.5L43.6 10.9L43.8 14.2L43.4 17.5L42.3 20.6L40.6 23.4L38.5 26.0L36.4 28.4L34.3 30.8L32.3 33.4L30.4 36.2L28.5 39.2L26.4 42.2L23.9 45.0L21.1 47.3L17.8 48.8L14.2 49.4L10.4 49.0L6.7 47.8L3.2 46.2L0.0 44.4L-3.0 42.7L-5.8 41.5L-8.6 40.7L-11.5 40.2L-14.5 40.0L-17.6 39.6L-20.7 38.9L-23.6 37.7L-26.2 36.0L-28.4 33.8L-30.3 31.3L-31.9 28.7L-33.6 26.2L-35.5 23.9L-37.7 21.8L-40.3 19.7L-43.2 17.5L-46.2 15.0L-48.8 12.2L-50.8 9.0L-52.0 5.5L-52.2 1.8L-51.4 -1.8L-49.9 -5.2L-47.9 -8.4L-45.7 -11.4L-43.7 -14.2L-41.9 -16.9L-40.4 -19.7L-39.1 -22.6L-37.7 -25.5L-36.1 -28.2L-34.1 -30.7L-31.6 -32.7L-28.7 -34.2L-25.6 -35.2L-22.4 -35.8L-19.3 -36.2L-16.4 -36.7L-13.7 -37.7L-11.2 -39.1L-8.7 -41.0L-6.1 -43.3L-3.2 -45.6L-0.0 -47.6Z"/>
+		</g>
+	</g>
+
+	<!-- plasmids -->
+	<g transform="translate(405 165) scale(0.85)">
+		<circle class="hi-backbone" r="26"/>
+		<g class="hi-spin hi-spin-reverse">
+				<path class="hi-g1" d="M2.6 -29.9A30 30 0 0 1 29.5 -5.2L21.7 -3.8A22 22 0 0 0 1.9 -21.9Z"/>
+				<path class="hi-res" d="M29.9 2.6A30 30 0 0 1 15.0 26.0L11.0 19.1A22 22 0 0 0 21.9 1.9Z"/>
+				<path class="hi-g3" d="M7.8 29.0A30 30 0 0 1 -28.2 10.3L-20.7 7.5A22 22 0 0 0 5.7 21.3Z"/>
+				<path class="hi-g2" d="M-29.9 2.6A30 30 0 0 1 -5.2 -29.5L-3.8 -21.7A22 22 0 0 0 -21.9 1.9Z"/>
+		</g>
+	</g>
+	<g transform="translate(440 242) scale(0.85)">
+		<circle class="hi-backbone" r="14"/>
+		<g class="hi-spin">
+				<path class="hi-g3" d="M2.8 -15.8A16 16 0 0 1 13.9 8.0L9.5 5.5A11 11 0 0 0 1.9 -10.8Z"/>
+				<path class="hi-g2" d="M11.3 11.3A16 16 0 0 1 -12.3 10.3L-8.4 7.1A11 11 0 0 0 7.8 7.8Z"/>
+				<path class="hi-g1" d="M-14.5 6.8A16 16 0 0 1 -4.1 -15.5L-2.8 -10.6A11 11 0 0 0 -10.0 4.6Z"/>
+		</g>
+	</g>
+
+	<!-- antibiotics: R bounce off the envelope, S get in -->
+		<g class="hi-drug hi-drug-r">
+			<path class="hi-drug-path" d="M128.1 52.8Q168.2 159.2 74.6 94.6"/>
+			<path class="hi-block" d="M148.0 109.9A104 104 0 0 0 125.2 127.8"/>
+			<g transform="translate(126.6 38.9)"><g class="hi-float"><polygon class="hi-molecule" points="0,-10 8.7,-5 8.7,5 0,10 -8.7,5 -8.7,-5"/><circle class="hi-molecule-core" r="3"/></g></g>
+			<g transform="translate(142.6 27.9)">
+				<rect class="hi-chip" width="66" height="22" rx="11"/>
+				<text class="hi-chip-text" x="11" y="15">AMP</text>
+				<circle class="hi-badge" cx="53" cy="11" r="7.5"/>
+				<text class="hi-badge-text" x="53" y="15" text-anchor="middle">R</text>
+			</g>
+		</g>
+		<g class="hi-drug hi-drug-r">
+			<path class="hi-drug-path" d="M471.9 52.8Q431.8 159.2 525.4 94.6"/>
+			<path class="hi-block" d="M474.8 127.8A104 104 0 0 0 452.0 109.9"/>
+			<g transform="translate(473.4 38.9)"><g class="hi-float"><polygon class="hi-molecule" points="0,-10 8.7,-5 8.7,5 0,10 -8.7,5 -8.7,-5"/><circle class="hi-molecule-core" r="3"/></g></g>
+			<g transform="translate(391.4 27.9)">
+				<rect class="hi-chip" width="66" height="22" rx="11"/>
+				<text class="hi-chip-text" x="11" y="15">GEN</text>
+				<circle class="hi-badge" cx="53" cy="11" r="7.5"/>
+				<text class="hi-badge-text" x="53" y="15" text-anchor="middle">R</text>
+			</g>
+		</g>
+		<g class="hi-drug hi-drug-s">
+			<path class="hi-drug-path" d="M347.6 348.7Q327.3 319.5 326.0 284.0"/>
+			<g transform="translate(352.0 362.0)"><g class="hi-float"><polygon class="hi-molecule" points="0,-10 8.7,-5 8.7,5 0,10 -8.7,5 -8.7,-5"/><circle class="hi-molecule-core" r="3"/></g></g>
+			<g transform="translate(368.0 351.0)">
+				<rect class="hi-chip" width="66" height="22" rx="11"/>
+				<text class="hi-chip-text" x="11" y="15">CIP</text>
+				<circle class="hi-badge" cx="53" cy="11" r="7.5"/>
+				<text class="hi-badge-text" x="53" y="15" text-anchor="middle">S</text>
+			</g>
+		</g>
+		<g class="hi-drug hi-drug-s">
+			<path class="hi-drug-path" d="M155.8 343.3Q160.8 308.5 184.0 282.0"/>
+			<g transform="translate(150.0 356.0)"><g class="hi-float"><polygon class="hi-molecule" points="0,-10 8.7,-5 8.7,5 0,10 -8.7,5 -8.7,-5"/><circle class="hi-molecule-core" r="3"/></g></g>
+			<g transform="translate(68.0 345.0)">
+				<rect class="hi-chip" width="66" height="22" rx="11"/>
+				<text class="hi-chip-text" x="11" y="15">TET</text>
+				<circle class="hi-badge" cx="53" cy="11" r="7.5"/>
+				<text class="hi-badge-text" x="53" y="15" text-anchor="middle">S</text>
+			</g>
+		</g>
+</svg>
