@@ -36,10 +36,11 @@ The development environment includes:
 - PostgreSQL
 - Redis
 - Celery worker
+- Frontend builder (`frontend`): installs the npm dependencies, copies the JavaScript libraries to `app/static/vendor/` and compiles `app/static/css/tailwind.css`, then compiles the CSS again whenever a template, Python or JavaScript file changes (it checks every 2 seconds, since Docker on Windows does not report changes in mounted folders)
 
 Access at: `http://localhost:8080`
 
-The development environment mounts the application source code into the containers, so changes to the code are reflected without rebuilding the image.
+The development environment mounts the application source code into the containers, so changes to the code, the templates and the Tailwind classes are reflected without rebuilding the image. The production image compiles the CSS and copies the libraries when it is built.
 
 ### Production Deployment
 

@@ -3,6 +3,7 @@
 
 @source "../templates/**/*.html";
 @source "../**/*.py";
+@source "../static/js/**/*.js";
 
 @plugin "daisyui" {
   themes: false;

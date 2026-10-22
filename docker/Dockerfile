@@ -23,12 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app /app
 
 
+# CSS y librerías JS compilados (en desarrollo los genera el servicio frontend del compose)
 COPY --from=frontend /frontend/static /app/static/
-
-# Guardar el CSS y las librerías JS fuera de /app para que el volumen no los oculte. Odio TailWind
-RUN mkdir -p /opt/frontend && \
-    cp /app/static/css/tailwind.css /opt/frontend/tailwind.css && \
-    cp -r /app/static/vendor /opt/frontend/vendor
 
 
 # Non-root user for security
