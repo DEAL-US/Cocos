@@ -8,11 +8,14 @@ import zipfile
 from io import BytesIO
 from unittest.mock import patch
 
+import requests
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
+from bioservice.steps import TOOLS_CACHE_KEY
 from conversion.models import ConversionTask
 from core.models import File, FileGene, ProcessGroup, TaskStatus
 from core.testing import ASSEMBLY_FASTA, BAKTA_JSON, FakeBioService, FlowTestMixin
@@ -836,3 +839,26 @@ class SoftwareRecordTests(ConversionFlowMixin, TestCase):
         assembly = self.process_outputs(process, File.FileType.FASTA).get()
         self.assertEqual(reads.sha256, hashlib.sha256(b'R1-CONTENT').hexdigest())
         self.assertEqual(assembly.sha256, hashlib.sha256(ASSEMBLY_FASTA).hexdigest())
+
+
+class SoftwareDisplayTests(ConversionFlowMixin, TestCase):
+    """The pages show which versions a step will use, and the timeline which ones each step used."""
+
+    def test_the_assembly_and_annotation_pages_show_what_the_bio_service_has(self):
+        with FakeBioService():
+            assembly = self.client.get(reverse('conversion:assembly_ui'))
+            annotation = self.client.get(reverse('conversion:annotation_ui'))
+
+        for text in ('SPAdes 4.3.0', 'Raven 1.8.3', 'Bakta 1.12.1', 'Bakta database 6.0 (light)'):
+            self.assertContains(assembly, text)
+        self.assertContains(annotation, 'Bakta 1.12.1')
+
+    def test_without_the_bio_service_the_versions_are_not_available(self):
+        cache.delete(TOOLS_CACHE_KEY)
+        with patch('bioservice.client.get_tools', side_effect=requests.ConnectionError):
+            response = self.client.get(reverse('conversion:assembly_ui'))
+        cache.delete(TOOLS_CACHE_KEY)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'versions not available right now')
+

@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from core.models import ProcessGroup
+from core.steps import get_step, software_labels
 from prediction.adapters.registry import list_all_organisms
 from ..services.pipeline import (
     get_assembly_tasks_can_be_annotated, 
@@ -14,11 +15,17 @@ from ..services.pipeline import (
     start_json_processing
 )
 
+def _expected_software(step_key):
+    """Labels of what a new task of a step would use (e.g. 'Bakta 1.12.1'), or None if unknown."""
+    return software_labels(get_step(step_key).expected_software())
+
+
 def _annotation_context(request, active_tab='fasta', **extra):
     context = {
         'active_tab': active_tab,
         'available_fasta_jobs': get_assembly_tasks_can_be_annotated(request.user),
         'organism_options': list_all_organisms(),
+        'annotation_software': _expected_software('bakta_annotation'),
     }
     context.update(extra)
     return context
@@ -27,7 +34,12 @@ def _annotation_context(request, active_tab='fasta', **extra):
 @login_required
 def assembly_ui(request):
     """Render Assembly workflow page (FASTQ to FASTA)."""
-    return render(request, 'conversion/assembly.html', {'organism_options': list_all_organisms()})
+    return render(request, 'conversion/assembly.html', {
+        'organism_options': list_all_organisms(),
+        'illumina_software': _expected_software('assembly_illumina'),
+        'ont_software': _expected_software('assembly_ont'),
+        'annotation_software': _expected_software('bakta_annotation'),
+    })
 
 @require_POST
 @login_required

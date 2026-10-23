@@ -1,0 +1,14 @@
+{% comment %}
+The tools and databases a step will use, with their versions, as the bio service reports them.
+`title` introduces them; `software` is a list of labels, or None if the versions cannot be known now.
+{% endcomment %}
+<div class="flex flex-wrap items-center gap-1 mt-2 text-sm">
+  <span class="font-medium mr-1">{{ title }}</span>
+  {% if software is None %}
+    <span class="text-base-content/70">versions not available right now</span>
+  {% else %}
+    {% for label in software %}
+      <span class="badge badge-sm badge-soft badge-neutral">{{ label }}</span>
+    {% endfor %}
+  {% endif %}
+</div>

@@ -45,6 +45,8 @@
               Cocos uses SPAdes to assemble your sequencing reads into longer genomic sequences.
               The resulting FASTA can then be annotated and used for prediction.
             </p>
+            {% include 'conversion/_software.html' with title='Uses' software=illumina_software %}
+            {% include 'conversion/_software.html' with title='With annotation, also' software=annotation_software %}
           </div>
         </div>
 
@@ -103,6 +105,8 @@
               Cocos uses Flye or Raven to assemble your long sequencing reads into a genome sequence.
               The resulting FASTA can then be annotated and used for prediction.
             </p>
+            {% include 'conversion/_software.html' with title='Uses' software=ont_software %}
+            {% include 'conversion/_software.html' with title='With annotation, also' software=annotation_software %}
           </div>
         </div>
 
