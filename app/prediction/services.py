@@ -9,12 +9,12 @@ from django.contrib.humanize.templatetags.humanize import naturaltime
 
 from core.models import File, ProcessGroup, TaskOutput, TaskStatus
 from core.orchestration import PlanError, extend_plan
-from core.steps import get_step
+from core.steps import get_step, software_label
 from semantics.discovery import Status, discover
 from semantics.registry.graph import registry_graph
 from semantics.sample import sample_graph
 
-from .adapters.registry import get_model_supported_antibiotics
+from .adapters.registry import get_model_supported_antibiotics, get_model_version
 from .models import PredictionRun
 from .steps import PREDICTION_STEP_PREFIX
 
@@ -61,12 +61,26 @@ def describe_compatibility(process):
     return [
         {
             'model': result.model,
+            'version': get_model_version(result.model),
             'status': result.status.value,
-            'steps': [get_step(step.step).label for step in result.steps],
+            'steps': [describe_step(get_step(step.step)) for step in result.steps],
             'reasons': list(result.reasons),
         }
         for result in get_compatibility(process)
     ]
+
+
+def describe_step(step):
+    """A preparation step for the prediction page: its label, the tools it would use (e.g. 'Bakta
+    1.12.1') and all its software with the databases; `tools` and `software` are None if unknown."""
+    entries = step.expected_software()
+    if entries is None:
+        return {'label': step.label, 'tools': None, 'software': None}
+    return {
+        'label': step.label,
+        'tools': [software_label(entry) for entry in entries if entry.get('type') == 'tool'],
+        'software': [software_label(entry) for entry in entries],
+    }
 
 
 # --- Starting a prediction

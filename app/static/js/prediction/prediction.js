@@ -109,6 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     row.querySelector('[data-model-name]').textContent = model.model;
+    row.querySelector('[data-model-version]').textContent = model.version ? `v${model.version}` : '';
 
     const badge = row.querySelector('[data-model-status]');
     badge.textContent = STATUS_LABELS[model.status];
@@ -129,10 +130,14 @@ document.addEventListener('DOMContentLoaded', function () {
     return row;
   }
 
-  function renderStep(label, index, labels) {
+  // A preparation step: its label and the tools it will use; the databases too, in the tooltip
+  function renderStep(preparation, index, steps) {
     const step = stepTemplate.content.firstElementChild.cloneNode(true);
-    step.querySelector('[data-step-name]').textContent = `${index + 1}. ${label}`;
-    if (index === labels.length - 1) {
+    const name = step.querySelector('[data-step-name]');
+    const tools = preparation.tools && preparation.tools.length ? ` · ${preparation.tools.join(', ')}` : '';
+    name.textContent = `${index + 1}. ${preparation.label}${tools}`;
+    name.title = preparation.software ? preparation.software.join(', ') : 'Versions not available right now';
+    if (index === steps.length - 1) {
       step.querySelector('[data-step-arrow]').remove();
     }
     return step;

@@ -17,7 +17,7 @@ from core.testing import BAKTA_JSON, FakeBioService, FlowTestMixin
 from prediction.models import PredictionRun
 from prediction.adapters.registry import MODEL_ANTIBIOTICS
 from conversion.tests.test_flows import ConversionFlowMixin
-from prediction.testing import register_fake_models
+from prediction.testing import FAKE_MODEL_VERSION, register_fake_models
 
 
 class ConstantModel:
@@ -95,8 +95,9 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         sample = ProcessGroup.objects.filter(user=self.user).order_by('-id').first()
 
         models = self.client.get(reverse('prediction:sample_models', args=[sample.id])).json()['models']
-        self.assertIn({'model': 'fake_constant', 'status': 'reachable',
-                       'steps': ['Gene extraction · Bakta JSON'], 'reasons': []}, models)
+        self.assertIn({'model': 'fake_constant', 'version': FAKE_MODEL_VERSION, 'status': 'reachable',
+                       'steps': [{'label': 'Gene extraction · Bakta JSON', 'tools': [], 'software': []}],
+                       'reasons': []}, models)
 
         # The history is ignored (v1): the extraction runs again, fails again, and so does the prediction.
         self.assertEqual(self.predict(['fake_constant'], ['amikacin'], sample.id).status_code, 202)
@@ -195,7 +196,7 @@ class PredictionWithPreparationTests(ConversionFlowMixin, TestCase):
         with FakeBioService():
             self.run_assembly('ont')
         sample = self.latest_process()
-        self.assertEqual(self.models_of(sample)['fake_constant']['steps'],
+        self.assertEqual([step['label'] for step in self.models_of(sample)['fake_constant']['steps']],
                          ['Annotation', 'Gene extraction · Bakta JSON'])
 
         with FakeBioService() as bio:
@@ -207,11 +208,21 @@ class PredictionWithPreparationTests(ConversionFlowMixin, TestCase):
         self.assertEqual(run.status, TaskStatus.COMPLETED)
         self.assertEqual(self.models_of(sample)['fake_constant']['status'], 'ready')
 
+    def test_the_preparation_says_which_tools_it_will_use_and_the_models_their_version(self):
+        with FakeBioService():
+            self.run_assembly('ont')
+            model = self.models_of(self.latest_process())['fake_constant']
+
+        annotation = model['steps'][0]
+        self.assertEqual(annotation['tools'], ['Bakta 1.12.1'])
+        self.assertIn('Bakta database 6.0 (light)', annotation['software'])
+        self.assertEqual(model['version'], FAKE_MODEL_VERSION)
+
     def test_the_reads_of_a_failed_assembly_are_assembled_again(self):
         with FakeBioService(status_sequence=['failed']):
             self.run_assembly('ont', annotate=True)
         sample = self.latest_process()
-        self.assertEqual(self.models_of(sample)['fake_constant']['steps'],
+        self.assertEqual([step['label'] for step in self.models_of(sample)['fake_constant']['steps']],
                          ['Assembly + Annotation · ONT', 'Gene extraction · Bakta JSON'])
 
         with FakeBioService() as bio:

@@ -90,6 +90,9 @@ class ModelPredictionStep(LocalStep):
         return [{'name': self.model_name, 'version': get_model_version(self.model_name), 'type': 'model',
                  'weights': weights}]
 
+    def expected_software(self):
+        return [{'name': self.model_name, 'version': get_model_version(self.model_name), 'type': 'model'}]
+
     def process(self, task):
         """Predict every antibiotic of the task; antibiotics that fail get NO_RESULT."""
         genes = task.input_file('genes')
