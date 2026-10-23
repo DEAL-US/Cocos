@@ -7,6 +7,7 @@ from ..models import ConversionTask
 from prediction.adapters.registry import list_all_organisms
 from prediction.models import PredictionRun
 from core.models import File, ProcessGroup, TaskInput, TaskOutput, TaskStatus
+from core.steps import used_software_labels
 from ..steps import GENE_EXTRACTION_STEP_PREFIX
 from .presentation import status_badge_class, build_process_steps
 from core.pagination import get_pagination_page_range
@@ -380,7 +381,9 @@ def _build_timeline_entry(view, task):
         'status_badge': status_badge_class(status),
         'updated_at': view.updated_at(task),
         'input_filename': input_filename,
+        'software': used_software_labels(task),
     }
+
 
 
 def rename_process(process, new_name):

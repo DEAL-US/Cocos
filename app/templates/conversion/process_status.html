@@ -146,6 +146,14 @@
               · {{ entry.input_filename }}
             {% endif %}
           </p>
+          {% if entry.software %}
+            <div class="flex flex-wrap items-center gap-1 mt-2 text-sm">
+              <span class="font-medium mr-1">Used</span>
+              {% for label in entry.software %}
+                <span class="badge badge-sm badge-soft badge-neutral">{{ label }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
         </div>
       {% endfor %}
     </div>

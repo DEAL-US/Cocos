@@ -862,3 +862,12 @@ class SoftwareDisplayTests(ConversionFlowMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'versions not available right now')
 
+    def test_the_timeline_shows_what_each_step_used(self):
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)
+
+        response = self.client.get(reverse('conversion:process_status', args=[self.latest_process().id]))
+        assembly = next(entry for entry in response.context['timeline'] if entry['label'] == 'Assembly + Annotation · ONT')
+        self.assertEqual(assembly['software'],
+                         ['Raven 1.8.3', 'Bakta 1.12.1', 'Bakta database 6.0 (light)', f'Cocos {settings.COCOS_VERSION}'])
+        self.assertContains(response, 'Raven 1.8.3')
