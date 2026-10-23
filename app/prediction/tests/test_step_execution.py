@@ -1,7 +1,10 @@
 """Prediction steps run on their own, with small fake models."""
 import csv
+import hashlib
 import io
 import json
+import tempfile
+from pathlib import Path
 from unittest.mock import MagicMock, patch, sentinel
 
 from django.core.files.base import ContentFile
@@ -12,7 +15,7 @@ from core.models import File, ProcessGroup
 from core.steps import StepError, get_step
 from core.testing import BAKTA_JSON, FlowTestMixin
 from prediction.models import NO_RESULT, PredictionRun, PredictionTask
-from prediction.testing import register_fake_models
+from prediction.testing import FAKE_MODEL_VERSION, register_fake_models
 from prediction.steps import get_prediction
 
 
@@ -64,6 +67,25 @@ class PredictionStepTests(FlowTestMixin, TestCase):
             rows = list(csv.reader(io.StringIO(f.read().decode())))
         self.assertEqual(rows, [['antibiotic', 'probability'], ['amikacin', '0.1235'],
                                 ['ampicillin', str(round(n_genes / 10, 4))], ['colistin', '']])
+
+    def test_the_software_is_the_model_its_version_and_the_sha256_of_its_weights(self):
+        task = self.make_task('fake_half', ['amikacin', 'colistin'])
+        with tempfile.TemporaryDirectory() as directory:
+            weights = Path(directory) / 'amikacin.pt'
+            weights.write_bytes(b'WEIGHTS')
+
+            def weights_path(antibiotic, model_name):
+                if antibiotic != 'amikacin':
+                    raise FileNotFoundError(antibiotic)  # colistin has no weights
+                return str(weights)
+
+            with patch('prediction.steps.get_model_weights_path', side_effect=weights_path):
+                software = task.get_step().software(task)
+
+        self.assertEqual(software, [{
+            'name': 'fake_half', 'version': FAKE_MODEL_VERSION, 'type': 'model',
+            'weights': [{'antibiotic': 'amikacin', 'sha256': hashlib.sha256(b'WEIGHTS').hexdigest()}],
+        }])
 
     def test_a_model_that_predicts_nothing_fails_but_keeps_its_results(self):
         task = self.make_task('fake_broken', ['amikacin', 'ampicillin'])

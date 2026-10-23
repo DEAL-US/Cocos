@@ -2,15 +2,20 @@
 import csv
 import io
 import logging
+import os
+from functools import lru_cache
 
 from core.models import File
+from core.utils import sha256_of
 from core.steps import LocalStep, StepError, register_step_provider
 
+from .adapters.input_utils import get_model_weights_path
 from .adapters.registry import (
     get_model_adapter_class,
     get_model_ports,
     get_model_supported_antibiotics,
     get_model_supported_organisms,
+    get_model_version,
     list_registered_models,
 )
 from .models import NO_RESULT, PredictionTask
@@ -30,6 +35,12 @@ def get_prediction(model_name: str, antibiotic: str, file) -> float:
 
     adapter.load()
     return adapter.predict(file)
+
+
+@lru_cache(maxsize=256)
+def _weights_sha256(path, modified):
+    """SHA-256 of a weights file; cached by path and modification time, as weights rarely change."""
+    return sha256_of(path)
 
 
 class ModelPredictionStep(LocalStep):
@@ -66,6 +77,18 @@ class ModelPredictionStep(LocalStep):
     def on_node_cancelled(self, process, node, failed_task):
         if node.get('run') is not None:
             finish_run_if_done(node['run'], failed_task)
+
+    def software(self, task):
+        """The model, its version and the SHA-256 of the weights of each antibiotic it predicted."""
+        weights = []
+        for antibiotic in task.parameters.get('antibiotics', []):
+            try:
+                path = get_model_weights_path(antibiotic, self.model_name)
+            except FileNotFoundError:
+                continue
+            weights.append({'antibiotic': antibiotic, 'sha256': _weights_sha256(path, os.path.getmtime(path))})
+        return [{'name': self.model_name, 'version': get_model_version(self.model_name), 'type': 'model',
+                 'weights': weights}]
 
     def process(self, task):
         """Predict every antibiotic of the task; antibiotics that fail get NO_RESULT."""
