@@ -14,6 +14,12 @@ def get_job_status(job_id):
     status = response.json()["status"]
     return status, response.status_code
 
+def get_tools():
+    """The tools and databases the bio service has installed, by kind of job (GET /tools)."""
+    response = requests.get(f"{BASE}/tools", timeout=5)
+    response.raise_for_status()
+    return response.json()
+
 def get_job_software(job_id):
     """The tools and databases a job used, as the bio service reports them ([] if it does not know the job)."""
     response = requests.get(f"{BASE}/jobs/{job_id}", timeout=30)

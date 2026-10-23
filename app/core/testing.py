@@ -11,10 +11,12 @@ from urllib.parse import parse_qs, urlparse
 
 import responses
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import override_settings
 
 from app.celery import app as celery_app
 from bioservice import client as bio_api_client
+from bioservice.steps import TOOLS_CACHE_KEY
 
 User = get_user_model()
 
@@ -65,6 +67,9 @@ class FakeBioService:
         self._mock.add_callback(responses.POST, re.compile(rf'{base}/assembly/(ont|illumina).*'), self._submit_assembly)
         self._mock.add_callback(responses.POST, re.compile(rf'{base}/annotation/bakta/upload.*'), self._submit_annotation)
         self._mock.add_callback(responses.GET, re.compile(rf'{base}/jobs/[^/?]+$'), self._job_status)
+        self._mock.add(responses.GET, f'{bio_api_client.BASE.rstrip("/")}/tools',
+                       json={'assembly': ASSEMBLY_SOFTWARE, 'annotation': ANNOTATION_SOFTWARE})
+        cache.delete(TOOLS_CACHE_KEY)  # what the service has installed is asked again, to this fake
         self._mock.add_callback(responses.GET, re.compile(rf'{base}/assembly/[^/]+/download.*'), self._download_assembly)
         self._mock.add_callback(responses.GET, re.compile(rf'{base}/annotation/[^/]+/download.*'), self._download_annotation)
         return self
@@ -72,6 +77,7 @@ class FakeBioService:
     def __exit__(self, *exc):
         self._mock.stop()
         self._mock.reset()
+        cache.delete(TOOLS_CACHE_KEY)
 
     # --- helpers for assertions
     def submissions_to(self, endpoint):

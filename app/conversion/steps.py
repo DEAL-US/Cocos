@@ -62,6 +62,9 @@ class AssemblyStep(ConversionBioServiceStep):
         if self.annotate:
             self.save_annotation(task)
 
+    def software_of(self, tools):
+        return tools['assembly'][self.technology] + (tools['annotation'] if self.annotate else [])
+
 
 @register_step
 class AssemblyONT(AssemblyStep):
@@ -123,6 +126,9 @@ class BaktaAnnotation(ConversionBioServiceStep):
     def process(self, task):
         response = bio_api_client.annotate_from_fasta(task.read_input('assembly'), threads=task.parameters['threads'])
         return submission_result(response)
+
+    def software_of(self, tools):
+        return tools['annotation']
 
     def collect(self, task):
         self.save_annotation(task)
