@@ -14,6 +14,9 @@ from core.steps import (
     get_step,
     list_steps,
     register_step,
+    software_label,
+    software_labels,
+    used_software_labels,
 )
 from prediction.adapters.registry import ANY_ORGANISM, MODEL_REGISTRY
 from prediction.testing import register_fake_models
@@ -225,3 +228,16 @@ class RegistryTests(SimpleTestCase):
         with self.assertRaises(ValueError):
             register_step(Second)
         self.assertIsInstance(get_step('test_duplicate'), First)
+
+
+class SoftwareLabelTests(SimpleTestCase):
+    def test_labels_of_tools_databases_and_models(self):
+        self.assertEqual(software_label({'name': 'Bakta', 'version': '1.12.1', 'type': 'tool'}), 'Bakta 1.12.1')
+        self.assertEqual(software_label({'name': 'Bakta database', 'version': '6.0', 'type': 'database', 'variant': 'light'}),
+                         'Bakta database 6.0 (light)')
+        self.assertIsNone(software_labels(None))  # not known now
+
+    def test_what_a_task_used_lists_cocos_last(self):
+        task = mock.Mock(software=[{'name': 'Cocos', 'version': '1.0', 'type': 'tool'},
+                                   {'name': 'Raven', 'version': '1.8.3', 'type': 'tool'}])
+        self.assertEqual(used_software_labels(task), ['Raven 1.8.3', 'Cocos 1.0'])

@@ -61,6 +61,23 @@ def cocos_software():
     return {'name': 'Cocos', 'version': settings.COCOS_VERSION, 'type': 'tool'}
 
 
+def software_label(entry):
+    """How an entry of Task.software is shown: 'Bakta 1.12.1', 'Bakta database 6.0 (light)'."""
+    label = f"{entry['name']} {entry.get('version', '')}".strip()
+    return f"{label} ({entry['variant']})" if entry.get('variant') else label
+
+
+def used_software_labels(task):
+    """What a finished task used, for people: its tools and databases first, Cocos last."""
+    entries = sorted(task.software, key=lambda entry: entry.get('name') == 'Cocos')
+    return [software_label(entry) for entry in entries]
+
+
+def software_labels(entries):
+    """The labels of some software entries (e.g. Step.expected_software()), or None if unknown."""
+    return None if entries is None else [software_label(entry) for entry in entries]
+
+
 class Step:
     """Base class for every step: metadata, plus how it runs (see LocalStep and ExternalStep)."""
     key: str = ''
@@ -90,6 +107,11 @@ class Step:
     def software(self, task):
         """The tools, databases or models a finished task of this step used, besides Cocos itself,
         as dicts with at least 'name', 'version' and 'type' (see Task.software)."""
+        return []
+
+    def expected_software(self):
+        """What a new task of this step would use, besides Cocos (like `software`), or None if it
+        cannot be known now (e.g. the bio service does not answer)."""
         return []
 
     # Whether a node of this step is cancelled when a node it depends on fails (see core.tasks).
