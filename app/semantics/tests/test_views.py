@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from rdflib import Graph, URIRef
@@ -58,6 +59,7 @@ class ProcessFlowViewTests(ConversionFlowMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         nodes = {node['data']['id']: node['data'] for node in response.context['flow']['nodes']}
         self.assertEqual(nodes['step-extract_bakta_json']['state'], 'completed')
+        self.assertEqual(nodes['step-extract_bakta_json']['software'], [f'Cocos {settings.COCOS_VERSION}'])
         self.assertEqual(nodes['model-base_bakta_50']['compatibility'], 'ready')
         files = response.context['files']
         annotation = next(node for node in nodes.values() if node.get('label') == 'Feature table')

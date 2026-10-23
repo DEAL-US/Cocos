@@ -26,14 +26,16 @@ def registry_flow(registry, url_of=str):
     return _flow(registry, url_of)[0]
 
 
-def sample_flow(registry, sample, runs, url_of=str):
+def sample_flow(registry, sample, runs, url_of=str, software=None):
     """The flow of `registry` with the state of `sample` (its graph) in the data of each node.
 
-    `runs` is {node id: status of the latest task of that step or model} for the sample. Data
-    nodes get `files` (ids of the files of the sample that are that data), steps get `state` (a task
-    status, 'planned' or 'unused') and `for_models` (the models whose preparation would run
-    them), and models get `compatibility`, `reasons` and `run`.
+    `runs` is {node id: status of the latest task of that step or model} for the sample, and
+    `software` {node id: labels of the software that task used}. Data nodes get `files` (ids of the
+    files of the sample that are that data), steps get `state` (a task status, 'planned' or
+    'unused') and `for_models` (the models whose preparation would run them), models get
+    `compatibility`, `reasons` and `run`, and steps and models get `software`.
     """
+    software = software or {}
     flow, kinds = _flow(registry, url_of)
     items, _ = read_sample(sample)
     results = {tool_node_id(result.model, is_model=True): result for result in discover(registry, sample)}
@@ -49,11 +51,13 @@ def sample_flow(registry, sample, runs, url_of=str):
         elif data['type'] == 'step':
             data['state'] = runs.get(data['id']) or ('planned' if data['id'] in planned else 'unused')
             data['for_models'] = sorted(planned.get(data['id'], []))
+            data['software'] = software.get(data['id'], [])
         else:
             result = results[data['id']]
             data['compatibility'] = result.status.value
             data['reasons'] = list(result.reasons)
             data['run'] = runs.get(data['id'])
+            data['software'] = software.get(data['id'], [])
     return flow
 
 

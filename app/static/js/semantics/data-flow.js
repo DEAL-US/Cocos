@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return [linkList('Files of this sample', data.files.map(function (id) { return files[id]; }).filter(Boolean))];
     }
     if (data.type === 'step') {
-      return [textList('Would prepare', data.for_models)];
+      return [textList('Used', data.software), textList('Would prepare', data.for_models)];
     }
     const preparation = cy.nodes('[type = "step"]').filter(function (step) {
       return step.data('state') === 'planned' && step.data('for_models').indexOf(data.identifier) !== -1;
@@ -221,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
       textList('Preparation it needs', preparation),
       textList('Why not', data.reasons),
       textList('Prediction', data.run ? [RUN_STATES[data.run]] : []),
+      textList('Used', data.software),
     ];
   }
 

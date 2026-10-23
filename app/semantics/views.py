@@ -18,7 +18,7 @@ from rdflib.plugins.sparql import prepareQuery
 from rdflib.plugins.sparql.parserutils import CompValue
 
 from core.models import ProcessGroup
-from core.steps import UnknownStepError
+from core.steps import UnknownStepError, used_software_labels
 
 from .flow import registry_flow, sample_flow, tool_node_id
 from .namespaces import AMRF, COCOS, PREFIXES, SCHEMA, bind_prefixes
@@ -79,6 +79,7 @@ def process_flow_view(request, process_id):
     """The data flow of the registry with the state of a process of the user on it."""
     process = get_object_or_404(ProcessGroup, id=process_id, user=request.user)
     graph = sample_graph(process, sample_iri=f'urn:cocos:process:{process.pk}')
+    latest = _latest_tasks(process)
     files = {
         str(file.pk): {'name': os.path.basename(file.file.name),
                        'url': reverse('conversion:process_file', args=[process.id, file.pk])}
@@ -86,24 +87,29 @@ def process_flow_view(request, process_id):
     }
     return render(request, 'semantics/sample_flow.html', {
         'process': process,
-        'flow': sample_flow(registry_graph(), graph, _latest_runs(process), local_url),
+        'flow': sample_flow(
+            registry_graph(), graph,
+            runs={node: task.status for node, task in latest.items()},
+            software={node: used_software_labels(task) for node, task in latest.items()},
+            url_of=local_url,
+        ),
         'files': files,
     })
 
 
-def _latest_runs(process):
-    """{flow node id: status of the latest task of that step or model} of a process."""
-    runs = {}
+def _latest_tasks(process):
+    """{flow node id: the latest task of that step or model} of a process."""
+    latest = {}
     for task in process.tasks.order_by('id'):
         try:
             step = task.get_step()
         except UnknownStepError:
             continue
         if step.category == 'prediction':
-            runs[tool_node_id(step.model_name, is_model=True)] = task.status
+            latest[tool_node_id(step.model_name, is_model=True)] = task
         else:
-            runs[tool_node_id(step.key, is_model=False)] = task.status
-    return runs
+            latest[tool_node_id(step.key, is_model=False)] = task
+    return latest
 
 
 # --- The public registry: SPARQL endpoint
