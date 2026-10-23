@@ -51,6 +51,7 @@ class ModelDescription:
     any_organism: bool
     organisms: dict          # {'NCBITaxon:562': 'Escherichia coli'}
     antibiotics: tuple       # ARO labels, e.g. ('amikacin', 'meropenem')
+    version: str = ''        # schema:softwareVersion
 
 
 @dataclass(frozen=True)
@@ -75,6 +76,7 @@ def describe_model(model_name):
         any_organism=ANY_BACTERIA in taxa,
         organisms={_curie(taxon): _label(taxon) for taxon in taxa if taxon != ANY_BACTERIA},
         antibiotics=tuple(sorted(_label(antibiotic) for antibiotic in antibiotics)),
+        version=str(graph.value(resource, SCHEMA.softwareVersion) or ''),
     )
 
 

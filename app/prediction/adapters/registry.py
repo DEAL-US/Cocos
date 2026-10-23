@@ -32,6 +32,10 @@ MODEL_PORTS = {
     # 'model_name': (consumes, produces), tuples of core.steps.Port
 }
 
+MODEL_VERSIONS = {
+    # 'model_name': '1.0.0', from the descriptor
+}
+
 def _validate_adapter_init(cls) -> None:
     try:
         sig = inspect.signature(cls.__init__)
@@ -64,6 +68,7 @@ def register_model(name: str = None):
         MODEL_ANTIBIOTICS[key] = list(description.antibiotics)
         MODEL_ORGANISMS[key] = ANY_ORGANISM if description.any_organism else description.organisms
         MODEL_PORTS[key] = (description.inputs, description.outputs)
+        MODEL_VERSIONS[key] = description.version
         return cls
     return _decorator
 
@@ -84,6 +89,10 @@ def get_model_supported_antibiotics(name: str):
 def get_model_ports(name: str):
     """Return (consumes, produces) of a registered model, as declared in its descriptor."""
     return MODEL_PORTS[name.lower()]
+
+def get_model_version(name: str):
+    """Return the version of a registered model, as declared in its descriptor."""
+    return MODEL_VERSIONS.get(name.lower(), '')
 
 def get_model_supported_organisms(name: str):
     """Return ANY_ORGANISM or {CURIE: name} of the organisms a registered model supports."""

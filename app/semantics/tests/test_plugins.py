@@ -24,6 +24,9 @@ class DescribeModelTests(SimpleTestCase):
         self.assertEqual(description.organisms, {})
         self.assertEqual(description.antibiotics, ('amikacin', 'cefotaxime', 'gentamicin'))
 
+    def test_reads_the_version_of_the_model(self):
+        self.assertEqual(describe_model('base_bakta_50').version, '1.0.0')
+
     def test_a_term_without_label_asks_to_fetch_the_terms(self):
         with mock.patch('semantics.registry.plugins.terms_graph', return_value=Graph()):
             with self.assertRaisesRegex(DescriptorError, 'fetch_terms'):
