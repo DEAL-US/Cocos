@@ -7,6 +7,7 @@ import json
 import zipfile
 from io import BytesIO
 
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -788,6 +789,16 @@ class ProcessFileDownloadTests(ConversionFlowMixin, TestCase):
 
 class SoftwareRecordTests(ConversionFlowMixin, TestCase):
     """Each finished task keeps the software it used, and each stored file its SHA-256."""
+
+    def names(self, task):
+        return [entry['name'] for entry in task.software]
+
+    def test_a_step_of_cocos_records_only_cocos(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+
+        task = self.process_tasks(self.latest_process()).get()
+        self.assertEqual(task.software, [{'name': 'Cocos', 'version': settings.COCOS_VERSION, 'type': 'tool'}])
 
     def test_stored_files_keep_the_sha256_of_their_content(self):
         with FakeBioService():

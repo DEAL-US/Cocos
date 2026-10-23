@@ -8,7 +8,7 @@ from django.utils import timezone
 # Module import: core.orchestration imports this module to launch tasks.
 from core import orchestration
 from core.models import Task, TaskStatus
-from core.steps import Busy, StepError, get_step
+from core.steps import Busy, StepError, cocos_software, get_step
 from notifications.services import (
     notify_user_conversion_complete,
     notify_user_conversion_failed,
@@ -92,10 +92,22 @@ def start_task(task, job_id=None):
     task.get_step().on_task_started(task)
 
 
+def record_software(task):
+    """Keep the software the task used: Cocos, and what its step reports. A step that cannot
+    report it (e.g. the bio service is unreachable) leaves only Cocos."""
+    try:
+        used = list(task.get_step().software(task))
+    except Exception:
+        logger.exception("Unable to get the software used by task %s (%s)", task.id, task.step)
+        used = []
+    task.software = [cocos_software()] + used
+
+
 def complete_task(task):
     task.status = TaskStatus.COMPLETED
     task.finished_at = timezone.now()
-    task.save(update_fields=['status', 'finished_at', 'updated_at'])
+    record_software(task)
+    task.save(update_fields=['status', 'finished_at', 'software', 'updated_at'])
     _notify_if_batch_done(task)
     task.get_step().on_task_finished(task)
     if task.plan_node:
@@ -106,7 +118,8 @@ def fail_task(task, message):
     logger.error("Task %s (%s) failed: %s", task.id, task.step, message)
     task.status = TaskStatus.FAILED
     task.finished_at = timezone.now()
-    task.save(update_fields=['status', 'finished_at', 'updated_at'])
+    record_software(task)
+    task.save(update_fields=['status', 'finished_at', 'software', 'updated_at'])
     if task.plan_node and orchestration.is_soft_failure(task, orchestration.find_node(task.process, task.plan_node)):
         notify_user_conversion_warning(task.process.user, task, EXTRACTION_WARNING)
         _notify_if_batch_done(task)

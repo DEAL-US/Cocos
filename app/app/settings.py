@@ -194,6 +194,9 @@ CELERY_RESULT_BACKEND = "django-db"
 # Semantic layer: web page of the source code, which the RDF description of each step links to.
 COCOS_SOURCE_URL = os.getenv('COCOS_SOURCE_URL', 'https://github.com/mquirosq/cocos/blob/main')
 
+# Version of Cocos, recorded in the software of every task. Raise it with each release.
+COCOS_VERSION = '0.3.0-dev'
+
 # Email Configuration
 # Development: console backend (prints to terminal)
 # Production: SendGrid backend (requires the django-sendgrid-v5 package and SENDGRID_API_KEY env var)

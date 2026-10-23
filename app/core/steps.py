@@ -10,6 +10,8 @@ import copy
 from dataclasses import dataclass
 from enum import StrEnum
 
+from django.conf import settings
+
 # Module import: core.models imports this module at load time.
 from core import models as core_models
 
@@ -54,6 +56,11 @@ class Busy:
     """The external service could not accept the job now; try again later."""
 
 
+def cocos_software():
+    """The entry of Cocos itself in the software of a task."""
+    return {'name': 'Cocos', 'version': settings.COCOS_VERSION, 'type': 'tool'}
+
+
 class Step:
     """Base class for every step: metadata, plus how it runs (see LocalStep and ExternalStep)."""
     key: str = ''
@@ -79,6 +86,11 @@ class Step:
 
     def on_task_finished(self, task):
         """Hook called when a task of this step completes or fails."""
+
+    def software(self, task):
+        """The tools, databases or models a finished task of this step used, besides Cocos itself,
+        as dicts with at least 'name', 'version' and 'type' (see Task.software)."""
+        return []
 
     # Whether a node of this step is cancelled when a node it depends on fails (see core.tasks).
     cancel_when_blocked = False

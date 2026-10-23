@@ -35,7 +35,9 @@ class Task(models.Model):
     plan_node = models.CharField(max_length=100, blank=True)
     started_at = models.DateTimeField(null=True, blank=True)
     finished_at = models.DateTimeField(null=True, blank=True)
-    tool_version = models.CharField(max_length=100, blank=True)
+    # The software the task used, recorded when it finishes: Cocos and what its step reports
+    # (Step.software), e.g. [{"name": "Bakta", "version": "1.12.1", "type": "tool", "biotools": "bakta"}].
+    software = models.JSONField(default=list, blank=True)
 
     inputs = models.ManyToManyField('File', through='TaskInput', related_name='consumed_by_tasks', blank=True)
     outputs = models.ManyToManyField('File', through='TaskOutput', related_name='produced_by_tasks', blank=True)

@@ -70,7 +70,7 @@ class TaskStepTests(TaskModelTestCase):
     def test_new_fields_have_safe_defaults(self):
         task = self.make_task('assembly_ont')
         task.refresh_from_db()
-        self.assertEqual((task.parameters, task.plan_node, task.tool_version), ({}, '', ''))
+        self.assertEqual((task.parameters, task.plan_node, task.software), ({}, '', []))
         self.assertIsNone(task.started_at)
         self.assertIsNone(task.finished_at)
 
