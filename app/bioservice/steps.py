@@ -20,6 +20,10 @@ class BioServiceStep(ExternalStep):
     def job_status(self, job_id):
         return client.get_job_status(job_id)
 
+    def software(self, task):
+        # Asked once, when the task finishes: what the job used, as the bio service recorded it.
+        return client.get_job_software(task.external_job_id) if task.external_job_id else []
+
     def already_saved(self, task, role):
         # collect() may be retried after a partial failure: keep what was already stored.
         return task.task_outputs.filter(role=role).exists()

@@ -22,6 +22,16 @@ FIXTURES_DIR = Path(__file__).resolve().parent.parent / 'conversion' / 'tests' /
 BAKTA_JSON = json.loads((FIXTURES_DIR / 'small.json').read_text(encoding='utf-8'))
 ASSEMBLY_FASTA = b'>contig_1\nATGCATGCATGC\n'
 
+# What the jobs of the fake service report they used, by technology, like GET /jobs/<id> of the real one
+ASSEMBLY_SOFTWARE = {
+    'ont': [{'name': 'Raven', 'version': '1.8.3', 'type': 'tool', 'biotools': 'raven'}],
+    'illumina': [{'name': 'SPAdes', 'version': '4.3.0', 'type': 'tool', 'biotools': 'spades'}],
+}
+ANNOTATION_SOFTWARE = [
+    {'name': 'Bakta', 'version': '1.12.1', 'type': 'tool', 'biotools': 'bakta'},
+    {'name': 'Bakta database', 'version': '6.0', 'type': 'database', 'variant': 'light', 'doi': '10.5281/zenodo.14916843'},
+]
+
 
 # Job ids are unique across every FakeBioService of a test run, like the ids of the real service:
 # a task of a later request must not get the id of an earlier one (external_job_id is unique).
@@ -68,7 +78,7 @@ class FakeBioService:
         return [s for s in self.submissions if s['endpoint'] == endpoint]
 
     # --- callbacks
-    def _new_job(self, kind, annotate):
+    def _new_job(self, kind, annotate, software=()):
         job_id = f'job-{next(_job_ids)}'
         if self.status_sequence is not None:
             sequence = list(self.status_sequence)
@@ -76,7 +86,8 @@ class FakeBioService:
             sequence = ['running', 'annotated']
         else:
             sequence = ['running', 'assembled']
-        self.jobs[job_id] = {'kind': kind, 'annotate': annotate, 'sequence': sequence, 'status': 'pending'}
+        self.jobs[job_id] = {'kind': kind, 'annotate': annotate, 'sequence': sequence, 'status': 'pending',
+                             'software': list(software)}
         return job_id
 
     def _busy(self):
@@ -93,7 +104,7 @@ class FakeBioService:
         })
         if self.start_behavior == 'busy':
             return self._busy()
-        job_id = self._new_job('assembly', annotate)
+        job_id = self._new_job('assembly', annotate, ASSEMBLY_SOFTWARE[endpoint] + (ANNOTATION_SOFTWARE if annotate else []))
         return (200, {}, json.dumps({'job_id': job_id, 'status': 'pending'}))
 
     def _submit_annotation(self, request):
@@ -105,7 +116,7 @@ class FakeBioService:
         })
         if self.start_behavior == 'busy':
             return self._busy()
-        job_id = self._new_job('annotation', True)
+        job_id = self._new_job('annotation', True, ANNOTATION_SOFTWARE)
         return (200, {}, json.dumps({'job_id': job_id, 'status': 'annotation_pending'}))
 
     def _job_status(self, request):
@@ -114,7 +125,7 @@ class FakeBioService:
         if self.missing_jobs or not job:
             return (404, {}, json.dumps({'detail': 'Job not found'}))
         job['status'] = job['sequence'].pop(0) if len(job['sequence']) > 1 else job['sequence'][0]
-        return (200, {}, json.dumps({'job_id': job_id, 'status': job['status']}))
+        return (200, {}, json.dumps({'job_id': job_id, 'status': job['status'], 'software': job['software']}))
 
     def _download_assembly(self, request):
         job_id = urlparse(request.url).path.split('/')[-2]

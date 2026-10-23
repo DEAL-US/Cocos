@@ -6,6 +6,7 @@ from bioservice.client import (
     annotate_from_fasta,
     download_assembly_fasta_result,
     download_bakta_json_result,
+    get_job_software,
     get_job_status,
     sequence_illumina,
     sequence_ont,
@@ -23,6 +24,18 @@ class BioApiClientTests(TestCase):
     def test_get_job_status_missing_job_returns_404_without_raising(self, mock_get):
         mock_get.return_value = MagicMock(status_code=404)
         self.assertEqual(get_job_status("job-1"), (None, 404))
+
+    @patch("bioservice.client.requests.get")
+    def test_get_job_software(self, mock_get):
+        response = MagicMock(status_code=200)
+        response.json.return_value = {"status": "annotated", "software": [{"name": "Bakta", "version": "1.12.1"}]}
+        mock_get.return_value = response
+        self.assertEqual(get_job_software("job-1"), [{"name": "Bakta", "version": "1.12.1"}])
+
+    @patch("bioservice.client.requests.get")
+    def test_get_job_software_of_a_job_the_service_does_not_know(self, mock_get):
+        mock_get.return_value = MagicMock(status_code=404)
+        self.assertEqual(get_job_software("job-1"), [])
 
     @patch("bioservice.client.requests.get")
     def test_download_bakta_json_result_success(self, mock_get):

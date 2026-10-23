@@ -6,6 +6,7 @@ import hashlib
 import json
 import zipfile
 from io import BytesIO
+from unittest.mock import patch
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -792,6 +793,32 @@ class SoftwareRecordTests(ConversionFlowMixin, TestCase):
 
     def names(self, task):
         return [entry['name'] for entry in task.software]
+
+    def test_an_annotated_assembly_records_the_assembler_bakta_and_its_database(self):
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)
+
+        assembly, extraction = self.process_tasks(self.latest_process())
+        self.assertEqual(self.names(assembly), ['Cocos', 'Raven', 'Bakta', 'Bakta database'])
+        self.assertEqual(assembly.software[0], {'name': 'Cocos', 'version': settings.COCOS_VERSION, 'type': 'tool'})
+        self.assertEqual(assembly.software[3]['doi'], '10.5281/zenodo.14916843')
+        self.assertEqual(self.names(extraction), ['Cocos'])  # the parser is part of Cocos
+
+    def test_a_failed_job_also_records_its_software(self):
+        with FakeBioService(status_sequence=['failed']):
+            self.run_assembly('illumina')
+
+        task = self.process_tasks(self.latest_process()).get()
+        self.assertEqual(task.status, TaskStatus.FAILED)
+        self.assertEqual(self.names(task), ['Cocos', 'SPAdes'])
+
+    def test_when_the_service_cannot_say_only_cocos_is_recorded(self):
+        with FakeBioService(), patch('bioservice.client.get_job_software', side_effect=ConnectionError):
+            self.run_assembly('ont')
+
+        task = self.process_tasks(self.latest_process()).get()
+        self.assertEqual(task.status, TaskStatus.COMPLETED)
+        self.assertEqual(self.names(task), ['Cocos'])
 
     def test_a_step_of_cocos_records_only_cocos(self):
         with FakeBioService():
