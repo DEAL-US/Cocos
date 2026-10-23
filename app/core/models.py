@@ -8,7 +8,7 @@ from django.core.files.base import ContentFile
 from django.core.validators import RegexValidator
 
 from core.steps import UnknownStepError, get_step
-from core.utils import upload_file
+from core.utils import sha256_of, upload_file
 
 # TASKS
 class TaskStatus(models.TextChoices):
@@ -235,6 +235,12 @@ class File(models.Model):
     file_type = models.CharField(max_length=50, choices=FileType.choices)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='files')
     genes = models.ManyToManyField('Gene', related_name='files', blank=True, through='FileGene')
+    sha256 = models.CharField(max_length=64, blank=True)  # of the content, computed when it is stored
+
+    def save(self, *args, **kwargs):
+        if self.file and not self.sha256:
+            self.sha256 = sha256_of(self.file)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"File created at {self.created_at} by {self.user.username} ({self.file.name})"

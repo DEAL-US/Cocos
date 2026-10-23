@@ -2,6 +2,7 @@
 
 These tests describe user-visible behaviour (what gets created, stored and notified).
 """
+import hashlib
 import json
 import zipfile
 from io import BytesIO
@@ -783,3 +784,17 @@ class ProcessFileDownloadTests(ConversionFlowMixin, TestCase):
         self.client.login(username='other-user', password='pass1234')
 
         self.assertEqual(self.download(self.process, self.r1).status_code, 404)
+
+
+class SoftwareRecordTests(ConversionFlowMixin, TestCase):
+    """Each finished task keeps the software it used, and each stored file its SHA-256."""
+
+    def test_stored_files_keep_the_sha256_of_their_content(self):
+        with FakeBioService():
+            self.run_assembly('ont', files=[fastq('reads.fastq.gz', b'R1-CONTENT')])
+
+        process = self.latest_process()
+        reads = File.objects.get(consumed_by_tasks__process=process, file_type=File.FileType.FASTQ)
+        assembly = self.process_outputs(process, File.FileType.FASTA).get()
+        self.assertEqual(reads.sha256, hashlib.sha256(b'R1-CONTENT').hexdigest())
+        self.assertEqual(assembly.sha256, hashlib.sha256(ASSEMBLY_FASTA).hexdigest())
