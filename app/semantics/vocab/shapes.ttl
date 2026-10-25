@@ -6,6 +6,8 @@
 @prefix edam:       <http://edamontology.org/> .
 @prefix obo:        <http://purl.obolibrary.org/obo/> .
 @prefix owl:        <http://www.w3.org/2002/07/owl#> .
+@prefix p-plan:     <http://purl.org/net/p-plan#> .
+@prefix prov:       <http://www.w3.org/ns/prov#> .
 @prefix rdfs:       <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix schema:     <https://schema.org/> .
 @prefix sh:         <http://www.w3.org/ns/shacl#> .
@@ -214,6 +216,9 @@ amrfsh:DataEntryShape
     ] , [
         sh:path schema:encodingFormat ; sh:maxCount 1 ; sh:node amrfsh:EdamFormat ;
         sh:message "A piece of data has at most one schema:encodingFormat, an EDAM format term."@en ;
+    ] , [
+        sh:path schema:sha256 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:pattern "^[0-9a-f]{64}$" ;
+        sh:message "The checksum of a file (schema:sha256) is one SHA-256: 64 lowercase hexadecimal digits."@en ;
     ] ;
     # As for parameters: every piece of data is a file with a format, except the genes.
     sh:or (
@@ -221,3 +226,57 @@ amrfsh:DataEntryShape
         [ sh:path schema:additionalType ; sh:hasValue edam:data_0916 ]
     ) ;
     sh:message "A piece of data needs a schema:encodingFormat, unless it is a Gene report (edam:data_0916)."@en .
+
+# --- Provenance of a sample (PROV-O and P-Plan; see semantics.provenance)
+
+amrfsh:ActivityShape
+    a sh:NodeShape ;
+    sh:targetClass prov:Activity ;
+    sh:property [
+        sh:path schema:name ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "An activity needs exactly one schema:name, the step it ran."@en ;
+    ] , [
+        sh:path schema:actionStatus ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:in ( schema:PotentialActionStatus schema:ActiveActionStatus schema:CompletedActionStatus schema:FailedActionStatus ) ;
+        sh:message "An activity needs exactly one schema:actionStatus: potential, active, completed or failed."@en ;
+    ] , [
+        sh:path prov:startedAtTime ; sh:maxCount 1 ; sh:datatype xsd:dateTime ;
+        sh:message "An activity starts at most once (prov:startedAtTime, an xsd:dateTime)."@en ;
+    ] , [
+        sh:path prov:endedAtTime ; sh:maxCount 1 ; sh:datatype xsd:dateTime ;
+        sh:message "An activity ends at most once (prov:endedAtTime, an xsd:dateTime)."@en ;
+    ] , [
+        sh:path prov:wasAssociatedWith ; sh:minCount 1 ;
+        sh:message "An activity needs an agent (prov:wasAssociatedWith): at least the step of the registry it ran."@en ;
+    ] ;
+    # An activity that finished, well or not, says when and with which software.
+    sh:or (
+        [ sh:path schema:actionStatus ; sh:in ( schema:PotentialActionStatus schema:ActiveActionStatus ) ]
+        [
+            sh:property [ sh:path prov:endedAtTime ; sh:minCount 1 ] ;
+            sh:property [
+                sh:path prov:wasAssociatedWith ;
+                sh:qualifiedValueShape [ sh:class prov:SoftwareAgent ] ; sh:qualifiedMinCount 1 ;
+            ] ;
+        ]
+    ) ;
+    sh:message "A finished activity needs prov:endedAtTime and a prov:SoftwareAgent (at least Cocos)."@en .
+
+amrfsh:SoftwareAgentShape
+    a sh:NodeShape ;
+    sh:targetClass prov:SoftwareAgent ;
+    sh:property [
+        sh:path schema:name ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A piece of software needs exactly one schema:name."@en ;
+    ] , [
+        sh:path schema:softwareVersion ; sh:minCount 1 ; sh:maxCount 1 ; sh:minLength 1 ;
+        sh:message "A piece of software needs exactly one schema:softwareVersion."@en ;
+    ] .
+
+amrfsh:PlanStepShape
+    a sh:NodeShape ;
+    sh:targetClass p-plan:Step ;
+    sh:property [
+        sh:path p-plan:isStepOfPlan ; sh:minCount 1 ; sh:maxCount 1 ; sh:class p-plan:Plan ;
+        sh:message "A step of a plan belongs to exactly one p-plan:Plan."@en ;
+    ] .

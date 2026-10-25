@@ -8,6 +8,7 @@ from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
 from core.testing import FakeBioService
 from semantics.namespaces import COCOS, PPLAN, SCHEMA
 from semantics.sample import sample_graph
+from semantics.validation import validate, violations
 
 SAMPLE = URIRef('https://cocos.example/processes/1')
 
@@ -128,3 +129,33 @@ class ProvenanceTests(ConversionFlowMixin, TestCase):
         self.assertIn((cancelled, RDF.type, PPLAN.Step), graph)
         self.assertIsNotNone(graph.value(cancelled, RDFS.comment))
         self.assertEqual(list(graph.subjects(PPLAN.correspondsToStep, cancelled)), [])
+
+
+class ProvenanceShapesTests(ConversionFlowMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)
+        process = self.latest_process()
+        self.graph = sample_graph(process, str(SAMPLE), with_provenance=True)
+        self.assembly = URIRef(f'{SAMPLE}#task-{self.process_tasks(process).first().pk}')
+
+    def assertViolation(self, focus, path):
+        self.assertIn((str(focus), path), {(problem.focus, problem.path) for problem in violations(validate(self.graph))})
+
+    def test_the_provenance_of_a_sample_conforms_to_the_shapes(self):
+        self.assertEqual([str(problem) for problem in violations(validate(self.graph))], [])
+
+    def test_a_finished_activity_without_its_end(self):
+        self.graph.remove((self.assembly, PROV.endedAtTime, None))
+        self.assertViolation(self.assembly, '')  # the sh:or of the activity shape
+
+    def test_software_without_version(self):
+        raven = next(self.graph.subjects(SCHEMA.name, Literal('Raven')))
+        self.graph.remove((raven, SCHEMA.softwareVersion, None))
+        self.assertViolation(raven, 'schema:softwareVersion')
+
+    def test_a_malformed_checksum(self):
+        reads = next(part for part in self.graph.objects(SAMPLE, SCHEMA.hasPart) if self.graph.value(part, SCHEMA.sha256))
+        self.graph.set((reads, SCHEMA.sha256, Literal('not a sha256')))
+        self.assertViolation(reads, 'schema:sha256')
