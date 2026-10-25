@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.test import TestCase
-from rdflib import URIRef
-from rdflib.namespace import PROV, RDF
+from django.urls import reverse
+from rdflib import Literal, URIRef
+from rdflib.namespace import PROV, RDF, RDFS
 
-from conversion.tests.test_flows import ConversionFlowMixin
+from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
 from core.testing import FakeBioService
 from semantics.namespaces import COCOS, SCHEMA
 from semantics.sample import sample_graph
@@ -68,3 +70,33 @@ class ProvenanceTests(ConversionFlowMixin, TestCase):
 
         graph = sample_graph(self.latest_process(), str(SAMPLE))
         self.assertEqual(list(graph.subjects(RDF.type, PROV.Activity)), [])
+
+    def test_the_software_of_a_task_its_versions_and_identifiers(self):
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)
+        graph = self.provenance()
+        assembly = self.activity(0)
+        agents = {str(graph.value(agent, RDFS.label)): agent for agent in graph.objects(assembly, PROV.wasAssociatedWith)
+                  if (agent, RDF.type, PROV.SoftwareAgent) in graph}
+
+        self.assertEqual(set(agents), {'Raven 1.8.3', 'Bakta 1.12.1', f'Cocos {settings.COCOS_VERSION}'})
+        self.assertIn((agents['Raven 1.8.3'], PROV.specializationOf, URIRef('https://bio.tools/raven')), graph)
+        self.assertEqual(graph.value(agents['Raven 1.8.3'], SCHEMA.softwareVersion), Literal('1.8.3'))
+        database = URIRef('https://doi.org/10.5281/zenodo.14916843')
+        self.assertIn((assembly, PROV.used, database), graph)
+        self.assertIn((database, RDF.type, PROV.Entity), graph)
+        self.assertEqual(graph.value(database, RDFS.label), Literal('Bakta database 6.0 (light)'))
+
+    def test_a_prediction_used_its_model_and_the_weights_of_each_antibiotic(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+        task = self.process_tasks(self.latest_process()).get()
+        task.software = [{'name': 'base_bakta_50', 'version': '1.0.0', 'type': 'model',
+                          'weights': [{'antibiotic': 'amikacin', 'sha256': 'ab' * 32}]}]
+        task.save(update_fields=['software'])
+        graph = self.provenance()
+
+        model = next(graph.subjects(PROV.specializationOf, COCOS['model/base_bakta_50']))
+        self.assertIn((self.activity(0), PROV.wasAssociatedWith, model), graph)
+        weights = next(graph.subjects(SCHEMA.sha256, Literal('ab' * 32)))
+        self.assertIn((self.activity(0), PROV.used, weights), graph)
