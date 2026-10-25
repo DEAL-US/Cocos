@@ -4,7 +4,7 @@ Cocos reuses existing ontologies wherever a term exists and only defines its own
 AMRF vocabulary (AntiMicrobial Resistance Framework) when none fits.
 """
 from rdflib import Namespace
-from rdflib.namespace import DCTERMS, OWL, RDF, RDFS, SKOS, XSD
+from rdflib.namespace import DCTERMS, OWL, PROV, RDF, RDFS, SKOS, XSD
 
 # Own vocabulary and the resources of this Cocos instance (steps, models, samples).
 AMRF = Namespace('https://w3id.org/amrf/')
@@ -19,6 +19,8 @@ BSC = Namespace('https://bioschemas.org/properties/')
 # OBO Foundry ontologies: ARO (antibiotics), NCBITaxon (organisms), IAO, NCIT...
 OBO = Namespace('http://purl.obolibrary.org/obo/')
 VANN = Namespace('http://purl.org/vocab/vann/')
+# Provenance: PROV-O (W3C) and P-Plan, its extension for the plans that activities follow.
+PPLAN = Namespace('http://purl.org/net/p-plan#')
 
 PREFIXES = {
     'amrf': AMRF,
@@ -29,6 +31,8 @@ PREFIXES = {
     'bsc': BSC,
     'obo': OBO,
     'vann': VANN,
+    'prov': PROV,
+    'p-plan': PPLAN,
     'dcterms': DCTERMS,
     'owl': OWL,
     'rdf': RDF,

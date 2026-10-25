@@ -7,7 +7,8 @@ that what a sample has can be compared with what a model consumes. A file can be
 data: a Bakta JSON is both the annotation and, once extracted, the genes. The genes are kept in the
 database of Cocos, linked to that file, so they have no file format and no download link.
 
-The sample has the files the user uploaded and the outputs of its completed tasks.
+The sample has the files the user uploaded and the outputs of its completed tasks. On request, the
+description also has the provenance of that data (semantics.provenance).
 """
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import RDF
@@ -15,8 +16,9 @@ from rdflib.namespace import RDF
 from core.models import TaskStatus
 from core.steps import UnknownStepError
 
-from .registry.mappings import data_term, format_term, sequencing_technique
 from .namespaces import OBO, SCHEMA, bind_prefixes
+from .provenance import add_provenance
+from .registry.mappings import data_term, format_term, sequencing_technique
 
 
 def taxon_iri(curie):
@@ -45,10 +47,11 @@ def data_entries(process):
     return list(entries.values())
 
 
-def sample_graph(process, sample_iri, content_url=None):
+def sample_graph(process, sample_iri, content_url=None, with_provenance=False):
     """Return the RDF description of `process`, identified by `sample_iri`.
 
-    `content_url(file)`, if given, returns the URL to download a file of the sample.
+    `content_url(file)`, if given, returns the URL to download a file of the sample. With
+    `with_provenance`, the description also says how its data was obtained (PROV-O).
     """
     graph = bind_prefixes(Graph())
     sample = URIRef(sample_iri)
@@ -58,8 +61,10 @@ def sample_graph(process, sample_iri, content_url=None):
     if process.organism:
         graph.add((sample, SCHEMA.taxonomicRange, taxon_iri(process.organism)))
 
+    entries = {}
     for file, role, port, technique in data_entries(process):
         node = URIRef(f'{sample}#file-{file.pk}-{role}')
+        entries[(file.pk, role)] = node
         graph.add((sample, SCHEMA.hasPart, node))
         graph.add((node, RDF.type, SCHEMA.DataDownload))
         graph.add((node, SCHEMA.identifier, Literal(str(file.pk))))
@@ -73,4 +78,7 @@ def sample_graph(process, sample_iri, content_url=None):
             graph.add((node, SCHEMA.encodingFormat, file_format))
             if content_url is not None:
                 graph.add((node, SCHEMA.contentUrl, URIRef(content_url(file))))
+
+    if with_provenance:
+        add_provenance(graph, process, sample, entries)
     return graph

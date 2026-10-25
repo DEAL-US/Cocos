@@ -69,6 +69,7 @@ def process_rdf_view(request, process_id):
         process,
         sample_iri=request.build_absolute_uri(reverse('conversion:process_status', args=[process.id])),
         content_url=lambda file: request.build_absolute_uri(reverse('conversion:process_file', args=[process.id, file.id])),
+        with_provenance=True,
     )
     rdf = rdf_format(request)
     return rdf_response(graph, 'turtle' if rdf == 'html' else rdf)
