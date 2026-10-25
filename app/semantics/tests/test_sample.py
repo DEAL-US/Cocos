@@ -4,7 +4,7 @@ from rdflib import Literal, URIRef
 from rdflib.namespace import RDF
 
 from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
-from core.models import ProcessGroup
+from core.models import File, ProcessGroup
 from core.testing import FakeBioService
 from semantics.namespaces import AMRF, EDAM, OBO, SCHEMA
 from semantics.sample import sample_graph
@@ -64,6 +64,16 @@ class SampleGraphTests(ConversionFlowMixin, TestCase):
             ('r1', EDAM.data_3494, EDAM.format_1930, OBO.NCIT_C146817),
             ('r2', EDAM.data_3494, EDAM.format_1930, OBO.NCIT_C146817),
         })
+
+    def test_files_have_their_sha256_and_the_genes_none(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+        graph = self.graph_of_latest_process()
+
+        checksums = {str(graph.value(part, SCHEMA.name)): graph.value(part, SCHEMA.sha256)
+                     for part in graph.objects(URIRef(SAMPLE), SCHEMA.hasPart)}
+        uploaded = File.objects.get(user=self.user)
+        self.assertEqual(checksums, {'annotation': Literal(uploaded.sha256), 'genes': None})
 
     def test_the_organism_chosen_by_the_user(self):
         process = ProcessGroup.objects.create(name='isolate', user=self.user, organism='NCBITaxon:562')

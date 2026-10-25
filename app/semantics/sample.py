@@ -5,7 +5,8 @@ each piece of data is a schema:DataDownload part: a file read in the role it pla
 described with the same terms as the ports of the steps and models (EDAM data and format), so
 that what a sample has can be compared with what a model consumes. A file can be two pieces of
 data: a Bakta JSON is both the annotation and, once extracted, the genes. The genes are kept in the
-database of Cocos, linked to that file, so they have no file format and no download link.
+database of Cocos, linked to that file, so they have no file format, checksum or download link.
+Files have their SHA-256 (schema:sha256), to check that a file is the one described.
 
 The sample has the files the user uploaded and the outputs of its completed tasks. On request, the
 description also has the provenance of that data (semantics.provenance).
@@ -76,6 +77,8 @@ def sample_graph(process, sample_iri, content_url=None, with_provenance=False):
         # Data Cocos stores itself (the genes) has no format and is not downloaded as that file
         if file_format is not None:
             graph.add((node, SCHEMA.encodingFormat, file_format))
+            if file.sha256:
+                graph.add((node, SCHEMA.sha256, Literal(file.sha256)))
             if content_url is not None:
                 graph.add((node, SCHEMA.contentUrl, URIRef(content_url(file))))
 
