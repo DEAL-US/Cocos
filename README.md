@@ -342,6 +342,29 @@ GET /processes/<id>/rdf/?format=jsonld     JSON-LD (or send Accept: application/
 
 The sample is a `schema:Dataset` named by the URL of its process page, with the organism chosen by the user (`schema:taxonomicRange`, absent if unknown) and the data it has as `schema:DataDownload` parts: the files the user uploaded and the outputs of completed tasks. Each part is a file in the role it plays (e.g. `reads`, `assembly`, `annotation`, `genes`), described with the same EDAM data and format terms as the inputs of steps and models, and with a `schema:contentUrl` to download that file (`/processes/<id>/files/<file id>/`). A Bakta JSON appears twice: as the annotation and, once its genes are extracted, as the genes. The genes are not a file: Cocos keeps them in its database, linked to the annotation, so they are an EDAM *Gene report* with no `schema:encodingFormat` and no download link (the AMRF shapes require a format for every other piece of data and parameter), and only inputs with no format accept them.
 
+Each file also has its SHA-256 (`schema:sha256`), so that anyone can check that a file is the one described.
+
+#### Provenance
+
+The description also says how the data of the sample was obtained, with [PROV-O](https://www.w3.org/TR/prov-o/) and [P-Plan](https://www.opmw.org/model/p-plan/) (`semantics/provenance.py`, validated with the AMRF shapes):
+
+- **Activities**: each task is a `prov:Activity` with its status (`schema:actionStatus`: potential, active, completed or failed, since failed tasks are part of the history of the sample), when it started and ended (`prov:startedAtTime`, `prov:endedAtTime`), the data it used (`prov:used`) and generated (`prov:wasGeneratedBy`), and the step or model of the registry it ran (`prov:wasAssociatedWith <https://w3id.org/cocos/step/...>`).
+- **Software**: the tools and models it used, with their versions (`Task.software`), are `prov:SoftwareAgent`s associated with the activity and specializations (`prov:specializationOf`) of their [bio.tools](https://bio.tools) entry or of the model of the registry; the databases (identified by their DOI, when they have one) and the weights of the models (by their SHA-256) are `prov:Entity`s the activity used.
+- **User**: an anonymous `prov:Person` per sample, which uploaded the files (`prov:wasAttributedTo`) and asked for the activities. Who the user is never appears.
+- **Plan**: what the orchestrator and the discovery decided to run is a `p-plan:Plan` whose `p-plan:Step`s say which step of the registry they run (`dcterms:type`) and which steps come before them (`p-plan:isPrecededBy`); each activity says which step it carried out (`p-plan:correspondsToStep`). A step with no activity was cancelled because a step before it failed.
+
+For example, with SPARQL over the description of a sample: which software produced its genes, through which steps, starting from which uploaded files.
+
+```sparql
+SELECT ?step ?software ?version WHERE {
+  ?genes schema:name "genes" ; prov:wasGeneratedBy/(prov:used/prov:wasGeneratedBy)* ?activity .
+  ?activity schema:name ?step ; prov:wasAssociatedWith ?agent .
+  ?agent a prov:SoftwareAgent ; schema:name ?software ; schema:softwareVersion ?version .
+}
+```
+
+The discovery reads the same description without the provenance (`sample_graph(..., with_provenance=False)`, the default), which it does not need.
+
 The page of each process links to the **data flow of the sample** (`/processes/<id>/flow/`, only for its owner, built by `semantics.flow.sample_flow` from this description and the discovery): the data flow of the registry with the data the sample has (and its files), the state of the latest task of each step and model, the preparation steps the discovery would run for each model, and whether each model is ready, needs preparation or is not available (and why).
 
 ---
