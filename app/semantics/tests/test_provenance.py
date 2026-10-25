@@ -2,11 +2,11 @@ from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from rdflib import Literal, URIRef
-from rdflib.namespace import PROV, RDF, RDFS
+from rdflib.namespace import DCTERMS, PROV, RDF, RDFS
 
 from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
 from core.testing import FakeBioService
-from semantics.namespaces import COCOS, SCHEMA
+from semantics.namespaces import COCOS, PPLAN, SCHEMA
 from semantics.sample import sample_graph
 
 SAMPLE = URIRef('https://cocos.example/processes/1')
@@ -100,3 +100,31 @@ class ProvenanceTests(ConversionFlowMixin, TestCase):
         self.assertIn((self.activity(0), PROV.wasAssociatedWith, model), graph)
         weights = next(graph.subjects(SCHEMA.sha256, Literal('ab' * 32)))
         self.assertIn((self.activity(0), PROV.used, weights), graph)
+
+    def test_the_plan_its_order_and_the_activity_that_carried_out_each_step(self):
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)
+        graph = self.provenance()
+        plan = URIRef(f'{SAMPLE}#plan')
+        assembly_step, extraction_step = (URIRef(f'{SAMPLE}#plan-{task.plan_node}') for task in self.tasks)
+
+        self.assertIn((plan, RDF.type, PPLAN.Plan), graph)
+        self.assertIn((extraction_step, PPLAN.isStepOfPlan, plan), graph)
+        self.assertIn((extraction_step, PPLAN.isPrecededBy, assembly_step), graph)
+        self.assertIn((assembly_step, DCTERMS.type, COCOS['step/assembly_ont_annotated']), graph)
+        self.assertIn((self.activity(0), PPLAN.correspondsToStep, assembly_step), graph)
+        self.assertIn((self.activity(1), PPLAN.correspondsToStep, extraction_step), graph)
+
+    def test_a_cancelled_step_of_the_plan_has_no_activity(self):
+        with FakeBioService():
+            self.run_assembly('ont')
+        process = self.latest_process()
+        process.plan.append({'id': 'n9', 'step': 'bakta_annotation', 'after': ['n1'], 'batch': 2,
+                             'parameters': {}, 'cancelled': True})
+        process.save(update_fields=['plan'])
+        graph = self.provenance()
+        cancelled = URIRef(f'{SAMPLE}#plan-n9')
+
+        self.assertIn((cancelled, RDF.type, PPLAN.Step), graph)
+        self.assertIsNotNone(graph.value(cancelled, RDFS.comment))
+        self.assertEqual(list(graph.subjects(PPLAN.correspondsToStep, cancelled)), [])

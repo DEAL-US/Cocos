@@ -10,16 +10,21 @@ The software a task used (Task.software) is described too: tools and models are 
 prov:SoftwareAgents of the activity, specializations of their bio.tools entry or of the model of
 the registry; databases (identified by their DOI, when they have one) and the weights of models
 (by their SHA-256) are prov:Entities the activity used.
+
+The plan of the process (what the orchestrator and the discovery decided to run, in which order)
+is a p-plan:Plan whose p-plan:Steps say which step of the registry they run and which steps come
+before them; each activity says which step of the plan it carried out (p-plan:correspondsToStep).
+A step of the plan with no activity was not run: it was cancelled because a step before it failed.
 """
 import re
 
 from rdflib import Literal, URIRef
-from rdflib.namespace import PROV, RDF, RDFS, XSD
+from rdflib.namespace import DCTERMS, PROV, RDF, RDFS, XSD
 
 from core.models import TaskStatus
-from core.steps import UnknownStepError, software_label
+from core.steps import UnknownStepError, get_step, software_label
 
-from .namespaces import SCHEMA
+from .namespaces import PPLAN, SCHEMA
 from .registry.descriptors import model_iri
 from .registry.steps import step_iri
 
@@ -40,6 +45,7 @@ def add_provenance(graph, process, sample, entries):
     graph.add((user, RDF.type, PROV.Person))
     graph.add((user, RDFS.label, Literal('A user of this Cocos instance', lang='en')))
     graph.add((sample, PROV.wasAttributedTo, user))
+    add_plan(graph, process, sample)
 
     for task in process.tasks.prefetch_related('task_inputs__file', 'task_outputs__file').order_by('id'):
         try:
@@ -56,6 +62,8 @@ def add_provenance(graph, process, sample, entries):
             graph.add((activity, PROV.startedAtTime, Literal(task.started_at, datatype=XSD.dateTime)))
         if task.finished_at:
             graph.add((activity, PROV.endedAtTime, Literal(task.finished_at, datatype=XSD.dateTime)))
+        if task.plan_node:
+            graph.add((activity, PPLAN.correspondsToStep, plan_step_iri(sample, task.plan_node)))
         for entry in task.software:
             add_software(graph, sample, activity, entry)
 
@@ -71,6 +79,31 @@ def add_provenance(graph, process, sample, entries):
                 if entry is not None:
                     graph.add((entry, PROV.wasGeneratedBy, activity))
     return graph
+
+
+def add_plan(graph, process, sample):
+    """Add the plan of `process`: its steps, the step of the registry each runs and their order."""
+    if not process.plan:
+        return
+    plan = URIRef(f'{sample}#plan')
+    graph.add((plan, RDF.type, PPLAN.Plan))
+    graph.add((plan, RDFS.label, Literal('Plan of the steps of this sample', lang='en')))
+    for node in process.plan:
+        step = plan_step_iri(sample, node['id'])
+        graph.add((step, RDF.type, PPLAN.Step))
+        graph.add((step, PPLAN.isStepOfPlan, plan))
+        try:
+            graph.add((step, DCTERMS.type, registry_iri(get_step(node['step']))))
+        except UnknownStepError:
+            pass
+        for before in node['after']:
+            graph.add((step, PPLAN.isPrecededBy, plan_step_iri(sample, before)))
+        if node.get('cancelled'):
+            graph.add((step, RDFS.comment, Literal('Cancelled: a step before it failed.', lang='en')))
+
+
+def plan_step_iri(sample, node_id):
+    return URIRef(f'{sample}#plan-{node_id}')
 
 
 def add_software(graph, sample, activity, entry):
