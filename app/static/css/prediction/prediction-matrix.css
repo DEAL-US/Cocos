@@ -218,3 +218,8 @@
     background: var(--prediction-no-result-bg);
     color: var(--prediction-no-result-content);
 }
+
+/* The trust dialog focuses its box when it opens (not its close button), with no visible ring */
+#trust-dialog .modal-box:focus {
+    outline: none;
+}

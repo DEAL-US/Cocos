@@ -3,9 +3,9 @@ const HIGH_THRESHOLD = 0.65;
 
 // How each judgement of the trust of a prediction is shown (see trust_rules.toml)
 const TRUST_STYLES = {
-  for: { badge: 'badge-success', icon: 'bi-check-circle', text: 'text-success' },
-  caution: { badge: 'badge-warning', icon: 'bi-exclamation-triangle', text: 'text-warning' },
-  serious: { badge: 'badge-error', icon: 'bi-x-octagon', text: 'text-error' },
+  for: { badge: 'badge-success', icon: 'bi-check-circle', text: 'text-success', soft: 'bg-success/10', circle: 'bg-success/15 text-success' },
+  caution: { badge: 'badge-warning', icon: 'bi-exclamation-triangle', text: 'text-warning', soft: 'bg-warning/10', circle: 'bg-warning/15 text-warning' },
+  serious: { badge: 'badge-error', icon: 'bi-x-octagon', text: 'text-error', soft: 'bg-error/10', circle: 'bg-error/15 text-error' },
 };
 
 
@@ -168,20 +168,50 @@ function openTrustDialog(trust, model, antibiotic) {
     return;
   }
 
-  dialog.querySelector('.trust-dialog-title').textContent = `Trust: ${trust.level}`;
+  const style = TRUST_STYLES[trust.judgement];
+  dialog.querySelector('.trust-dialog-icon').className =
+    `trust-dialog-icon shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-xl ${style.circle}`;
+  dialog.querySelector('.trust-dialog-icon i').className = `bi ${style.icon}`;
+  dialog.querySelector('.trust-dialog-title').textContent = trust.level;
   dialog.querySelector('.trust-dialog-subject').textContent = `${model} · ${antibiotic}`;
 
-  const list = dialog.querySelector('.trust-dialog-evidence');
-  list.innerHTML = '';
+  const groups = dialog.querySelector('.trust-dialog-groups');
+  groups.innerHTML = '';
 
-  trust.evidence.forEach(item => {
+  const against = trust.evidence.filter(item => item.judgement !== 'for');
+  const inFavour = trust.evidence.filter(item => item.judgement === 'for');
+
+  if (against.length) {
+    groups.appendChild(createEvidenceGroup('Why to be careful', against));
+  }
+
+  if (inFavour.length) {
+    groups.appendChild(createEvidenceGroup('In favour', inFavour));
+  }
+
+  dialog.showModal();
+}
+
+
+function createEvidenceGroup(title, items) {
+  const group = document.createElement('section');
+
+  const heading = document.createElement('h4');
+  heading.className = 'text-sm font-semibold mb-2';
+  heading.textContent = title;
+
+  const list = document.createElement('ul');
+  list.className = 'space-y-2';
+
+  items.forEach(item => {
     const style = TRUST_STYLES[item.judgement];
 
     const entry = document.createElement('li');
-    entry.className = 'flex items-start gap-2';
+    entry.className = `flex items-start gap-3 rounded-box px-3 py-2.5 text-sm ${style.soft}`;
 
     const icon = document.createElement('i');
-    icon.className = `bi ${style.icon} ${style.text} mt-0.5`;
+    icon.className = `bi ${style.icon} ${style.text} text-base leading-5 shrink-0`;
+    icon.setAttribute('aria-hidden', 'true');
 
     const text = document.createElement('span');
     text.textContent = item.text;
@@ -190,7 +220,8 @@ function openTrustDialog(trust, model, antibiotic) {
     list.appendChild(entry);
   });
 
-  dialog.showModal();
+  group.append(heading, list);
+  return group;
 }
 
 
