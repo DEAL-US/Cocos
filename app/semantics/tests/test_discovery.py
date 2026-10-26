@@ -146,6 +146,18 @@ class DiscoveryTests(SimpleTestCase):
         # base_bakta_50 is for Bacteria: any organism, also an unknown one.
         self.assertEqual(self.compatibility(sample(genes)).status, Status.READY)
 
+    def test_a_model_for_a_taxon_accepts_the_taxa_under_it(self):
+        registry = build_registry_graph()
+        add_model(registry, 'enterobacterales_model', GENES, taxa=(OBO.NCBITaxon_91347,))  # Enterobacterales
+        genes = ('12', 'genes', GENES)
+
+        for taxon, status in ((OBO.NCBITaxon_562, Status.READY),          # Escherichia coli
+                              (OBO.NCBITaxon_28901, Status.READY),        # Salmonella enterica
+                              (OBO.NCBITaxon_470, Status.INCOMPATIBLE)):  # Acinetobacter baumannii
+            with self.subTest(taxon=taxon):
+                result = self.compatibility(sample(genes, taxon=taxon), 'enterobacterales_model', registry)
+                self.assertEqual(result.status, status)
+
     def test_antibiotics_are_optional(self):
         genes = sample(('12', 'genes', GENES))
 

@@ -16,7 +16,8 @@ from ..namespaces import OBO
 from .graphs import Item, is_a, label, read_sample, read_tools
 from .results import Compatibility, PlannedStep, Source, Status
 
-# A model for Bacteria accepts a sample of any organism (v1: no other taxonomy reasoning).
+# A model for Bacteria accepts a sample of any organism. Otherwise, a model for a taxon accepts a
+# sample of that taxon or of any taxon under it in NCBITaxon (e.g. one for Enterobacterales, E. coli).
 ANY_BACTERIA = OBO.NCBITaxon_2
 MAX_STEPS = 6
 
@@ -58,7 +59,7 @@ def organism_reasons(model, organism, registry):
     names = ', '.join(sorted(model.organisms.values()))
     if organism is None:
         return [f'This model is only for {names}, and the organism of this sample is unknown.']
-    if organism not in model.organisms:
+    if not any(is_a(registry, organism, taxon) for taxon in model.organisms):
         return [f'This model is only for {names}, and this sample is {label(registry, organism)}.']
     return []
 

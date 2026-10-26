@@ -26,7 +26,7 @@ from ..validation import validate, violations
 
 logger = logging.getLogger(__name__)
 
-# A model for Bacteria accepts a sample of any organism (v1: no other taxonomy reasoning).
+# A model for Bacteria accepts a sample of any organism (see semantics.discovery for the others).
 ANY_BACTERIA = OBO.NCBITaxon_2
 
 
