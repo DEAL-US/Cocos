@@ -4,7 +4,8 @@
    its inputs (ready) or some steps can produce them (reachable).
 2. shortest_preparation(): breadth-first search of those steps: every path of 1 step, then of 2...
    The first level that reaches the inputs of the model has the shortest paths; among them, the
-   cheapest (Path.cost) wins.
+   cheapest (Path.cost) wins. A step that already failed for good on a file of the sample (it
+   would fail again, see `failed`) is not tried on that file again.
 3. assign(): whether some data satisfies the inputs of a step or model. A piece of data satisfies an
    input if its data and format are the requested ones or kinds of them (data Cocos keeps in its
    database, with no format, only satisfies inputs with no format), and its sequencing technique is
@@ -22,31 +23,35 @@ ANY_BACTERIA = OBO.NCBITaxon_2
 MAX_STEPS = 6
 
 
-def discover(registry, sample, antibiotics=None):
+def discover(registry, sample, antibiotics=None, failed=None):
     """Return the Compatibility of every model of `registry` (a graph) with `sample` (a graph).
 
     `antibiotics`, if given, are the names of the antibiotics the user wants: a model that
-    predicts none of them is incompatible.
+    predicts none of them is incompatible. `failed`, if given, is {(step identifier, file id):
+    why} of the steps that would fail again on a file of the sample, which are not planned.
     """
     tools = read_tools(registry)
     steps = [tool for tool in tools if not tool.is_model]
     items, organism = read_sample(sample)
-    return [verdict(model, steps, items, organism, antibiotics, registry) for model in tools if model.is_model]
+    return [verdict(model, steps, items, organism, antibiotics, registry, failed or {})
+            for model in tools if model.is_model]
 
 
 # --- 1. The verdict for one model
 
-def verdict(model, steps, items, organism, antibiotics, registry):
+def verdict(model, steps, items, organism, antibiotics, registry, failed=None):
     reasons = organism_reasons(model, organism, registry) + antibiotic_reasons(model, antibiotics)
 
     inputs = assign(model.inputs, items, registry)
     if inputs is not None:
         status, path = Status.READY, Path(items=items)
     else:
-        path, inputs = shortest_preparation(model, steps, items, registry)
+        skipped = {}
+        path, inputs = shortest_preparation(model, steps, items, registry, failed or {}, skipped)
         status = Status.REACHABLE
         if path is None:
             reasons.append(data_reason(model, registry))
+            reasons += [failure_reason(name, why) for _, (name, why) in sorted(skipped.items())]
 
     if reasons:
         return Compatibility(model.identifier, Status.INCOMPATIBLE, reasons=tuple(reasons))
@@ -68,6 +73,10 @@ def antibiotic_reasons(model, antibiotics):
     if antibiotics and not model.antibiotics & set(antibiotics):
         return ['This model predicts none of the selected antibiotics.']
     return []
+
+
+def failure_reason(step_name, why):
+    return f'{step_name} is not tried again: {why}.'
 
 
 def data_reason(model, registry):
@@ -105,13 +114,16 @@ class Path:
         return (len(self.steps), self.recomputed, self.jobs, tuple(step.step for step in self.steps))
 
 
-def shortest_preparation(model, steps, items, registry):
+def shortest_preparation(model, steps, items, registry, failed=None, skipped=None):
     """(path, model inputs) of the cheapest shortest path of steps that gives `model` its inputs,
     or (None, None) if there is none within MAX_STEPS.
 
     A step is only tried if its inputs are available and it produces some kind of data the path
     does not have yet; paths that end with the same kinds of data as a shorter one are dropped.
+    A step is not tried on a file it would fail on again (`failed`, see discover()); those steps
+    are added to `skipped` ({step identifier: (its name, why)}), if given.
     """
+    failed = failed or {}
     level = [Path(items=items)]
     seen = {frozenset(level[0].kinds())}
     for _ in range(MAX_STEPS):
@@ -120,6 +132,12 @@ def shortest_preparation(model, steps, items, registry):
             for step in steps:
                 inputs = assign(step.inputs, path.items, registry)
                 if inputs is None or step_adds_nothing(step, path):
+                    continue
+                why = next((failed[(step.identifier, source.file)] for _, source in inputs
+                            if (step.identifier, source.file) in failed), None)
+                if why is not None:
+                    if skipped is not None:
+                        skipped[step.identifier] = (step.name or step.identifier, why)
                     continue
                 longer = path.extend(step, inputs)
                 model_inputs = assign(model.inputs, longer.items, registry)

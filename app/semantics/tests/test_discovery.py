@@ -92,6 +92,20 @@ class DiscoveryTests(SimpleTestCase):
         self.assertEqual(self.steps(result), ['bakta_annotation', 'extract_bakta_json'])
         self.assertEqual(result.steps[0].inputs, (('assembly', Source('assembly', file='9')),))
 
+    def test_a_step_that_failed_for_good_on_a_file_is_not_planned_again(self):
+        failed = {('extract_bakta_json', '12'): 'it already failed (Error decoding JSON file.)'}
+        result = self.compatibility(sample(('12', 'annotation', ANNOTATION)), failed=failed)
+
+        self.assertEqual(result.status, Status.INCOMPATIBLE)
+        self.assertIn('Gene extraction · Bakta JSON is not tried again: it already failed (Error decoding JSON file.).',
+                      result.reasons)
+
+    def test_another_way_is_taken_around_a_step_that_failed_for_good(self):
+        failed = {('assembly_ont_annotated', '7'): 'it already failed (Bakta failed with code 1)'}
+        result = self.compatibility(sample(('7', 'reads', READS, NANOPORE)), failed=failed)
+
+        self.assertEqual(self.steps(result), ['assembly_ont', 'bakta_annotation', 'extract_bakta_json'])
+
     def test_illumina_reads_need_both_files(self):
         pair = sample(('7', 'r1', READS, ILLUMINA), ('8', 'r2', READS, ILLUMINA))
         result = self.compatibility(pair)
