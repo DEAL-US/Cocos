@@ -216,6 +216,7 @@ app/ai_models/<model_name>/
 │   ├── <antibiotic>.pt      # model weights per antibiotic
 │   └── ...
 ├── descriptor.ttl           # what the model supports (see below)
+├── quality.ttl              # optional: how well it works and on which data (see below)
 └── model_classes.py         # model definition & adapter
 ```
 
@@ -224,6 +225,12 @@ app/ai_models/<model_name>/
 - The descriptor declares the antibiotics the model predicts (`amrf:predictsResistanceTo` with ARO terms) and the organisms it was built for (`schema:taxonomicRange` with NCBITaxon terms; `obo:NCBITaxon_2`, Bacteria, means any organism). The organisms offered to users come from these declarations: the organism field of the upload forms only appears once some model declares specific organisms.
 - Weight files must be named after the ARO label of each declared antibiotic (e.g. `amikacin.pt` for `obo:ARO_0000013`). A model with a declared antibiotic without weights is not registered (reported by `python manage.py check`); weights for an undeclared antibiotic are ignored, with a warning.
 - The adapter registered with `@register_model("<model_name>")` uses the folder name, so its weights and descriptor are found.
+
+Three optional parts of the description make the predictions of a model easier to trust. They suit any kind of model, trained or rule-based, and the page of the model in the registry shows them:
+
+- **How it was built** (in `descriptor.ttl`, [PROV-O](https://www.w3.org/TR/prov-o/)): the data it was derived from (`prov:wasDerivedFrom`), with the dataset it is part of and its license, and how that data was prepared: an activity (`prov:wasGeneratedBy`) associated with the tools it used, as versioned `prov:SoftwareAgent`s that are `prov:specializationOf` their [bio.tools](https://bio.tools) entry, and the databases it used. This is the pattern of the provenance of a sample, so both can be compared (e.g. the version of Bakta that prepared the training data and the one that annotated a sample). For a rule-based tool, the data is its reference database.
+- **How well it works** (in `quality.ttl`, [DQV](https://www.w3.org/TR/vocab-dqv/)): `dqv:QualityMeasurement`s of a metric (a term such as STATO *F1 score* or NCIT *Sample Size*) with a `dqv:value`, what they are about (`obo:IAO_0000136`: an antibiotic of ARO and, optionally, organisms of NCBITaxon) and the data they were computed on (`dqv:computedOn`), so that a training set and a validation set are never confused. The measurements of different models are not comparable unless they were computed on the same data.
+- **The files it depends on** (in `descriptor.ttl`): `schema:hasPart` `schema:MediaObject`s with their path in the folder of the model (`schema:name`) and `schema:sha256`. Cocos does not register the model if one is missing or has changed.
 - The adapter must accept an `antibiotic` argument in `__init__` and implement `load()` and `predict(file)`, where `file` is the input the descriptor declares (today, a Bakta JSON `File` whose genes have been extracted). `predict` returns the probability of resistance.
 
 ```python
