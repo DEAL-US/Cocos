@@ -1,3 +1,6 @@
+import hashlib
+import tempfile
+from pathlib import Path
 from unittest import mock
 
 from django.test import SimpleTestCase
@@ -8,7 +11,7 @@ from core.steps import DataKind, Port
 from semantics.checks import check_rejected_plugins
 from semantics.registry.descriptors import load_descriptor, model_descriptor_path
 from semantics.namespaces import SCHEMA
-from semantics.registry.plugins import REJECTED_PLUGINS, DescriptorError, describe_model, describe_parser
+from semantics.registry.plugins import REJECTED_PLUGINS, DescriptorError, check_files, describe_model, describe_parser
 
 GENES = Port('genes', DataKind.GENE_SET, File.FileType.JSON)
 
@@ -66,3 +69,22 @@ class RejectedPluginsCheckTests(SimpleTestCase):
 
         self.assertEqual([(message.id, message.msg) for message in messages],
                          [('semantics.W001', 'The model broken was not registered: no descriptor')])
+
+
+class PluginFilesTests(SimpleTestCase):
+    def test_the_descriptor_declares_the_weights_of_each_antibiotic(self):
+        files = dict(describe_model('base_bakta_50').files)
+        self.assertEqual(set(files), {'weights/amikacin.pt', 'weights/cefotaxime.pt', 'weights/meropenem.pt'})
+        self.assertTrue(all(len(sha256) == 64 for sha256 in files.values()))
+
+    def test_a_file_must_be_there_and_be_the_one_declared(self):
+        with tempfile.TemporaryDirectory() as folder:
+            (Path(folder) / 'weights').mkdir()
+            (Path(folder) / 'weights' / 'amikacin.pt').write_bytes(b'WEIGHTS')
+            declared = hashlib.sha256(b'WEIGHTS').hexdigest()
+
+            check_files(folder, [('weights/amikacin.pt', declared)])  # the same file: no error
+            with self.assertRaisesRegex(DescriptorError, 'SHA-256 differs'):
+                check_files(folder, [('weights/amikacin.pt', hashlib.sha256(b'OTHER').hexdigest())])
+            with self.assertRaisesRegex(DescriptorError, 'not in'):
+                check_files(folder, [('weights/meropenem.pt', declared)])

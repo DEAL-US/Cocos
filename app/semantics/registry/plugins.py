@@ -6,13 +6,17 @@ and label of each parser. Labels of reused terms come from terms.ttl.
 
 Each descriptor is validated against the AMRF shapes when it is read. A plug-in whose descriptor
 is invalid is not registered: it is recorded in REJECTED_PLUGINS, which the system checks report.
+A descriptor can also declare the files the plug-in depends on (e.g. the weights of a model) with
+their SHA-256; a plug-in whose files are missing or changed is not registered either.
 """
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 
 from rdflib.namespace import RDFS
 
 from core.steps import Port
+from core.utils import sha256_of
 
 from .descriptors import load_descriptor, model_descriptor_path, model_iri, parser_descriptor_path
 from .mappings import file_type_of, kind_of
@@ -52,6 +56,7 @@ class ModelDescription:
     organisms: dict          # {'NCBITaxon:562': 'Escherichia coli'}
     antibiotics: tuple       # ARO labels, e.g. ('amikacin', 'meropenem')
     version: str = ''        # schema:softwareVersion
+    files: tuple = ()        # (path in the folder of the model, SHA-256) of the files it depends on
 
 
 @dataclass(frozen=True)
@@ -77,7 +82,20 @@ def describe_model(model_name):
         organisms={_curie(taxon): _label(taxon) for taxon in taxa if taxon != ANY_BACTERIA},
         antibiotics=tuple(sorted(_label(antibiotic) for antibiotic in antibiotics)),
         version=str(graph.value(resource, SCHEMA.softwareVersion) or ''),
+        files=tuple(sorted((str(graph.value(part, SCHEMA.name)), str(graph.value(part, SCHEMA.sha256)))
+                           for part in graph.objects(resource, SCHEMA.hasPart))),
     )
+
+
+def check_files(folder, files):
+    """Raise DescriptorError if a file a plug-in depends on ((path, SHA-256), see ModelDescription)
+    is not in `folder` or is not the one its descriptor declares."""
+    for path, sha256 in files:
+        file = Path(folder) / path
+        if not file.is_file():
+            raise DescriptorError(f'it declares {path}, which is not in {folder}')
+        if sha256_of(file) != sha256:
+            raise DescriptorError(f'{path} is not the file its descriptor declares (its SHA-256 differs)')
 
 
 def describe_parser(parser_name):

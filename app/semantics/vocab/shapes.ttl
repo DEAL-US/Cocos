@@ -304,3 +304,16 @@ amrfsh:QualityMeasurementShape
         sh:path obo:IAO_0000136 ; sh:nodeKind sh:IRI ;
         sh:message "What a measurement is about (obo:IAO_0000136, e.g. an antibiotic of ARO or an organism of NCBITaxon) are terms."@en ;
     ] .
+
+# --- Files a plug-in depends on (schema:hasPart of a model: e.g. its weights), optional
+
+amrfsh:PluginFileShape
+    a sh:NodeShape ;
+    sh:targetClass schema:MediaObject ;
+    sh:property [
+        sh:path schema:name ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A file of a plug-in needs exactly one schema:name, its path in the folder of the plug-in."@en ;
+    ] , [
+        sh:path schema:sha256 ; sh:minCount 1 ; sh:maxCount 1 ; sh:pattern "^[0-9a-f]{64}$" ;
+        sh:message "A file of a plug-in needs exactly one schema:sha256: 64 lowercase hexadecimal digits."@en ;
+    ] .

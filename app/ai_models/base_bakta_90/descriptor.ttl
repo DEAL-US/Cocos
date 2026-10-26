@@ -78,3 +78,27 @@
     a prov:Entity ;
     rdfs:label "Bakta database (full)" ;
     schema:name "Bakta database" .
+
+# The files the model depends on: its weights for each antibiotic, with their SHA-256. Cocos does not
+# register the model if one is missing or is not this file.
+
+<https://w3id.org/cocos/model/base_bakta_90>
+    schema:hasPart <https://w3id.org/cocos/model/base_bakta_90#weights-amikacin> , <https://w3id.org/cocos/model/base_bakta_90#weights-cefotaxime> , <https://w3id.org/cocos/model/base_bakta_90#weights-gentamicin> .
+
+<https://w3id.org/cocos/model/base_bakta_90#weights-amikacin>
+    a schema:MediaObject ;
+    schema:name "weights/amikacin.pt" ;
+    schema:sha256 "50a26f0e4951c18a48edb873cfa063704c7f69bf9d845b74bdce1394f5b1580e" ;
+    obo:IAO_0000136 obo:ARO_0000013 .
+
+<https://w3id.org/cocos/model/base_bakta_90#weights-cefotaxime>
+    a schema:MediaObject ;
+    schema:name "weights/cefotaxime.pt" ;
+    schema:sha256 "11cff160ba7160e8c2d4f5ce02ff7e48f1f1ea305589984fbfc3cb26548c2326" ;
+    obo:IAO_0000136 obo:ARO_3000645 .
+
+<https://w3id.org/cocos/model/base_bakta_90#weights-gentamicin>
+    a schema:MediaObject ;
+    schema:name "weights/gentamicin.pt" ;
+    schema:sha256 "a8d1726e7904b6cef16e3b7da3031354076addabba90aa2c0c785a1cc0c4d1e0" ;
+    obo:IAO_0000136 obo:ARO_3007382 .
