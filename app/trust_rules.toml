@@ -109,12 +109,12 @@ for = "The weights used for {antibiotic} are the ones the model declares (same S
 different = "The weights used for {antibiotic} are not the ones the model declares."
 
 
-# 8. Whether Cocos knows how the annotation of the input was made: it did not if the user
-#    uploaded it.
+# 8. Whether Cocos knows which software annotated the input: it does not if the user uploaded the
+#    annotation (or if Cocos made it before it recorded the software of its steps).
 [rules.annotation_origin]
 enabled = true
 unknown = "caution"
 
 [rules.annotation_origin.text]
 for = "Cocos annotated the input itself, so it knows which software it used."
-unknown = "The annotation of the input was uploaded, so Cocos does not know which software made it."
+unknown = "Cocos does not know which software annotated the input, so it cannot compare it with the data of the model."
