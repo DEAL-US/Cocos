@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,11 +26,22 @@ load_dotenv(BASE_DIR.parent / '.env')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "'django-insecure-i(xqw0arcz3cc*ugzbva$skfnuo5dr(wusz$0ryw^v^(zf7u1k'")
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DJANGO_DEBUG", "0") == "1"
+
+
+def required_in_production(name, development_default):
+    """The value of an environment variable. In production it has no default: a missing one stops Django."""
+    value = os.getenv(name)
+    if value:
+        return value
+    if not DEBUG:
+        raise ImproperlyConfigured(f'{name} must be set in production (see .env.prod.example).')
+    return development_default
+
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = required_in_production("DJANGO_SECRET_KEY", "django-insecure-development-only-key")
 
 ALLOWED_HOSTS = os.getenv(
     "DJANGO_ALLOWED_HOSTS",
@@ -103,7 +115,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'tfg'),
         'USER': os.getenv('DB_USER', 'tfg'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'tfg_password'),
+        'PASSWORD': required_in_production('DB_PASSWORD', 'cocos_database_password'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
         'CONN_MAX_AGE': int(os.getenv('DB_CONN_MAX_AGE', '60')),
