@@ -116,6 +116,12 @@
     min-width: 52px;
 }
 
+.prediction-trust-badge {
+    margin-top: 2px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
 .prediction-value {
     font-size: 13px;
     font-weight: 500;

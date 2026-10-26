@@ -288,6 +288,20 @@
   {% include 'prediction/matrix.html' %}
 </template>
 
+{# The evidence of the trust of a result of the matrix, filled by prediction-matrix.js #}
+<dialog id="trust-dialog" class="modal">
+  <div class="modal-box">
+    <h3 class="text-lg font-semibold trust-dialog-title"></h3>
+    <p class="text-sm font-medium trust-dialog-subject"></p>
+    <p class="text-sm text-base-content/70 mt-1">Cocos computes it from how the data of this sample was obtained and from what the model declares about its data and how well it works. The worst evidence decides the level.</p>
+    <ul class="trust-dialog-evidence mt-4 space-y-2 text-sm"></ul>
+    <div class="modal-action">
+      <form method="dialog"><button class="btn">Close</button></form>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>Close</button></form>
+</dialog>
+
 <script src="{% static 'js/prediction/prediction-matrix.js' %}"></script>
 <script src="{% static 'js/conversion/process-status.js' %}"></script>
 

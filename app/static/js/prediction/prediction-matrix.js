@@ -1,6 +1,13 @@
 const LOW_THRESHOLD = 0.35;
 const HIGH_THRESHOLD = 0.65;
 
+// How each judgement of the trust of a prediction is shown (see trust_rules.toml)
+const TRUST_STYLES = {
+  for: { badge: 'badge-success', icon: 'bi-check-circle', text: 'text-success' },
+  caution: { badge: 'badge-warning', icon: 'bi-exclamation-triangle', text: 'text-warning' },
+  serious: { badge: 'badge-error', icon: 'bi-x-octagon', text: 'text-error' },
+};
+
 
 function initializeMatrix(container) {
   const lowThresholdElement = container.querySelector('.prediction-low-threshold');
@@ -70,8 +77,9 @@ function renderRows(body, matrix) {
 
     row.appendChild(antibioticCell);
 
-    values.forEach(value => {
-      row.appendChild(createPredictionCell(value));
+    values.forEach((value, column) => {
+      const trust = matrix.trust?.[index]?.[column];
+      row.appendChild(createPredictionCell(value, trust, matrix.models[column], antibiotic));
     });
 
     row.appendChild(createAverageCell(values));
@@ -81,7 +89,7 @@ function renderRows(body, matrix) {
 }
 
 
-function createPredictionCell(value) {
+function createPredictionCell(value, trust, model, antibiotic) {
   const cell = document.createElement('td');
   cell.className = 'prediction-cell';
 
@@ -121,9 +129,56 @@ function createPredictionCell(value) {
   bar.appendChild(fill);
 
   content.append(valueElement, bar);
+  if (trust) {
+    content.appendChild(createTrustBadge(trust, model, antibiotic));
+  }
   cell.appendChild(content);
 
   return cell;
+}
+
+
+function createTrustBadge(trust, model, antibiotic) {
+  const badge = document.createElement('button');
+  badge.type = 'button';
+  badge.className = `badge badge-sm badge-soft ${TRUST_STYLES[trust.judgement].badge} prediction-trust-badge`;
+  badge.textContent = `Trust: ${trust.level}`;
+  badge.title = 'Why? See the evidence';
+  badge.addEventListener('click', () => openTrustDialog(trust, model, antibiotic));
+  return badge;
+}
+
+
+function openTrustDialog(trust, model, antibiotic) {
+  const dialog = document.getElementById('trust-dialog');
+
+  if (!dialog) {
+    return;
+  }
+
+  dialog.querySelector('.trust-dialog-title').textContent = `Trust: ${trust.level}`;
+  dialog.querySelector('.trust-dialog-subject').textContent = `${model} · ${antibiotic}`;
+
+  const list = dialog.querySelector('.trust-dialog-evidence');
+  list.innerHTML = '';
+
+  trust.evidence.forEach(item => {
+    const style = TRUST_STYLES[item.judgement];
+
+    const entry = document.createElement('li');
+    entry.className = 'flex items-start gap-2';
+
+    const icon = document.createElement('i');
+    icon.className = `bi ${style.icon} ${style.text} mt-0.5`;
+
+    const text = document.createElement('span');
+    text.textContent = item.text;
+
+    entry.append(icon, text);
+    list.appendChild(entry);
+  });
+
+  dialog.showModal();
 }
 
 
