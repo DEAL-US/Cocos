@@ -96,16 +96,28 @@ def describe_step(step):
 def prediction_trust(process, runs):
     """{run id: {model: {antibiotic: trust}}} of the results of the prediction `runs` of `process`
     (see semantics.trust); empty if the trust rules have mistakes."""
+    sample = URIRef(f'urn:cocos:process:{process.pk}')
+    graph = sample_graph(process, str(sample), with_provenance=True)
+    trust = {}
+    for task, model_name, antibiotic, _, result in assess_predictions(process, graph, sample, runs):
+        trust.setdefault(task.run_id, {}).setdefault(model_name, {})[antibiotic] = result
+    return trust
+
+
+def assess_predictions(process, graph, sample, runs=None):
+    """(task, model name, antibiotic, its ARO term or None, trust) for each result of the completed
+    predictions of `process` (of `runs`, if given). `graph` is the RDF of the process with its
+    provenance, whose IRI is `sample`. Nothing if the trust rules have mistakes."""
     try:
         rules = load_rules()
     except RulesError:
         logger.exception('The trust rules have mistakes; predictions are shown without their trust')
-        return {}
+        return []
     registry = registry_graph()
-    sample = URIRef(f'urn:cocos:process:{process.pk}')
-    graph = sample_graph(process, str(sample), with_provenance=True)
-    trust = {}
-    tasks = PredictionTask.objects.filter(process=process, run__in=runs, status=TaskStatus.COMPLETED).order_by('id')
+    tasks = PredictionTask.objects.filter(process=process, status=TaskStatus.COMPLETED).order_by('id')
+    if runs is not None:
+        tasks = tasks.filter(run__in=runs)
+    assessed = []
     for task in tasks:
         try:
             model_name = task.get_step().model_name
@@ -117,8 +129,8 @@ def prediction_trust(process, runs):
                 continue
             term = antibiotic_iri(registry, model, antibiotic)
             facts = evidence(registry, graph, sample, task_iri(sample, task), model, term)
-            trust.setdefault(task.run_id, {}).setdefault(model_name, {})[antibiotic] = assess(registry, facts, antibiotic, rules)
-    return trust
+            assessed.append((task, model_name, antibiotic, term, assess(registry, facts, antibiotic, rules)))
+    return assessed
 
 
 # --- Starting a prediction
