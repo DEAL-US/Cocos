@@ -56,7 +56,7 @@
 <https://w3id.org/cocos/model/base_bakta_50#training-data>
     a prov:Entity ;
     schema:name "BAKTA50 feature matrix of the NDARO isolates"@en ;
-    schema:description "Presence or absence, in the isolates of NCBI NDARO exported in January 2025, of the 20,407 UniRef50 clusters that Bakta found in at least 500 isolates, with their antimicrobial susceptibility."@en ;
+    schema:description "Presence or absence, in the assemblies of the NCBI NDARO isolates (exported in January 2025) annotated with Bakta, of the 20,407 UniRef50 clusters found in at least 500 isolates, with their antimicrobial susceptibility."@en ;
     schema:isPartOf <https://doi.org/10.6019/S-BSST2698> ;
     schema:license <https://creativecommons.org/publicdomain/zero/1.0/> ;
     prov:wasGeneratedBy <https://w3id.org/cocos/model/base_bakta_50#annotation> .
