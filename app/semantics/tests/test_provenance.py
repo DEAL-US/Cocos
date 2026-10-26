@@ -62,6 +62,7 @@ class ProvenanceTests(ConversionFlowMixin, TestCase):
         assembly = self.activity(0)
 
         self.assertEqual(graph.value(assembly, SCHEMA.actionStatus), SCHEMA.FailedActionStatus)
+        self.assertEqual(graph.value(assembly, SCHEMA.error), Literal('Annotation failed: Command failed: bakta'))
         self.assertIn((assembly, PROV.used, self.entry(graph, 'reads')), graph)
         self.assertEqual(list(graph.subjects(PROV.wasGeneratedBy, assembly)), [])
 

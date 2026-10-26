@@ -1,9 +1,9 @@
 """Provenance of a sample (PROV-O): what was done with its data, when, and by what.
 
 It is added to the RDF description of the sample (semantics.sample). Each task of the process is a
-prov:Activity: its status (schema:actionStatus, also for tasks that failed or have not run yet),
-when it started and ended, the data of the sample it used and generated, and the step or model of
-the registry it ran. The user is a single anonymous prov:Person per sample: the provenance says
+prov:Activity: its status (schema:actionStatus, also for tasks that failed or have not run yet,
+with the error of those that failed, schema:error), when it started and ended, the data of the
+sample it used and generated, and the step or model of the registry it ran. The user is a single anonymous prov:Person per sample: the provenance says
 that a user of this Cocos instance uploaded the files and asked for the steps, not who.
 
 The software a task used (Task.software) is described too: tools and models are versioned
@@ -62,6 +62,8 @@ def add_provenance(graph, process, sample, entries):
             graph.add((activity, PROV.startedAtTime, Literal(task.started_at, datatype=XSD.dateTime)))
         if task.finished_at:
             graph.add((activity, PROV.endedAtTime, Literal(task.finished_at, datatype=XSD.dateTime)))
+        if task.status == TaskStatus.FAILED and task.error:
+            graph.add((activity, SCHEMA.error, Literal(task.error)))
         if task.plan_node:
             graph.add((activity, PPLAN.correspondsToStep, plan_step_iri(sample, task.plan_node)))
         for entry in task.software:
