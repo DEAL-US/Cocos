@@ -30,6 +30,11 @@ class DescribeModelTests(SimpleTestCase):
     def test_reads_the_version_of_the_model(self):
         self.assertEqual(describe_model('base_bakta_50').version, '1.0.0')
 
+    def test_reads_the_organisms_its_data_is_about(self):
+        organisms = describe_model('base_bakta_50').data_organisms
+        self.assertEqual(organisms['NCBITaxon:28901'], 'Salmonella enterica')
+        self.assertNotIn('NCBITaxon:2', organisms)  # Bacteria means any organism, not data about it
+
     def test_a_term_without_label_asks_to_fetch_the_terms(self):
         with mock.patch('semantics.registry.plugins.terms_graph', return_value=Graph()):
             with self.assertRaisesRegex(DescriptorError, 'fetch_terms'):

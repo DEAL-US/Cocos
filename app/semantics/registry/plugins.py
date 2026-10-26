@@ -10,7 +10,7 @@ A descriptor can also declare the files the plug-in depends on (e.g. the weights
 their SHA-256; a plug-in whose files are missing or changed is not registered either.
 """
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from rdflib.namespace import RDFS
@@ -20,7 +20,7 @@ from core.utils import sha256_of
 
 from .descriptors import load_descriptor, model_descriptor_path, model_iri, parser_descriptor_path
 from .mappings import file_type_of, kind_of
-from ..namespaces import AMRF, BSC, COCOS, OBO, SCHEMA
+from ..namespaces import AMRF, BSC, COCOS, DQV, OBO, SCHEMA
 from .terms import terms_graph
 from ..validation import validate, violations
 
@@ -57,6 +57,8 @@ class ModelDescription:
     antibiotics: tuple       # ARO labels, e.g. ('amikacin', 'meropenem')
     version: str = ''        # schema:softwareVersion
     files: tuple = ()        # (path in the folder of the model, SHA-256) of the files it depends on
+    # Organisms its data has measurements about (quality.ttl), e.g. the species it was trained on
+    data_organisms: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -84,7 +86,17 @@ def describe_model(model_name):
         version=str(graph.value(resource, SCHEMA.softwareVersion) or ''),
         files=tuple(sorted((str(graph.value(part, SCHEMA.name)), str(graph.value(part, SCHEMA.sha256)))
                            for part in graph.objects(resource, SCHEMA.hasPart))),
+        data_organisms={_curie(taxon): _label(taxon) for taxon in _measured_taxa(graph, resource)},
     )
+
+
+def _measured_taxa(graph, resource):
+    """The organisms (NCBITaxon, but Bacteria) the measurements of `resource` are about."""
+    taxa = set()
+    for measurement in graph.objects(resource, DQV.hasQualityMeasurement):
+        taxa |= {term for term in graph.objects(measurement, OBO.IAO_0000136)
+                 if str(term).startswith(str(OBO) + 'NCBITaxon_') and term != ANY_BACTERIA}
+    return taxa
 
 
 def check_files(folder, files):

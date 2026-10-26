@@ -21,7 +21,7 @@ def _extraction_node(node_id, after, complete_version):
 
 
 def _check_organism(organism):
-    """The organism of a new process: blank (other / unknown) or one offered by the prediction models."""
+    """The organism of a new process: blank (other / unknown) or one Cocos knows (list_all_organisms)."""
     if organism and organism not in dict(list_all_organisms()):
         raise ValueError('Unknown organism.')
     return organism

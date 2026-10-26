@@ -317,7 +317,7 @@ def build_process_status_context(process, page=1):
         'process_name': process.name,
         'process_id': process.id,
         'organism': process.organism,
-        # The organism can only be chosen once some model declares specific organisms.
+        # The organisms Cocos knows something about (declared by the models, or in their data).
         'organism_options': list_all_organisms(),
         'process_kind': process_kind,
         'pipeline_badges': pipeline_badges,
@@ -391,7 +391,7 @@ def rename_process(process, new_name):
     process.save(update_fields=["name"])
 
 def set_process_organism(process, organism):
-    """Set the organism of a process: blank (other / unknown) or one the prediction models declare.
+    """Set the organism of a process: blank (other / unknown) or one Cocos knows (list_all_organisms).
 
     Earlier predictions keep their results; what can run on the sample is decided with the new one.
     """

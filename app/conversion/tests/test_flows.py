@@ -670,7 +670,8 @@ TUBERCULOSIS = ('NCBITaxon:1773', 'Mycobacterium tuberculosis')
 
 
 class OrganismTests(ConversionFlowMixin, TestCase):
-    """New processes store the organism chosen among those the prediction models declare."""
+    """New processes store the organism chosen among those Cocos knows: declared by the models, or in
+    their data (e.g. the species they were trained on)."""
 
     def setUp(self):
         super().setUp()
@@ -687,9 +688,10 @@ class OrganismTests(ConversionFlowMixin, TestCase):
     def upload_pages(self):
         return [self.client.get(reverse(name)) for name in ('conversion:assembly_ui', 'conversion:annotation_ui')]
 
-    def test_field_is_hidden_while_every_model_supports_any_organism(self):
+    def test_the_field_offers_the_species_the_models_were_trained_on_and_is_optional(self):
         for page in self.upload_pages():
-            self.assertNotContains(page, 'name="organism"')
+            self.assertContains(page, '<option value="NCBITaxon:28901">Salmonella enterica</option>', html=True)
+            self.assertContains(page, '<option value="">Other / unknown</option>', html=True)
 
         with FakeBioService():
             self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
@@ -722,8 +724,6 @@ class OrganismTests(ConversionFlowMixin, TestCase):
     def test_the_organism_of_a_sample_can_be_set_and_changed_later(self):
         process = self.upload_json()
         page = reverse('conversion:process_status', args=[process.id])
-        self.assertNotContains(self.client.get(page), 'id="organism"')
-
         self.declare_tuberculosis_model()
         self.assertContains(self.client.get(page), 'id="organism"')
         set_organism = reverse('conversion:set_organism', args=[process.id])
@@ -731,7 +731,7 @@ class OrganismTests(ConversionFlowMixin, TestCase):
         process.refresh_from_db()
         self.assertEqual(process.organism, TUBERCULOSIS[0])
 
-        self.client.post(set_organism, data={'organism': 'NCBITaxon:562'})  # not offered by any model
+        self.client.post(set_organism, data={'organism': 'NCBITaxon:9606'})  # Homo sapiens: no model knows it
         process.refresh_from_db()
         self.assertEqual(process.organism, TUBERCULOSIS[0])
 
@@ -752,7 +752,7 @@ class OrganismTests(ConversionFlowMixin, TestCase):
         self.declare_tuberculosis_model()
         with FakeBioService():
             self.client.post(reverse('conversion:annotation_from_json'),
-                             data={'feature_file': bakta_json(), 'organism': 'NCBITaxon:562'})
+                             data={'feature_file': bakta_json(), 'organism': 'NCBITaxon:9606'})
         self.assertFalse(ProcessGroup.objects.exists())
         self.assertFalse(File.objects.exists())
 

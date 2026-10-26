@@ -36,6 +36,10 @@ MODEL_VERSIONS = {
     # 'model_name': '1.0.0', from the descriptor
 }
 
+MODEL_DATA_ORGANISMS = {
+    # 'model_name': {'NCBITaxon:28901': 'Salmonella enterica', ...}: organisms its data has measurements about
+}
+
 def _validate_adapter_init(cls) -> None:
     try:
         sig = inspect.signature(cls.__init__)
@@ -71,6 +75,7 @@ def register_model(name: str = None):
         MODEL_ORGANISMS[key] = ANY_ORGANISM if description.any_organism else description.organisms
         MODEL_PORTS[key] = (description.inputs, description.outputs)
         MODEL_VERSIONS[key] = description.version
+        MODEL_DATA_ORGANISMS[key] = description.data_organisms
         return cls
     return _decorator
 
@@ -102,11 +107,15 @@ def get_model_supported_organisms(name: str):
     return organisms if organisms is ANY_ORGANISM else dict(organisms)
 
 def list_all_organisms():
-    """Return (CURIE, name) pairs of the organisms some model specifically supports, sorted by name."""
+    """Return (CURIE, name) pairs of the organisms Cocos knows something about, sorted by name: those
+    some model specifically supports, and those the data of some model (e.g. its training data) has
+    measurements about. Their hierarchy is in terms.ttl."""
     organisms = {}
     for model_organisms in MODEL_ORGANISMS.values():
         if model_organisms is not ANY_ORGANISM:
             organisms.update(model_organisms)
+    for data_organisms in MODEL_DATA_ORGANISMS.values():
+        organisms.update(data_organisms)
     return sorted(organisms.items(), key=lambda item: item[1])
 
 def list_all_antibiotics():

@@ -1,17 +1,15 @@
 {% comment %}
-  Organism of a new process. Only shown when some prediction model declares specific organisms.
-  Expects `organism_options` ((CURIE, name) pairs) and `field_id`.
+  Organism of a new process: one of those Cocos knows something about (declared by the models, or in
+  their data), or other / unknown. Expects `organism_options` ((CURIE, name) pairs) and `field_id`.
 {% endcomment %}
-{% if organism_options %}
-  <fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4">
-    <legend class="fieldset-legend text-base font-semibold">Organism</legend>
-    <p class="text-sm opacity-70 mb-3">{{ help|default:"The organism of the sample, used to find the prediction models built for it." }}</p>
+<fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4">
+  <legend class="fieldset-legend text-base font-semibold">Organism</legend>
+  <p class="text-sm opacity-70 mb-3">{{ help|default:"The organism of the sample: Cocos uses it to find the models built for it and to tell how much data they had about it. Leave it as Other / unknown if it is not in the list." }}</p>
 
-    <select id="{{ field_id }}" name="organism" class="select w-full bg-base-100">
-      <option value="">Other / unknown</option>
-      {% for curie, name in organism_options %}
-        <option value="{{ curie }}">{{ name }}</option>
-      {% endfor %}
-    </select>
-  </fieldset>
-{% endif %}
+  <select id="{{ field_id }}" name="organism" class="select w-full bg-base-100">
+    <option value="">Other / unknown</option>
+    {% for curie, name in organism_options %}
+      <option value="{{ curie }}">{{ name }}</option>
+    {% endfor %}
+  </select>
+</fieldset>

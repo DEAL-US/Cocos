@@ -45,25 +45,23 @@
         </div>
       </form>
 
-      {% if organism_options %}
-        <form id="organism" method="post" action="{% url 'conversion:set_organism' process_id=process_id %}" class="mt-4 max-w-2xl process-name-form">
-          {% csrf_token %}
-          <label class="label py-1"><span class="label-text font-semibold">Organism</span></label>
-          <div class="process-name-row">
-            <select name="organism" class="select select-bordered w-full">
-              <option value="">Other / unknown</option>
-              {% for curie, name in organism_options %}
-                <option value="{{ curie }}"{% if curie == organism %} selected{% endif %}>{{ name }}</option>
-              {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-floppy"></i>
-              Save
-            </button>
-          </div>
-          <p class="text-xs text-base-content/70 mt-1">Some prediction models only work for specific organisms.</p>
-        </form>
-      {% endif %}
+      <form id="organism" method="post" action="{% url 'conversion:set_organism' process_id=process_id %}" class="mt-4 max-w-2xl process-name-form">
+        {% csrf_token %}
+        <label class="label py-1"><span class="label-text font-semibold">Organism</span></label>
+        <div class="process-name-row">
+          <select name="organism" class="select select-bordered w-full">
+            <option value="">Other / unknown</option>
+            {% for curie, name in organism_options %}
+              <option value="{{ curie }}"{% if curie == organism %} selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-floppy"></i>
+            Save
+          </button>
+        </div>
+        <p class="text-xs text-base-content/70 mt-1">The organism of the sample: Cocos uses it to find the models built for it and to tell how much data they had about it. Leave it as Other / unknown if it is not in the list.</p>
+      </form>
 
       <div class="mt-3 text-sm text-base-content/70">
         <p>Created {{ created_at|timesince }} ago</p>
