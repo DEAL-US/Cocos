@@ -49,9 +49,13 @@ class FakeBioService:
       end in 'assembled', auto-annotated assemblies and annotations end in 'annotated'.
     - `missing_jobs`: GET /jobs/<id> answers 404.
     - `annotation_payload`: Bakta JSON returned by annotation downloads (defaults to the small fixture).
+    - `error_kind`: why failed jobs failed ('input', 'resources', 'internal'; None: not said, like
+      older services).
     """
 
-    def __init__(self, start_behavior='ok', status_sequence=None, missing_jobs=False, annotation_payload=None):
+    def __init__(self, start_behavior='ok', status_sequence=None, missing_jobs=False, annotation_payload=None,
+                 error_kind='input'):
+        self.error_kind = error_kind
         self.annotation_payload = BAKTA_JSON if annotation_payload is None else annotation_payload
         self.start_behavior = start_behavior
         self.status_sequence = status_sequence
@@ -131,7 +135,12 @@ class FakeBioService:
         if self.missing_jobs or not job:
             return (404, {}, json.dumps({'detail': 'Job not found'}))
         job['status'] = job['sequence'].pop(0) if len(job['sequence']) > 1 else job['sequence'][0]
-        return (200, {}, json.dumps({'job_id': job_id, 'status': job['status'], 'software': job['software']}))
+        body = {'job_id': job_id, 'status': job['status'], 'software': job['software']}
+        if job['status'] == 'failed':
+            body['message'] = 'Annotation failed: Command failed: bakta'
+            if self.error_kind is not None:
+                body['error_kind'] = self.error_kind
+        return (200, {}, json.dumps(body))
 
     def _download_assembly(self, request):
         job_id = urlparse(request.url).path.split('/')[-2]

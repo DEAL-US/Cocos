@@ -46,6 +46,13 @@ class BioServiceStep(ExternalStep):
     def job_status(self, job_id):
         return client.get_job_status(job_id)
 
+    def job_failure(self, job_id):
+        try:
+            return client.get_job_failure(job_id)
+        except (requests.RequestException, ValueError):
+            logger.warning('The bio service did not say why job %s failed', job_id)
+            return super().job_failure(job_id)
+
     def software(self, task):
         # Asked once, when the task finishes: what the job used, as the bio service recorded it.
         return client.get_job_software(task.external_job_id) if task.external_job_id else []

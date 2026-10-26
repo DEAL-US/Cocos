@@ -17,7 +17,7 @@ from django.urls import reverse
 
 from bioservice.steps import TOOLS_CACHE_KEY
 from conversion.models import ConversionTask
-from core.models import File, FileGene, ProcessGroup, TaskStatus
+from core.models import Failure, File, FileGene, ProcessGroup, TaskStatus
 from core.testing import ASSEMBLY_FASTA, BAKTA_JSON, FakeBioService, FlowTestMixin
 from notifications.models import TaskNotification
 from prediction.adapters.registry import MODEL_ORGANISMS
@@ -332,6 +332,41 @@ class BioServiceProblemsTests(ConversionFlowMixin, TestCase):
         process = self.latest_process()
         self.assertIn(TaskStatus.FAILED, {task.status for task in self.process_tasks(process)})
         self.assertIn(TaskNotification.EVENT_FAILED, self.events(process))
+
+
+class FailureKindTests(ConversionFlowMixin, TestCase):
+    """Each failed task keeps its error and whether running it again would fail again."""
+
+    def failed_task(self):
+        return self.process_tasks(self.latest_process()).get(status=TaskStatus.FAILED)
+
+    def test_a_step_of_cocos_that_cannot_read_its_input_fails_for_good(self):
+        bad = SimpleUploadedFile('bad.json', b'{not json', content_type='application/json')
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bad})
+
+        task = self.failed_task()
+        self.assertEqual(task.failure, Failure.PERMANENT)
+        self.assertEqual(task.error, 'Error decoding JSON file.')
+
+    def test_a_job_whose_tool_failed_on_its_input_fails_for_good(self):
+        with FakeBioService(status_sequence=['failed'], error_kind='input'):
+            self.run_assembly('ont')
+
+        task = self.failed_task()
+        self.assertEqual(task.failure, Failure.PERMANENT)
+        self.assertEqual(task.error, 'Annotation failed: Command failed: bakta')
+        self.assertIn(TaskNotification.EVENT_FAILED, self.events(self.latest_process()))
+
+    def test_other_failures_of_jobs_may_work_later(self):
+        cases = {'out of time or memory': {'status_sequence': ['failed'], 'error_kind': 'resources'},
+                 'a service that does not say': {'status_sequence': ['failed'], 'error_kind': None},
+                 'a lost job': {'missing_jobs': True}}
+        for label, options in cases.items():
+            with self.subTest(label):
+                with FakeBioService(**options):
+                    self.run_assembly('ont')
+                self.assertEqual(self.failed_task().failure, Failure.TRANSIENT)
 
 
 class ProcessContractMixin(ConversionFlowMixin):

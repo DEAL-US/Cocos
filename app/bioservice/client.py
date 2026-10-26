@@ -20,6 +20,15 @@ def get_tools():
     response.raise_for_status()
     return response.json()
 
+def get_job_failure(job_id):
+    """(error, permanent) of a failed job: its message, and whether a tool failed on its input
+    (error_kind 'input'), so that running it again would fail again. Out of time or memory
+    ('resources'), something internal, or an older service that does not say, are not permanent."""
+    response = requests.get(f"{BASE}/jobs/{job_id}", timeout=30)
+    response.raise_for_status()
+    job = response.json()
+    return job.get("message") or "External job failed", job.get("error_kind") == "input"
+
 def get_job_software(job_id):
     """The tools and databases a job used, as the bio service reports them ([] if it does not know the job)."""
     response = requests.get(f"{BASE}/jobs/{job_id}", timeout=30)

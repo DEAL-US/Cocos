@@ -161,6 +161,10 @@ class ExternalStep(Step):
         """Download the job results and store them as the task outputs."""
         raise NotImplementedError
 
+    def job_failure(self, job_id):
+        """(error, permanent) of a failed job: why it failed, and whether it would fail again."""
+        return 'External job failed', False
+
     def task_status(self, external_status):
         """Map a status reported by the service to the TaskStatus of a task of this step.
 

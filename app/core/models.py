@@ -17,6 +17,11 @@ class TaskStatus(models.TextChoices):
     COMPLETED = 'completed', 'Completed'
     FAILED = 'failed', 'Failed'
 
+class Failure(models.TextChoices):
+    """Whether running a failed task again could work."""
+    PERMANENT = 'permanent', 'Permanent'  # it would fail again with the same input and software
+    TRANSIENT = 'transient', 'Transient'  # it may work later (e.g. the bio service was down)
+
 class Task(models.Model):
     """Base task shared by conversion and prediction tasks (multi-table inheritance).
 
@@ -38,6 +43,9 @@ class Task(models.Model):
     # The software the task used, recorded when it finishes: Cocos and what its step reports
     # (Step.software), e.g. [{"name": "Bakta", "version": "1.12.1", "type": "tool", "biotools": "bakta"}].
     software = models.JSONField(default=list, blank=True)
+    # Why the task failed, if it did: the error, and whether running it again could work.
+    error = models.TextField(blank=True)
+    failure = models.CharField(max_length=20, choices=Failure.choices, blank=True)
 
     inputs = models.ManyToManyField('File', through='TaskInput', related_name='consumed_by_tasks', blank=True)
     outputs = models.ManyToManyField('File', through='TaskOutput', related_name='produced_by_tasks', blank=True)

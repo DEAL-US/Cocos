@@ -7,7 +7,7 @@ from django.utils import timezone
 
 # Module import: core.orchestration imports this module to launch tasks.
 from core import orchestration
-from core.models import Task, TaskStatus
+from core.models import Failure, Task, TaskStatus
 from core.steps import Busy, StepError, cocos_software, get_step
 from notifications.services import (
     notify_user_conversion_complete,
@@ -114,12 +114,16 @@ def complete_task(task):
         orchestration.advance_plan(task.process)
 
 
-def fail_task(task, message):
-    logger.error("Task %s (%s) failed: %s", task.id, task.step, message)
+def fail_task(task, message, permanent=False, error=None):
+    """Mark `task` as failed and tell the user `message`. `error` (by default, the message) is
+    kept with the task, and `permanent` says that running it again would fail again."""
+    logger.error("Task %s (%s) failed: %s", task.id, task.step, error or message)
     task.status = TaskStatus.FAILED
     task.finished_at = timezone.now()
+    task.error = error or message
+    task.failure = Failure.PERMANENT if permanent else Failure.TRANSIENT
     record_software(task)
-    task.save(update_fields=['status', 'finished_at', 'software', 'updated_at'])
+    task.save(update_fields=['status', 'finished_at', 'error', 'failure', 'software', 'updated_at'])
     if task.plan_node and orchestration.is_soft_failure(task, orchestration.find_node(task.process, task.plan_node)):
         notify_user_conversion_warning(task.process.user, task, EXTRACTION_WARNING)
         _notify_if_batch_done(task)
@@ -157,7 +161,7 @@ def run_step(self, task_id):
         try:
             step.process(task)
         except StepError as error:
-            fail_task(task, str(error))
+            fail_task(task, str(error), permanent=True)
         except Exception:
             logger.exception("Unexpected error running task %s (%s)", task.id, task.step)
             fail_task(task, f"Unexpected error in {step.label}. Try again later.")
@@ -198,7 +202,8 @@ def poll_step(self, task_id):
     status = step.task_status(external_status)
 
     if status == TaskStatus.FAILED:
-        fail_task(task, "External job failed")
+        error, permanent = step.job_failure(task.external_job_id)
+        fail_task(task, "External job failed", permanent=permanent, error=error)
         return
 
     if status == TaskStatus.COMPLETED:
