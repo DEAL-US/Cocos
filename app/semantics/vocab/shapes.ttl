@@ -229,9 +229,11 @@ amrfsh:DataEntryShape
 
 # --- Provenance of a sample (PROV-O and P-Plan; see semantics.provenance)
 
+# The tasks of Cocos: activities with a status. Other activities (e.g. how the training data of a
+# model was annotated, in its descriptor) only need what PROV-O itself says.
 amrfsh:ActivityShape
     a sh:NodeShape ;
-    sh:targetClass prov:Activity ;
+    sh:targetSubjectsOf schema:actionStatus ;
     sh:property [
         sh:path schema:name ; sh:minCount 1 ; sh:maxCount 1 ;
         sh:message "An activity needs exactly one schema:name, the step it ran."@en ;

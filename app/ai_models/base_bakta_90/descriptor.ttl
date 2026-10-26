@@ -4,6 +4,8 @@
 @prefix dcterms:    <http://purl.org/dc/terms/> .
 @prefix edam:       <http://edamontology.org/> .
 @prefix obo:        <http://purl.obolibrary.org/obo/> .
+@prefix prov:       <http://www.w3.org/ns/prov#> .
+@prefix rdfs:       <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix schema:     <https://schema.org/> .
 
 # TODO: add schema:citation once the paper describing the models is accepted.
@@ -42,3 +44,37 @@
 <https://orcid.org/0000-0003-1685-3270>
     a schema:Person ;
     schema:name "Fernando Sola" .
+
+# How the model was built (PROV-O): from the BAKTA90 feature matrix of the NDARO isolates
+# (BioStudies S-BSST2698, Sola et al.), whose genomes were annotated with Bakta 1.9.4 and its full
+# database. It follows the pattern of the provenance of a sample, so that both can be compared.
+# The paper does not give the version of the Bakta database, so it is not stated.
+
+<https://w3id.org/cocos/model/base_bakta_90>
+    prov:wasDerivedFrom <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#training-data>
+    a prov:Entity ;
+    schema:name "BAKTA90 feature matrix of the NDARO isolates"@en ;
+    schema:description "Presence or absence, in the isolates of NCBI NDARO exported in January 2025, of the 25,647 UniRef90 clusters that Bakta found in at least 500 isolates, with their antimicrobial susceptibility."@en ;
+    schema:isPartOf <https://doi.org/10.6019/S-BSST2698> ;
+    schema:license <https://creativecommons.org/publicdomain/zero/1.0/> ;
+    prov:wasGeneratedBy <https://w3id.org/cocos/model/base_bakta_90#annotation> .
+
+<https://w3id.org/cocos/model/base_bakta_90#annotation>
+    a prov:Activity ;
+    rdfs:label "Annotation of the genomes of the training data"@en ;
+    prov:wasAssociatedWith <https://w3id.org/cocos/model/base_bakta_90#bakta> ;
+    prov:used <https://w3id.org/cocos/model/base_bakta_90#bakta-database> .
+
+<https://w3id.org/cocos/model/base_bakta_90#bakta>
+    a prov:SoftwareAgent ;
+    rdfs:label "Bakta 1.9.4" ;
+    schema:name "Bakta" ;
+    schema:softwareVersion "1.9.4" ;
+    prov:specializationOf <https://bio.tools/bakta> .
+
+<https://w3id.org/cocos/model/base_bakta_90#bakta-database>
+    a prov:Entity ;
+    rdfs:label "Bakta database (full)" ;
+    schema:name "Bakta database" .
