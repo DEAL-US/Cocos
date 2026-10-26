@@ -152,7 +152,8 @@ def antibiotic_iri(registry, model, name):
 
 def evidence(registry, sample_graph, sample, prediction, model, antibiotic):
     """What the graphs say about a prediction of `antibiotic` by `model`: `prediction` is its
-    activity in `sample_graph`, the RDF of `sample` with its provenance."""
+    activity in `sample_graph`, the RDF of `sample` with its provenance. `antibiotic` is None if
+    the model does not say which term it is: then nothing is known about its data for it."""
     def query(graph, text, **bindings):
         return list(graph.query(text, initNs=PREFIXES, initBindings=bindings))
 
@@ -173,7 +174,8 @@ def evidence(registry, sample_graph, sample, prediction, model, antibiotic):
         'species': {taxa: values for taxa, values in by_taxa.items() if taxa},
         'trained': trained,
         'used': {tool: found for tool, found in used.items() if tool in trained},
-        'declared_weights': {str(row.sha256) for row in query(registry, DECLARED_WEIGHTS, model=model, antibiotic=antibiotic)},
+        'declared_weights': set() if antibiotic is None else
+                            {str(row.sha256) for row in query(registry, DECLARED_WEIGHTS, model=model, antibiotic=antibiotic)},
         'used_weights': {str(row.sha256) for row in query(sample_graph, USED_WEIGHTS, prediction=prediction)},
     }
 
