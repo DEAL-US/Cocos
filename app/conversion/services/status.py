@@ -6,6 +6,7 @@ from django.urls import reverse
 from ..models import ConversionTask
 from prediction.adapters.registry import list_all_organisms
 from prediction.models import PredictionRun
+from prediction.services import prediction_trust
 from core.models import File, ProcessGroup, TaskInput, TaskOutput, TaskStatus
 from core.steps import used_software_labels
 from ..steps import GENE_EXTRACTION_STEP_PREFIX
@@ -288,6 +289,7 @@ def build_process_status_context(process, page=1):
 
     pagination_page_range = get_pagination_page_range(paginator, prediction_page.number)
 
+    trust = prediction_trust(process, list(prediction_page))
     predictions = [
         {
             'id': run.id,
@@ -301,6 +303,9 @@ def build_process_status_context(process, page=1):
                 'models': run.selected_models,
                 'antibiotics': run.selected_antibiotics,
                 'data': run.data,
+                # How much each result can be trusted, in the same order as `data` (None: no result)
+                'trust': [[trust.get(run.id, {}).get(model, {}).get(antibiotic) for model in run.selected_models]
+                          for antibiotic in run.selected_antibiotics],
             },
             'matrix_json_id': f'prediction-matrix-{run.id}',
             'can_download': (

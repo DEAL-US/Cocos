@@ -123,6 +123,16 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         self.assertEqual(rows[2][0], 'ampicillin')
         self.assertEqual(rows[2][1], '0.75')
 
+    def test_each_result_of_the_matrix_has_its_trust(self):
+        self.predict(['fake_constant', 'fake_broken'], ['amikacin'])
+
+        [prediction] = self.predictions_on_status_page()
+        [[trust, no_result]] = prediction['matrix']['trust']
+        self.assertIsNone(no_result)
+        # A fake model for any bacteria, on a sample whose organism is unknown
+        self.assertEqual(trust['level'], 'With reservations')
+        self.assertEqual([item['rule'] for item in trust['evidence']], ['species'])
+
     def test_failing_model_gives_empty_cell_but_prediction_completes(self):
         self.predict(['fake_constant', 'fake_broken'], ['amikacin'])
 

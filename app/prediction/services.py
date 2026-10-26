@@ -5,18 +5,26 @@ models are ready, which need preparation steps first (and which ones) and which 
 prediction adds to the plan of the sample the preparation steps the selected models need, shared
 between models, and one prediction node per model after the node that gives it its input.
 """
+import logging
+
 from django.contrib.humanize.templatetags.humanize import naturaltime
+from rdflib import URIRef
 
 from core.models import File, ProcessGroup, TaskOutput, TaskStatus
 from core.orchestration import PlanError, extend_plan
-from core.steps import get_step, software_label
+from core.steps import UnknownStepError, get_step, software_label
 from semantics.discovery import Status, discover
+from semantics.provenance import task_iri
+from semantics.registry.descriptors import model_iri
 from semantics.registry.graph import registry_graph
 from semantics.sample import sample_graph
+from semantics.trust import RulesError, antibiotic_iri, assess, evidence, load_rules
 
 from .adapters.registry import get_model_supported_antibiotics, get_model_version
-from .models import PredictionRun
+from .models import NO_RESULT, PredictionRun, PredictionTask
 from .steps import PREDICTION_STEP_PREFIX
+
+logger = logging.getLogger(__name__)
 
 ACTIVE = (TaskStatus.PENDING, TaskStatus.RUNNING)
 
@@ -81,6 +89,36 @@ def describe_step(step):
         'tools': [software_label(entry) for entry in entries if entry.get('type') == 'tool'],
         'software': [software_label(entry) for entry in entries],
     }
+
+
+# --- How much the predictions can be trusted
+
+def prediction_trust(process, runs):
+    """{run id: {model: {antibiotic: trust}}} of the results of the prediction `runs` of `process`
+    (see semantics.trust); empty if the trust rules have mistakes."""
+    try:
+        rules = load_rules()
+    except RulesError:
+        logger.exception('The trust rules have mistakes; predictions are shown without their trust')
+        return {}
+    registry = registry_graph()
+    sample = URIRef(f'urn:cocos:process:{process.pk}')
+    graph = sample_graph(process, str(sample), with_provenance=True)
+    trust = {}
+    tasks = PredictionTask.objects.filter(process=process, run__in=runs, status=TaskStatus.COMPLETED).order_by('id')
+    for task in tasks:
+        try:
+            model_name = task.get_step().model_name
+        except UnknownStepError:
+            continue  # a model that is no longer registered
+        model = model_iri(model_name)
+        for antibiotic, value in task.results.items():
+            if value == NO_RESULT:
+                continue
+            term = antibiotic_iri(registry, model, antibiotic)
+            facts = evidence(registry, graph, sample, task_iri(sample, task), model, term)
+            trust.setdefault(task.run_id, {}).setdefault(model_name, {})[antibiotic] = assess(registry, facts, antibiotic, rules)
+    return trust
 
 
 # --- Starting a prediction
