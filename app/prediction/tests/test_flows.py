@@ -87,21 +87,34 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         self.assertContains(response, 'id="models-list"')
         self.assertTrue({'amikacin', 'ampicillin'} <= set(response.context['available_antibiotics']))
 
-    def test_a_sample_whose_annotation_could_not_be_read_needs_the_extraction_again(self):
+    def broken_sample(self):
+        """A sample whose annotation cannot be read: its gene extraction fails for good."""
         broken = SimpleUploadedFile('broken.json', json.dumps({'features': ['not a feature']}).encode(),
                                     content_type='application/json')
         with FakeBioService():
             self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': broken})
-        sample = ProcessGroup.objects.filter(user=self.user).order_by('-id').first()
+        return ProcessGroup.objects.filter(user=self.user).order_by('-id').first()
 
+    def sample_models(self, sample):
         models = self.client.get(reverse('prediction:sample_models', args=[sample.id])).json()['models']
-        self.assertIn({'model': 'fake_constant', 'version': FAKE_MODEL_VERSION, 'status': 'reachable',
-                       'steps': [{'label': 'Gene extraction · Bakta JSON', 'tools': [], 'software': []}],
-                       'reasons': []}, models)
+        return next(model for model in models if model['model'] == 'fake_constant')
 
-        # The history is ignored (v1): the extraction runs again, fails again, and so does the prediction.
-        self.assertEqual(self.predict(['fake_constant'], ['amikacin'], sample.id).status_code, 202)
-        self.assertEqual(PredictionRun.objects.get(process=sample).status, TaskStatus.FAILED)
+    def test_a_step_that_failed_for_good_is_not_planned_again(self):
+        sample = self.broken_sample()
+
+        model = self.sample_models(sample)
+        self.assertEqual(model['status'], 'incompatible')
+        self.assertIn('Gene extraction · Bakta JSON is not tried again: it already failed on this sample with the '
+                      'same software (Error parsing features.).', model['reasons'])
+        self.assertEqual(self.predict(['fake_constant'], ['amikacin'], sample.id).status_code, 400)
+
+    def test_a_new_version_of_the_software_tries_it_again(self):
+        sample = self.broken_sample()
+
+        with self.settings(COCOS_VERSION='99.0.0'):  # the extraction is part of Cocos
+            model = self.sample_models(sample)
+        self.assertEqual(model['status'], 'reachable')
+        self.assertEqual(model['steps'], [{'label': 'Gene extraction · Bakta JSON', 'tools': [], 'software': []}])
 
     def test_prediction_with_several_models_builds_matrix_and_csv(self):
         response = self.predict(['fake_constant', 'fake_genes'], ['amikacin', 'ampicillin'])
@@ -228,8 +241,8 @@ class PredictionWithPreparationTests(ConversionFlowMixin, TestCase):
         self.assertIn('Bakta database 6.0 (light)', annotation['software'])
         self.assertEqual(model['version'], FAKE_MODEL_VERSION)
 
-    def test_the_reads_of_a_failed_assembly_are_assembled_again(self):
-        with FakeBioService(status_sequence=['failed']):
+    def test_the_reads_of_an_assembly_that_may_work_later_are_assembled_again(self):
+        with FakeBioService(status_sequence=['failed'], error_kind='resources'):
             self.run_assembly('ont', annotate=True)
         sample = self.latest_process()
         self.assertEqual([step['label'] for step in self.models_of(sample)['fake_constant']['steps']],
@@ -240,6 +253,17 @@ class PredictionWithPreparationTests(ConversionFlowMixin, TestCase):
 
         self.assertEqual(len(bio.submissions_to('assembly/ont')), 1)
         self.assertEqual(PredictionRun.objects.get(process=sample).status, TaskStatus.COMPLETED)
+
+    def test_reads_whose_assembly_failed_for_good_are_not_assembled_again_with_the_same_tools(self):
+        with FakeBioService(status_sequence=['failed'], error_kind='input'):
+            self.run_assembly('ont', annotate=True)
+        sample = self.latest_process()
+
+        with FakeBioService():  # what the service has installed: the same tools
+            model = self.models_of(sample)['fake_constant']
+        self.assertEqual(model['status'], 'incompatible')
+        self.assertIn('Assembly · ONT is not tried again: Assembly + Annotation · ONT already failed on this sample '
+                      'with the same tools (Annotation failed: Command failed: bakta).', model['reasons'])
 
     def test_samples_being_processed_are_offered_disabled_and_rejected(self):
         with FakeBioService():

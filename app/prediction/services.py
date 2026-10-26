@@ -11,7 +11,7 @@ from django.contrib.humanize.templatetags.humanize import naturaltime
 from rdflib import URIRef
 
 from core.models import File, ProcessGroup, TaskOutput, TaskStatus
-from core.orchestration import PlanError, extend_plan
+from core.orchestration import PlanError, extend_plan, permanent_failures
 from core.steps import UnknownStepError, get_step, software_label
 from semantics.discovery import Status, discover
 from semantics.provenance import task_iri
@@ -61,7 +61,9 @@ def get_user_sample(user, process_id):
 def get_compatibility(process):
     """What the discovery says about every model for this sample (see semantics.discovery)."""
     # The discovery only compares the data of the sample: its IRI does not need to be its page.
-    return discover(registry_graph(), sample_graph(process, f'urn:cocos:process:{process.pk}'))
+    # Steps that already failed for good on a file of the sample are not planned again.
+    return discover(registry_graph(), sample_graph(process, f'urn:cocos:process:{process.pk}'),
+                    failed=permanent_failures(process))
 
 
 def describe_compatibility(process):

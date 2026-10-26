@@ -18,6 +18,7 @@ from rdflib.plugins.sparql import prepareQuery
 from rdflib.plugins.sparql.parserutils import CompValue
 
 from core.models import ProcessGroup
+from core.orchestration import permanent_failures
 from core.steps import UnknownStepError, used_software_labels
 from prediction.services import assess_predictions
 
@@ -101,6 +102,7 @@ def process_flow_view(request, process_id):
             runs={node: task.status for node, task in latest.items()},
             software={node: used_software_labels(task) for node, task in latest.items()},
             url_of=local_url,
+            failed=permanent_failures(process),
         ),
         'files': files,
     })

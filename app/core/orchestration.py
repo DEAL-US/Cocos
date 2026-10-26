@@ -14,8 +14,8 @@ from django.db import transaction
 
 # Module import: core.tasks imports this module to advance plans when a task completes.
 from core import tasks as core_tasks
-from core.models import ProcessGroup, Task, TaskStatus
-from core.steps import UnknownStepError, get_step
+from core.models import Failure, ProcessGroup, Task, TaskStatus
+from core.steps import UnknownStepError, cocos_software, get_step, list_steps
 
 
 class PlanError(ValueError):
@@ -120,6 +120,57 @@ def latest_tasks(process):
     """Return {node id: last task of that node}."""
     tasks = Task.objects.filter(process=process).exclude(plan_node='').order_by('id')
     return {task.plan_node: task for task in tasks}
+
+
+def permanent_failures(process):
+    """{(step key, file id): why} of the steps that would fail again on a file of `process`, for the
+    discovery, which does not plan them again (semantics.discovery.discover).
+
+    A task that failed for good (Failure.PERMANENT) blocks its step on its input files while the
+    software of the step is the same (a new version of a tool, of its database or of Cocos may
+    succeed), and any other step that would run one of its tools, in the same version, on those
+    files (e.g. an assembly without annotation, after an assembly with annotation failed in Raven).
+    """
+    failed = {}
+    tasks = (Task.objects.filter(process=process, status=TaskStatus.FAILED, failure=Failure.PERMANENT)
+             .prefetch_related('task_inputs').order_by('id'))
+    for task in tasks:
+        try:
+            step = get_step(task.step)
+        except UnknownStepError:
+            continue
+        error = task.error.strip().splitlines()[0] if task.error.strip() else 'no error message'
+        for other in list_steps():
+            if other.key == step.key and same_software(task, step):
+                why = f'it already failed on this sample with the same software ({error})'
+            elif other.key != step.key and same_tools(task, other):
+                why = f'{step.label} already failed on this sample with the same tools ({error})'
+            else:
+                continue
+            for link in task.task_inputs.all():
+                failed[(other.key, str(link.file_id))] = why
+    return failed
+
+
+def same_software(task, step):
+    """Whether a new task of `step` would use the software `task` used, Cocos included. True when
+    it cannot be known now (e.g. the bio service does not answer)."""
+    expected = step.expected_software()
+    if expected is None:
+        return True
+
+    def versions(entries):
+        return {(entry['name'], entry.get('version', ''), entry.get('variant', '')) for entry in entries}
+    return versions(task.software) == versions([cocos_software(), *expected])
+
+
+def same_tools(task, step):
+    """Whether a new task of `step` would run some tool `task` ran (not Cocos), in the same version."""
+    used = {entry['name']: entry.get('version', '') for entry in task.software
+            if entry.get('type') == 'tool' and entry['name'] != 'Cocos'}
+    expected = step.expected_software() or []
+    shared = [entry for entry in expected if entry.get('type') == 'tool' and entry['name'] in used]
+    return bool(shared) and all(used[entry['name']] == entry.get('version', '') for entry in shared)
 
 
 def _launch(tasks):
