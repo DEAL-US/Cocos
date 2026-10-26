@@ -380,6 +380,23 @@ The discovery reads the same description without the provenance (`sample_graph(.
 
 The page of each process links to the **data flow of the sample** (`/processes/<id>/flow/`, only for its owner, built by `semantics.flow.sample_flow` from this description and the discovery): the data flow of the registry with the data the sample has (and its files), the state of the latest task of each step and model, the preparation steps the discovery would run for each model, and whether each model is ready, needs preparation or is not available (and why).
 
+#### Trust of the Predictions
+
+Cocos does not store how much a prediction can be trusted: it computes it each time from the provenance of the sample and from what the descriptor of the model says (`semantics/trust.py`). It reads the evidence with SPARQL: from the registry, the organisms of the model, its measurements (`quality.ttl`), how its training data was annotated and the SHA-256 of its weights; from the description of the sample with its provenance, its organism, the weights the prediction used and the annotation its input comes from, following the activities that generated it back to what the user uploaded. Each rule judges one piece of evidence as *for*, *caution* or *serious*, and the prediction gets the level of its worst evidence (*High*, *With reservations* or *Low*):
+
+| Rule | Evidence |
+| ---- | -------- |
+| `species` | The organism of the sample is (a kind of) one the model was built for; unknown organisms are a caution |
+| `antibiotic_isolates` | Isolates with a known susceptibility to the antibiotic in the data of the model |
+| `class_balance` | Percentage of resistant isolates for the antibiotic, neither too low nor too high |
+| `species_isolates` | Isolates of the organism of the sample for the antibiotic (only if the organism is known) |
+| `model_quality` | F1 score of the model |
+| `same_annotation` | The input was annotated with the same software and database as the training data |
+| `weights` | The weights used for the antibiotic are the ones the model declares |
+| `annotation_origin` | Cocos knows which software annotated the input (not if the annotation was uploaded) |
+
+**The rules, their thresholds, judgements and texts are in `app/trust_rules.toml`**, to change them without touching the code; a change applies at once, and `python manage.py check` reports any mistake in the file (`semantics.E001`). A rule that cannot be checked (e.g. a model with no `quality.ttl`) gives no evidence. In the prediction matrix of a process, each result has a badge with its level; clicking it lists the evidence for and against.
+
 ---
 
 ## Testing
