@@ -40,6 +40,8 @@ The development environment includes:
 
 Access at: `http://localhost:8080`
 
+PostgreSQL is published on `127.0.0.1:5432`, so tests and `runserver` on the host can reach it but other machines cannot.
+
 The development environment mounts the application source code into the containers, so changes to the code, the templates and the Tailwind classes are reflected without rebuilding the image. The production image compiles the CSS and copies the libraries when it is built.
 
 ### Production Deployment
@@ -140,7 +142,9 @@ The production stack contains:
 - `cocos-postgres` - PostgreSQL
 - `cocos-redis` - Redis
 
-The application data and uploaded files are stored in Docker volumes.
+The application data and uploaded files are stored in Docker volumes. The web and worker containers run as the unprivileged user `app`, not as root.
+
+Cocos reaches the bio service (assembly and annotation) at `ANNOTATION_BASE`, `http://bio-assembly-api:8000` by default, through the `bio-network` Docker network. The bio service has no authentication and publishes no ports, so users only reach it through Cocos. For development, the bio service can also be published on `127.0.0.1:8000` (see `docker-servicios-bio/docker-servicios-bio/INSTRUCCIONES.md` in the deployment repository, or `python deploy.py --dev`).
 
 Access at: `http://localhost` (port 80)
 
@@ -164,6 +168,8 @@ Environment files are not committed. `.env.example` and `.env.prod.example` are 
   - `POSTGRES_PASSWORD` - Strong, random password
   - `DB_PASSWORD` - Same as POSTGRES_PASSWORD
   - `SENDGRID_API_KEY` - If using email notifications
+
+With `DJANGO_DEBUG=0`, Django refuses to start (`ImproperlyConfigured`) if `DJANGO_SECRET_KEY` or `DB_PASSWORD` is not set: they have defaults only in development.
 
 ---
 
