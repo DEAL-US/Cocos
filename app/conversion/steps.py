@@ -159,7 +159,7 @@ class GeneExtractionStep(LocalStep):
         try:
             parse_file(self.parser_name, data, file, user=task.process.user, options=task.parameters)
         except Exception:
-            raise StepError('Error parsing features. Try again later.')
+            raise StepError('Error parsing features.')
         # The genes are linked to the annotation file itself.
         task.add_output('genes', file)
 

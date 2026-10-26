@@ -157,7 +157,7 @@ class GeneExtractionStepTests(StepExecutionTestCase):
     def test_failures_raise_a_step_error_and_keep_the_file(self):
         cases = [
             ('invalid json', {'raw': b'{not json'}, 'Error decoding JSON file.'),
-            ('unparseable features', {'payload': {'features': ['not a feature']}}, 'Error parsing features. Try again later.'),
+            ('unparseable features', {'payload': {'features': ['not a feature']}}, 'Error parsing features.'),
         ]
         for label, kwargs, message in cases:
             with self.subTest(label):
