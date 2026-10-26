@@ -11,7 +11,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <http://edamontology.org> a owl:Ontology ;
-    dcterms:date "2026-10-09"^^xsd:date ;
+    dcterms:date "2026-10-25"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
     owl:versionInfo "1.25-20260626T1230Z" .
 
@@ -81,24 +81,35 @@ obo:NCIT_C146817 rdfs:label "Illumina Sequencing" ;
 obo:NCIT_C146818 rdfs:label "Nanopore Sequencing" ;
     rdfs:subClassOf obo:NCIT_C101293 .
 
+obo:STATO_0000628 rdfs:label "F1 score" ;
+    rdfs:subClassOf obo:STATO_0000663 .
+
+obo:STATO_0000691 rdfs:label "area under the precision-recall curve" ;
+    rdfs:subClassOf obo:STATO_0000209 .
+
 obo:aro.owl a owl:Ontology ;
-    dcterms:date "2026-10-09"^^xsd:date ;
+    dcterms:date "2026-10-21"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
 
 obo:iao.owl a owl:Ontology ;
-    dcterms:date "2026-10-09"^^xsd:date ;
+    dcterms:date "2026-10-25"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     owl:versionInfo "2026-03-30" .
 
 obo:ncbitaxon.owl a owl:Ontology ;
-    dcterms:date "2026-10-09"^^xsd:date ;
+    dcterms:date "2026-10-25"^^xsd:date ;
     dcterms:license <https://creativecommons.org/publicdomain/zero/1.0/> ;
     owl:versionInfo "2026-07-12" .
 
 obo:ncit.owl a owl:Ontology ;
-    dcterms:date "2026-10-09"^^xsd:date ;
+    dcterms:date "2026-10-25"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     owl:versionInfo "26.02d" .
+
+obo:stato.owl a owl:Ontology ;
+    dcterms:date "2026-10-25"^^xsd:date ;
+    dcterms:license <http://creativecommons.org/licenses/by/3.0/> ;
+    owl:versionInfo "2026-04-20" .
 
 edam:data_0850 rdfs:label "Sequence set" ;
     rdfs:subClassOf edam:data_0006 .
@@ -211,6 +222,18 @@ obo:NCIT_C25294 rdfs:label "Laboratory Procedure" ;
 
 obo:NCIT_C43431 rdfs:label "Activity" .
 
+obo:STATO_0000209 rdfs:label "area under curve" ;
+    rdfs:subClassOf obo:STATO_0000039 .
+
+obo:STATO_0000610 rdfs:label "measure of association" ;
+    rdfs:subClassOf obo:STATO_0000039 .
+
+obo:STATO_0000623 rdfs:label "measure of agreement" ;
+    rdfs:subClassOf obo:STATO_0000610 .
+
+obo:STATO_0000663 rdfs:label "F-beta score" ;
+    rdfs:subClassOf obo:STATO_0000623 .
+
 edam:format_1919 rdfs:label "Sequence record format" ;
     rdfs:subClassOf edam:format_2350 .
 
@@ -240,6 +263,8 @@ obo:NCIT_C18881 rdfs:label "Nucleic Acid Sequencing" ;
 
 obo:NCIT_C19770 rdfs:label "Molecular Analysis" ;
     rdfs:subClassOf obo:NCIT_C25294 .
+
+obo:STATO_0000039 rdfs:label "statistic" .
 
 edam:format_2330 rdfs:label "Textual format" ;
     rdfs:subClassOf edam:format_1915 .

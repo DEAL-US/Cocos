@@ -1,0 +1,30 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dqv:     <http://www.w3.org/ns/dqv#> .
+@prefix obo:     <http://purl.obolibrary.org/obo/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+# How well base_bakta_90 works (W3C Data Quality Vocabulary), as published in Sola et al. (Table 2,
+# representation BAKTA90). Each measurement says on which data it was computed.
+
+<https://w3id.org/cocos/model/base_bakta_90>
+    dqv:hasQualityMeasurement <https://w3id.org/cocos/model/base_bakta_90#f1> , <https://w3id.org/cocos/model/base_bakta_90#pr-auc> .
+
+<https://w3id.org/cocos/model/base_bakta_90#test-data>
+    a prov:Entity ;
+    rdfs:label "Held-out test data of the evaluation"@en ;
+    dcterms:description "The held-out 20% (stratified) of the training data of each of the 61 antibiotics with at least 50 labelled isolates and 5 in the minority class; metrics are the mean over 30 random splits and then over the antibiotics."@en ;
+    prov:wasDerivedFrom <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#f1>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000628 ;   # F1 score
+    dqv:value "0.69"^^xsd:decimal ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#test-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#pr-auc>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000691 ;   # area under the precision-recall curve
+    dqv:value "0.77"^^xsd:decimal ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#test-data> .
