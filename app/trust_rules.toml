@@ -1,0 +1,120 @@
+# Rules Cocos follows to tell how much a prediction can be trusted.
+#
+# Cocos does not store the trust of a prediction: it computes it each time from the provenance of
+# the sample (how its data was obtained) and from what the descriptor of the model says about it
+# (its data and how well it works). Each rule looks at one piece of evidence and judges it:
+#
+#   for      the evidence supports the prediction
+#   caution  the prediction should be taken with reservations
+#   serious  the prediction should not be relied on
+#
+# A prediction gets the level of its worst evidence. Rules that cannot be checked (for instance,
+# the species rules when the organism of the sample is unknown) give no evidence.
+#
+# You can change any threshold, judgement or text below, or turn a rule off with enabled = false.
+# Texts can use the values between braces listed for each rule. Cocos checks this file when it
+# starts (python manage.py check) and reports any mistake.
+
+[levels]
+for = "High"
+caution = "With reservations"
+serious = "Low"
+
+
+# 1. Whether the model was built for the organism of the sample.
+#    Values: {organism}, the organism of the sample; {range}, the organisms of the model.
+[rules.species]
+enabled = true
+unknown = "caution"   # judgement when the organism of the sample is unknown
+outside = "serious"   # judgement when the model was not built for it
+
+[rules.species.text]
+for = "The model was built for {range}, which includes {organism}."
+unknown = "The organism of the sample is unknown, so Cocos cannot tell whether the model was built for it."
+outside = "The model was built for {range}, and this sample is {organism}."
+
+
+# 2. How many isolates with a known susceptibility to the antibiotic the data of the model had.
+#    Values: {antibiotic}, {isolates}.
+[rules.antibiotic_isolates]
+enabled = true
+caution_below = 500
+serious_below = 100
+
+[rules.antibiotic_isolates.text]
+for = "The model had {isolates} isolates with a known susceptibility to {antibiotic}."
+caution = "The model had only {isolates} isolates with a known susceptibility to {antibiotic}."
+serious = "The model had very few isolates with a known susceptibility to {antibiotic}: {isolates}."
+
+
+# 3. Whether the data of the model had enough resistant and susceptible isolates for the
+#    antibiotic. With very few of either, a model learns little about them.
+#    Values: {antibiotic}, {percent} (resistant isolates).
+[rules.class_balance]
+enabled = true
+caution_below = 10   # % of resistant isolates
+caution_above = 90
+few_resistant = "caution"     # judgement below caution_below
+few_susceptible = "caution"   # judgement above caution_above
+
+[rules.class_balance.text]
+for = "{percent}% of its isolates for {antibiotic} were resistant: it had examples of both."
+few_resistant = "Only {percent}% of its isolates for {antibiotic} were resistant: it had few resistant ones."
+few_susceptible = "{percent}% of its isolates for {antibiotic} were resistant: it had few susceptible ones."
+
+
+# 4. How many isolates of the species of the sample, for the antibiotic, the data of the model had.
+#    Values: {antibiotic}, {organism}, {isolates}.
+[rules.species_isolates]
+enabled = true
+caution_below = 50
+absent = "caution"   # judgement when the data had no isolates of that species
+
+[rules.species_isolates.text]
+for = "The model had {isolates} isolates of {organism} for {antibiotic}."
+caution = "The model had only {isolates} isolates of {organism} for {antibiotic}."
+absent = "The data of the model had no isolates of {organism} for {antibiotic}."
+
+
+# 5. How well the model works overall, by its published F1 score.
+#    Values: {f1}.
+[rules.model_quality]
+enabled = true
+caution_below = 0.7
+
+[rules.model_quality.text]
+for = "The model has an F1 score of {f1} on its test data."
+caution = "The model has an F1 score of only {f1} on its test data."
+
+
+# 6. Whether the input was annotated with the same software and database as the data of the model.
+#    Values: {used}, what annotated the input; {trained}, what annotated the data of the model.
+[rules.same_annotation]
+enabled = true
+different = "caution"   # judgement when the version or the database differ
+
+[rules.same_annotation.text]
+for = "The input was annotated with {used}, like the data of the model."
+different = "The input was annotated with {used}, and the data of the model with {trained}."
+
+
+# 7. Whether the weights used for the antibiotic are the ones the model declares.
+#    Values: {antibiotic}.
+[rules.weights]
+enabled = true
+different = "serious"
+
+[rules.weights.text]
+for = "The weights used for {antibiotic} are the ones the model declares (same SHA-256)."
+different = "The weights used for {antibiotic} are not the ones the model declares."
+
+
+# 8. Whether Cocos knows how the annotation of the input was made: it did not if the user
+#    uploaded it.
+[rules.annotation_origin]
+enabled = true
+unknown = "caution"
+
+[rules.annotation_origin.text]
+for = "Cocos annotated the input itself, so it knows which software it used."
+unknown = "The annotation of the input was uploaded, so Cocos does not know which software made it."
