@@ -1,0 +1,113 @@
+{% comment %}
+Sections of the page of a model (semantics.model_page): how it was built, how well it works, how much
+data it had for each antibiotic and the files it depends on. Each one appears only if the descriptor
+of the model says something about it.
+{% endcomment %}
+{% if model.built_from %}
+  <div class="card bg-base-100 border border-base-300 shadow-sm">
+    <div class="card-body gap-4">
+      <h2 class="card-title text-xl"><i class="bi bi-diagram-2 text-primary"></i>How it was built</h2>
+      {% for source in model.built_from %}
+        <div class="space-y-2">
+          {% if source.name %}<p class="font-semibold">{{ source.name }}</p>{% endif %}
+          {% if source.description %}<p class="text-base-content/80">{{ source.description }}</p>{% endif %}
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            {% if source.dataset %}<span>Part of <a class="link link-primary break-all" href="{{ source.dataset }}">{{ source.dataset }}</a></span>{% endif %}
+            {% if source.license %}<span>License <a class="link link-primary break-all" href="{{ source.license }}">{{ source.license }}</a></span>{% endif %}
+          </div>
+          {% if source.prepared_with or source.used %}
+            <div class="flex flex-wrap items-center gap-1 text-sm">
+              <span class="font-medium mr-1">Prepared with</span>
+              {% for label, tool in source.prepared_with %}
+                {% if tool %}
+                  <a class="badge badge-sm badge-soft badge-neutral hover:badge-primary" href="{{ tool }}">{{ label }}</a>
+                {% else %}
+                  <span class="badge badge-sm badge-soft badge-neutral">{{ label }}</span>
+                {% endif %}
+              {% endfor %}
+              {% for label in source.used %}
+                <span class="badge badge-sm badge-soft badge-neutral">{{ label }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<div class="card bg-base-100 border border-base-300 shadow-sm">
+  <div class="card-body gap-4">
+    <h2 class="card-title text-xl"><i class="bi bi-speedometer2 text-primary"></i>How well it works</h2>
+    {% if model.metrics %}
+      <table class="table">
+        <thead><tr><th>Metric</th><th>Value</th><th>Computed on</th></tr></thead>
+        <tbody>
+          {% for metric in model.metrics %}
+            <tr>
+              <td>{{ metric.metric }}</td>
+              <td class="font-semibold">{{ metric.value }}</td>
+              <td>
+                {{ metric.computed_on }}
+                {% if metric.description %}<span class="block text-xs text-base-content/60">{{ metric.description }}</span>{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-base-content/70">This model does not declare a published evaluation.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% if model.antibiotics %}
+  <div class="card bg-base-100 border border-base-300 shadow-sm">
+    <div class="card-body gap-4">
+      <div>
+        <h2 class="card-title text-xl mb-1"><i class="bi bi-bar-chart text-primary"></i>Data for each antibiotic</h2>
+        <p class="text-base-content/70">How many isolates with a known susceptibility its data had, and how many were resistant. Few isolates, or few resistant ones, make a prediction less reliable. Open an antibiotic to see its species.</p>
+      </div>
+      <div class="space-y-2">
+        {% for drug in model.antibiotics %}
+          <details class="collapse collapse-arrow border border-base-300 bg-base-100">
+            <summary class="collapse-title flex flex-wrap items-center gap-x-6 gap-y-1">
+              <span class="font-semibold min-w-32">{{ drug.antibiotic }}</span>
+              <span>{{ drug.isolates }} isolates</span>
+              <span>{{ drug.resistant_percent }}% resistant</span>
+            </summary>
+            <div class="collapse-content">
+              <table class="table table-sm">
+                <thead><tr><th>Species</th><th>Isolates</th><th>Resistant</th></tr></thead>
+                <tbody>
+                  {% for row in drug.species %}
+                    <tr><td>{{ row.species }}</td><td>{{ row.isolates }}</td><td>{{ row.resistant_percent }}%</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% if model.files %}
+  <div class="card bg-base-100 border border-base-300 shadow-sm">
+    <div class="card-body gap-4">
+      <div>
+        <h2 class="card-title text-xl mb-1"><i class="bi bi-file-earmark-lock text-primary"></i>Files</h2>
+        <p class="text-base-content/70">The files the model depends on. Cocos checks their SHA-256 when it starts, and does not use the model if one has changed.</p>
+      </div>
+      <table class="table table-sm">
+        <thead><tr><th>File</th><th>SHA-256</th></tr></thead>
+        <tbody>
+          {% for file in model.files %}
+            <tr><td class="whitespace-nowrap">{{ file.name }}</td><td><code class="text-xs break-all">{{ file.sha256 }}</code></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}

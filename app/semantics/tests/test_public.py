@@ -8,7 +8,7 @@ from rdflib.namespace import RDF
 
 from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
 from core.testing import FakeBioService
-from semantics.namespaces import AMRF, COCOS, EDAM, SCHEMA
+from semantics.namespaces import AMRF, COCOS, DQV, EDAM, SCHEMA
 
 MODEL = COCOS['model/base_bakta_50']
 
@@ -23,6 +23,19 @@ class ResourcePagesTests(TestCase):
         self.assertContains(response, str(MODEL))
         self.assertContains(response, 'Gene report')                      # label of its input data
         self.assertContains(response, 'href="/model/base_bakta_50#genes"')  # its input, on the same page
+
+    def test_the_page_of_a_model_says_how_it_was_built_how_well_it_works_and_its_data(self):
+        response = self.client.get('/model/base_bakta_50', HTTP_ACCEPT='text/html')
+
+        for text in ('How it was built', 'Bakta 1.9.4', 'https://doi.org/10.6019/S-BSST2698',
+                     'F1 score', '0.71', 'cefotaxime', '1845 isolates', 'Salmonella enterica', 'weights/amikacin.pt'):
+            self.assertContains(response, text)
+        self.assertNotContains(response, 'dqv:hasQualityMeasurement')  # the measurements are summarized, not listed
+
+    def test_the_rdf_of_a_model_has_all_its_measurements(self):
+        turtle = Graph().parse(data=self.client.get('/model/base_bakta_50', HTTP_ACCEPT='text/turtle').content,
+                               format='turtle')
+        self.assertGreater(len(list(turtle.objects(MODEL, DQV.hasQualityMeasurement))), 100)
 
     def test_a_model_is_turtle_or_json_ld_for_rdf_clients(self):
         turtle = Graph().parse(data=self.client.get('/model/base_bakta_50', HTTP_ACCEPT='text/turtle').content,

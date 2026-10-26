@@ -21,7 +21,8 @@ from core.models import ProcessGroup
 from core.steps import UnknownStepError, used_software_labels
 
 from .flow import registry_flow, sample_flow, tool_node_id
-from .namespaces import AMRF, COCOS, PREFIXES, SCHEMA, bind_prefixes
+from .model_page import model_page
+from .namespaces import AMRF, BSC, COCOS, PREFIXES, SCHEMA, bind_prefixes
 from .registry.graph import registry_graph
 from .registry.vocabulary import load_vocabulary
 from .sample import sample_graph
@@ -202,7 +203,12 @@ def step_view(request, key):
 
 
 def model_view(request, name):
-    return _resource(request, registry_graph(), COCOS[f'model/{name}'], flow_node=tool_node_id(name, is_model=True))
+    return _resource(request, registry_graph(), COCOS[f'model/{name}'], flow_node=tool_node_id(name, is_model=True),
+                     is_model=True)
+
+
+# Shown in their own sections of the page of a model (see semantics.model_page), not in its table.
+MODEL_SECTIONS = ('dqv:hasQualityMeasurement', 'schema:hasPart', 'prov:wasDerivedFrom')
 
 
 def vocabulary_view(request):
@@ -235,21 +241,31 @@ def shapes_view(request):
     })
 
 
-def _resource(request, graph, iri, flow_node=None):
-    """The page or the RDF of `iri`. `flow_node` is its node in the data flow of the registry, if any."""
+def _resource(request, graph, iri, flow_node=None, is_model=False):
+    """The page or the RDF of `iri`. `flow_node` is its node in the data flow of the registry, if any.
+    The page of a model shows how it was built, its quality and its files in their own sections, and
+    only its inputs and outputs among its parts; the RDF has all of them."""
     description = describe(graph, iri)
     if not len(description):
         raise Http404(f'{iri} is not in the registry')
     rdf = rdf_format(request, default='html')
     if rdf != 'html':
         return rdf_response(description, rdf)
-    subjects = [iri] + sorted({s for s in description.subjects() if s != iri and isinstance(s, URIRef)}, key=str)
+    if is_model:
+        parts = set(description.objects(iri, BSC.input)) | set(description.objects(iri, BSC.output))
+    else:
+        parts = {s for s in description.subjects() if s != iri and isinstance(s, URIRef)}
+    subjects = [_subject(graph, subject) for subject in [iri] + sorted(parts, key=str)]
+    if is_model:
+        for predicate in MODEL_SECTIONS:
+            subjects[0]['properties'].pop(predicate, None)
     return render(request, 'semantics/resource.html', {
         'title': str(graph.value(iri, SCHEMA.name) or graph.value(iri, RDFS.label) or iri),
         'iri': str(iri),
         'filename': str(iri).rstrip('/').rsplit('/', 1)[-1],
-        'subjects': [_subject(graph, subject) for subject in subjects],
+        'subjects': subjects,
         'flow_node': flow_node,
+        'model': model_page(graph, iri) if is_model else None,
     })
 
 

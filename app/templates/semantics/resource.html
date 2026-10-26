@@ -30,6 +30,10 @@
     </div>
   </div>
 
+  {% if model %}
+    {% include 'semantics/_model.html' %}
+  {% endif %}
+
   {% if turtle %}
     <pre class="bg-base-200 border border-base-300 rounded-box p-4 text-sm overflow-x-auto">{{ turtle }}</pre>
   {% endif %}
