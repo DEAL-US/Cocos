@@ -8,13 +8,18 @@ the annotation its input comes from, followed back through the activities that g
 
 The rules, their thresholds, judgements and texts are in trust_rules.toml, so that they can be
 changed without touching the code. The file is read each time, so a change applies at once.
+
+The trust of each prediction can be added to the RDF of its sample (add_trust) as a DQV quality
+annotation of the prediction, with the level and each piece of evidence as text.
 """
 import tomllib
 
 from django.conf import settings
+from rdflib import BNode, Literal, URIRef
+from rdflib.namespace import DCTERMS, RDF, RDFS
 
 from .discovery.graphs import is_a, label
-from .namespaces import OBO, PREFIXES
+from .namespaces import DQV, OA, OBO, PREFIXES
 
 F1 = OBO.STATO_0000628
 SAMPLE_SIZE = OBO.NCIT_C53190
@@ -295,3 +300,31 @@ CHECKS = {
     'weights': check_weights,
     'annotation_origin': check_annotation_origin,
 }
+
+
+# --- RDF
+
+def add_trust(graph, activity, model_name, antibiotic, term, trust):
+    """Add to `graph` the trust of the prediction of `antibiotic` (ARO `term`, or None) by
+    `model_name` in `activity`: a dqv:QualityAnnotation of the activity whose bodies are the level
+    (oa:bodyValue) and each piece of evidence (an oa:TextualBody with its rule and judgement)."""
+    annotation = URIRef(f'{activity}-trust-{_slug(antibiotic)}')
+    graph.add((annotation, RDF.type, DQV.QualityAnnotation))
+    graph.add((annotation, RDFS.label, Literal(f'Trust of the prediction of {antibiotic} by {model_name}', lang='en')))
+    graph.add((annotation, OA.motivatedBy, DQV.qualityAssessment))
+    graph.add((annotation, OA.hasTarget, activity))
+    if term is not None:
+        graph.add((annotation, IS_ABOUT, term))
+    graph.add((annotation, OA.bodyValue, Literal(trust['level'], lang='en')))
+    for item in trust['evidence']:
+        body = BNode()
+        graph.add((annotation, OA.hasBody, body))
+        graph.add((body, RDF.type, OA.TextualBody))
+        graph.add((body, RDF.value, Literal(item['text'], lang='en')))
+        graph.add((body, DCTERMS.identifier, Literal(item['rule'])))
+        graph.add((body, DCTERMS.type, Literal(item['judgement'])))
+    return annotation
+
+
+def _slug(text):
+    return ''.join(char if char.isalnum() else '-' for char in text.lower())

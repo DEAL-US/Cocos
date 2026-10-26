@@ -19,13 +19,16 @@ from rdflib.plugins.sparql.parserutils import CompValue
 
 from core.models import ProcessGroup
 from core.steps import UnknownStepError, used_software_labels
+from prediction.services import assess_predictions
 
 from .flow import registry_flow, sample_flow, tool_node_id
 from .model_page import model_page
 from .namespaces import AMRF, BSC, COCOS, PREFIXES, SCHEMA, bind_prefixes
 from .registry.graph import registry_graph
 from .registry.vocabulary import load_vocabulary
+from .provenance import task_iri
 from .sample import sample_graph
+from .trust import add_trust
 from .validation import shapes_graph
 
 JSON_LD = 'application/ld+json'
@@ -64,14 +67,18 @@ def rdf_response(graph, rdf_format):
 
 @login_required
 def process_rdf_view(request, process_id):
-    """The RDF description of a process of the user: Turtle, or JSON-LD if the client asks for it."""
+    """The RDF description of a process of the user, with its provenance and the trust of its
+    predictions: Turtle, or JSON-LD if the client asks for it."""
     process = get_object_or_404(ProcessGroup, id=process_id, user=request.user)
+    sample = request.build_absolute_uri(reverse('conversion:process_status', args=[process.id]))
     graph = sample_graph(
         process,
-        sample_iri=request.build_absolute_uri(reverse('conversion:process_status', args=[process.id])),
+        sample_iri=sample,
         content_url=lambda file: request.build_absolute_uri(reverse('conversion:process_file', args=[process.id, file.id])),
         with_provenance=True,
     )
+    for task, model_name, antibiotic, term, trust in assess_predictions(process, graph, URIRef(sample)):
+        add_trust(graph, task_iri(URIRef(sample), task), model_name, antibiotic, term, trust)
     rdf = rdf_format(request)
     return rdf_response(graph, 'turtle' if rdf == 'html' else rdf)
 

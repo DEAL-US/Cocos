@@ -23,6 +23,8 @@ VANN = Namespace('http://purl.org/vocab/vann/')
 PPLAN = Namespace('http://purl.org/net/p-plan#')
 # Quality of a plug-in (W3C Data Quality Vocabulary): measurements such as its F1 score.
 DQV = Namespace('http://www.w3.org/ns/dqv#')
+# Web Annotation (W3C), which DQV uses for quality annotations: the trust of a prediction.
+OA = Namespace('http://www.w3.org/ns/oa#')
 
 PREFIXES = {
     'amrf': AMRF,
@@ -36,6 +38,7 @@ PREFIXES = {
     'prov': PROV,
     'p-plan': PPLAN,
     'dqv': DQV,
+    'oa': OA,
     'dcterms': DCTERMS,
     'owl': OWL,
     'rdf': RDF,

@@ -4,14 +4,15 @@ from pathlib import Path
 
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
-from rdflib import URIRef
+from rdflib import Graph, Literal, URIRef
+from rdflib.namespace import DCTERMS, RDF
 
 from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
 from core.models import TaskInput, TaskOutput, TaskStatus
 from core.testing import FakeBioService
 from prediction.models import PredictionRun, PredictionTask
 from semantics.checks import check_trust_rules
-from semantics.namespaces import COCOS, OBO
+from semantics.namespaces import COCOS, DQV, OA, OBO
 from semantics.registry.graph import registry_graph
 from semantics.sample import sample_graph
 from semantics.trust import RULES, RulesError, antibiotic_iri, assess, check_rules, evidence, load_rules
@@ -161,3 +162,20 @@ class TrustTests(ConversionFlowMixin, TestCase):
     def test_the_antibiotic_of_a_model_by_its_name(self):
         self.assertEqual(antibiotic_iri(registry_graph(), MODEL, 'amikacin'), AMIKACIN)
         self.assertIsNone(antibiotic_iri(registry_graph(), MODEL, 'penicillin'))
+
+    def test_the_rdf_of_the_sample_has_the_trust_of_each_prediction(self):
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)
+        process, task = self.predict()
+        response = self.client.get(reverse('semantics:process_rdf', args=[process.id]), {'format': 'ttl'})
+        graph = Graph().parse(data=response.content, format='turtle')
+
+        [annotation] = graph.subjects(RDF.type, DQV.QualityAnnotation)
+        self.assertEqual(str(graph.value(annotation, OA.hasTarget)).rsplit('#', 1)[1], f'task-{task.pk}')
+        self.assertEqual(graph.value(annotation, OA.motivatedBy), DQV.qualityAssessment)
+        self.assertEqual(graph.value(annotation, OBO.IAO_0000136), AMIKACIN)
+        self.assertEqual(graph.value(annotation, OA.bodyValue), Literal('With reservations', lang='en'))
+        bodies = {str(graph.value(body, DCTERMS.identifier)): body for body in graph.objects(annotation, OA.hasBody)}
+        self.assertEqual(len(bodies), 8)
+        self.assertEqual(graph.value(bodies['class_balance'], DCTERMS.type), Literal('caution'))
+        self.assertIn('8%', str(graph.value(bodies['class_balance'], RDF.value)))
