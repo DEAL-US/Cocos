@@ -118,8 +118,32 @@
 
 .prediction-trust-badge {
     margin-top: 2px;
+    gap: 4px;
     cursor: pointer;
     white-space: nowrap;
+    border: 1px solid color-mix(in oklab, currentColor 35%, transparent);
+    transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+/* Clickable: it lifts and its border darkens on hover, and it shows the keyboard focus */
+.prediction-trust-badge:hover {
+    transform: translateY(-1px);
+    border-color: currentColor;
+    box-shadow: 0 3px 8px color-mix(in oklab, currentColor 20%, transparent);
+}
+
+.prediction-trust-badge:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.prediction-trust-more {
+    font-size: 0.65rem;
+    transition: transform 150ms ease;
+}
+
+.prediction-trust-badge:hover .prediction-trust-more {
+    transform: translateX(2px);
 }
 
 .prediction-value {

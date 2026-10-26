@@ -141,9 +141,21 @@ function createPredictionCell(value, trust, model, antibiotic) {
 function createTrustBadge(trust, model, antibiotic) {
   const badge = document.createElement('button');
   badge.type = 'button';
-  badge.className = `badge badge-sm badge-soft ${TRUST_STYLES[trust.judgement].badge} prediction-trust-badge`;
-  badge.textContent = `Trust: ${trust.level}`;
+  const style = TRUST_STYLES[trust.judgement];
+  badge.className = `badge badge-sm badge-soft ${style.badge} prediction-trust-badge`;
   badge.title = 'Why? See the evidence';
+  badge.setAttribute('aria-haspopup', 'dialog');
+
+  const icon = document.createElement('i');
+  icon.className = `bi ${style.icon}`;
+
+  const label = document.createElement('span');
+  label.textContent = `Trust: ${trust.level}`;
+
+  const more = document.createElement('i');
+  more.className = 'bi bi-chevron-right prediction-trust-more';
+
+  badge.append(icon, label, more);
   badge.addEventListener('click', () => openTrustDialog(trust, model, antibiotic));
   return badge;
 }
