@@ -7,11 +7,11 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-tfg}
       POSTGRES_USER: ${POSTGRES_USER:-tfg}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tfg_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cocos_database_password}
     volumes:
       - postgres_data_web:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test:
         [
