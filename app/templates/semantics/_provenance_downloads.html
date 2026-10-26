@@ -1,0 +1,5 @@
+{% comment %}
+Download links for the RDF description of a process with its provenance (semantics.views.process_rdf_view).
+{% endcomment %}
+<a href="{% url 'semantics:process_rdf' process_id=process_id %}?format=ttl" download="process-{{ process_id }}-provenance.ttl" class="btn btn-sm process-download-btn"><i class="bi bi-download"></i>Provenance (Turtle)</a>
+<a href="{% url 'semantics:process_rdf' process_id=process_id %}?format=jsonld" download="process-{{ process_id }}-provenance.jsonld" class="btn btn-sm process-download-btn"><i class="bi bi-download"></i>Provenance (JSON-LD)</a>

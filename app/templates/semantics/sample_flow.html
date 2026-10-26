@@ -23,6 +23,10 @@
           Select a box to see its details.
         </p>
       </div>
+      <div class="flex flex-wrap items-center gap-2">
+        {% include 'semantics/_provenance_downloads.html' with process_id=process.id %}
+        <span class="text-sm text-base-content/70">Everything Cocos knows about this sample and how its data was obtained (PROV-O), in RDF.</span>
+      </div>
       {% include 'semantics/_flow_graph.html' with mode='sample' description='Data flow of this sample. The page of the process lists the same steps and files.' %}
     </div>
   </div>
