@@ -109,6 +109,16 @@ class TrustTests(ConversionFlowMixin, TestCase):
                          'and the data of the model with Bakta 1.9.4 and Bakta database (full).')
         self.assertIn('Escherichia coli', result['by_rule']['species_isolates']['text'])
 
+    def test_only_the_databases_of_the_training_are_compared(self):
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)
+        process, task = self.predict()
+        annotation = process.tasks.order_by('id').first()
+        annotation.software.append({'name': 'AMRFinderPlus database', 'version': '2026-08-07.1', 'type': 'database'})
+        annotation.save(update_fields=['software'])
+
+        self.assertNotIn('AMRFinderPlus', self.trust(process, task)['by_rule']['same_annotation']['text'])
+
     def test_an_uploaded_annotation_cannot_be_compared_with_the_training(self):
         with FakeBioService():
             self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})

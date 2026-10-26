@@ -125,7 +125,7 @@ SELECT ?measurement ?metric ?value WHERE {
 # that generated it. The input of a prediction is followed back through the activities that
 # generated it, up to the data the user uploaded, looking for the same software.
 TRAINING_ANNOTATION = """
-SELECT ?tool ?label ?databaseLabel WHERE {
+SELECT ?tool ?label ?name ?databaseLabel WHERE {
     ?model prov:wasDerivedFrom/prov:wasGeneratedBy ?activity .
     ?activity prov:wasAssociatedWith ?agent .
     ?agent prov:specializationOf ?tool ; rdfs:label ?label .
@@ -133,7 +133,7 @@ SELECT ?tool ?label ?databaseLabel WHERE {
 }"""
 
 INPUT_ANNOTATION = """
-SELECT ?tool ?label ?databaseLabel WHERE {
+SELECT ?tool ?label ?name ?databaseLabel WHERE {
     ?prediction (prov:used/prov:wasGeneratedBy)+ ?activity .
     ?activity prov:wasAssociatedWith ?agent .
     ?agent prov:specializationOf ?tool ; rdfs:label ?label .
@@ -169,8 +169,12 @@ def evidence(registry, sample_graph, sample, prediction, model, antibiotic):
             overall[row.metric] = row.value.toPython()
         elif antibiotic in about:
             by_taxa.setdefault(frozenset(about - {antibiotic}), {})[row.metric] = row.value.toPython()
-    trained = _annotation(query(registry, TRAINING_ANNOTATION, model=model))
-    used = _annotation(query(sample_graph, INPUT_ANNOTATION, prediction=prediction))
+    training_rows = query(registry, TRAINING_ANNOTATION, model=model)
+    trained = _annotation(training_rows)
+    # Only the databases the training declares are compared: e.g. not the AMRFinderPlus database
+    # that the annotation of Cocos also used.
+    databases = {row.name for row in training_rows if row.name is not None}
+    used = _annotation(query(sample_graph, INPUT_ANNOTATION, prediction=prediction), databases)
     return {
         'organism': next((row.taxon for row in query(sample_graph, ORGANISM, sample=sample)), None),
         'range': [row.taxon for row in query(registry, RANGE, model=model)],
@@ -185,14 +189,15 @@ def evidence(registry, sample_graph, sample, prediction, model, antibiotic):
     }
 
 
-def _annotation(rows):
-    """{tool: 'Bakta 1.12.1 and Bakta database 6.0 (light)'} of the rows of an annotation query."""
+def _annotation(rows, databases=None):
+    """{tool: 'Bakta 1.12.1 and Bakta database 6.0 (light)'} of the rows of an annotation query,
+    with only the `databases` named, if given."""
     tools = {}
     for row in rows:
-        databases = tools.setdefault(row.tool, (str(row.label), set()))[1]
-        if row.databaseLabel is not None:
-            databases.add(str(row.databaseLabel))
-    return {tool: ' and '.join([name, *sorted(databases)]) for tool, (name, databases) in tools.items()}
+        labels = tools.setdefault(row.tool, (str(row.label), set()))[1]
+        if row.databaseLabel is not None and (databases is None or row.name in databases):
+            labels.add(str(row.databaseLabel))
+    return {tool: ' and '.join([name, *sorted(labels)]) for tool, (name, labels) in tools.items()}
 
 
 # --- Rules
