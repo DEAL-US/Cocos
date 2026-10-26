@@ -222,7 +222,7 @@ app/ai_models/<model_name>/
 
 **Rules:**
 
-- The descriptor declares the antibiotics the model predicts (`amrf:predictsResistanceTo` with ARO terms) and the organisms it was built for (`schema:taxonomicRange` with NCBITaxon terms; `obo:NCBITaxon_2`, Bacteria, means any organism). The organisms offered to users come from these declarations: the organism field of the upload forms only appears once some model declares specific organisms.
+- The descriptor declares the antibiotics the model predicts (`amrf:predictsResistanceTo` with ARO terms) and the organisms it was built for (`schema:taxonomicRange` with NCBITaxon terms; `obo:NCBITaxon_2`, Bacteria, means any organism). A model for a taxon accepts samples of that taxon and of the taxa under it in NCBITaxon (a model for Enterobacterales accepts *E. coli*), with the hierarchy that `fetch_terms` stores in `terms.ttl`. The organism field of the upload forms and of the page of a process offers the organisms Cocos knows something about: those the models declare and those their data has measurements about (their `quality.ttl`, e.g. the species they were trained on), plus *Other / unknown*.
 - Weight files must be named after the ARO label of each declared antibiotic (e.g. `amikacin.pt` for `obo:ARO_0000013`). A model with a declared antibiotic without weights is not registered (reported by `python manage.py check`); weights for an undeclared antibiotic are ignored, with a warning.
 - The adapter registered with `@register_model("<model_name>")` uses the folder name, so its weights and descriptor are found.
 
