@@ -384,3 +384,22 @@
         gap: 1rem;
     }
 }
+.source-job-select {
+  background-color: var(--color-base-100);
+  border-color: color-mix(in oklab, var(--color-base-content) 16%, white);
+  border-radius: 1rem;
+  outline: none !important;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.source-job-select:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 48%, white);
+  box-shadow: 0 6px 14px color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+.source-job-select:focus,
+.source-job-select:focus-visible {
+  border-color: color-mix(in oklab, var(--color-primary) 64%, white);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 22%, transparent);
+  outline: none !important;
+}

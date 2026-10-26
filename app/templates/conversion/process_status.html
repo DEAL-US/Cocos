@@ -49,7 +49,7 @@
         {% csrf_token %}
         <label class="label py-1"><span class="label-text font-semibold">Organism</span></label>
         <div class="process-name-row">
-          <select name="organism" class="select select-bordered w-full">
+          <select name="organism" class="select select-bordered w-full source-job-select">
             <option value="">Other / unknown</option>
             {% for curie, name in organism_options %}
               <option value="{{ curie }}"{% if curie == organism %} selected{% endif %}>{{ name }}</option>
