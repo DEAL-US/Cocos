@@ -77,3 +77,13 @@ class ModelQualityTests(SimpleTestCase):
         problems = {(problem.focus, problem.path) for problem in violations(validate(graph))}
         self.assertIn((str(f1), 'dqv:value'), problems)
         self.assertIn((str(f1), 'dqv:computedOn'), problems)
+
+    def test_how_many_labelled_isolates_there_are_for_an_antibiotic_and_a_species(self):
+        graph = load_descriptor(model_descriptor_path('base_bakta_50'))
+        query = '''SELECT ?value WHERE {
+            ?model dqv:hasQualityMeasurement ?m .
+            ?m dqv:isMeasurementOf obo:NCIT_C53190 ; dqv:value ?value ;
+               obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_28901 .
+        }'''  # labelled isolates of cefotaxime among those of Salmonella enterica
+        rows = graph.query(query, initNs={'dqv': DQV, 'obo': OBO}, initBindings={'model': model_iri('base_bakta_50')})
+        self.assertEqual([row.value.toPython() for row in rows], [78])

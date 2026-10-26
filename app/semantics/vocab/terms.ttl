@@ -71,8 +71,77 @@ obo:ARO_3007382 rdfs:label "gentamicin" ;
 
 obo:IAO_0000136 rdfs:label "is about" .
 
-obo:NCBITaxon_2 rdfs:label "Bacteria" ;
-    rdfs:subClassOf obo:NCBITaxon_131567 .
+obo:NCBITaxon_126385 rdfs:label "Providencia alcalifaciens" ;
+    rdfs:subClassOf obo:NCBITaxon_586 .
+
+obo:NCBITaxon_1280 rdfs:label "Staphylococcus aureus" ;
+    rdfs:subClassOf obo:NCBITaxon_1279 .
+
+obo:NCBITaxon_1313 rdfs:label "Streptococcus pneumoniae" ;
+    rdfs:subClassOf obo:NCBITaxon_1301 .
+
+obo:NCBITaxon_1351 rdfs:label "Enterococcus faecalis" ;
+    rdfs:subClassOf obo:NCBITaxon_1350 .
+
+obo:NCBITaxon_197 rdfs:label "Campylobacter jejuni" ;
+    rdfs:subClassOf obo:NCBITaxon_194 .
+
+obo:NCBITaxon_287 rdfs:label "Pseudomonas aeruginosa" ;
+    rdfs:subClassOf obo:NCBITaxon_136841 .
+
+obo:NCBITaxon_28901 rdfs:label "Salmonella enterica" ;
+    rdfs:subClassOf obo:NCBITaxon_590 .
+
+obo:NCBITaxon_40324 rdfs:label "Stenotrophomonas maltophilia" ;
+    rdfs:subClassOf obo:NCBITaxon_995085 .
+
+obo:NCBITaxon_413496 rdfs:label "Cronobacter" ;
+    rdfs:subClassOf obo:NCBITaxon_543 .
+
+obo:NCBITaxon_43770 rdfs:label "Corynebacterium striatum" ;
+    rdfs:subClassOf obo:NCBITaxon_1716 .
+
+obo:NCBITaxon_470 rdfs:label "Acinetobacter baumannii" ;
+    rdfs:subClassOf obo:NCBITaxon_909768 .
+
+obo:NCBITaxon_482 rdfs:label "Neisseria" ;
+    rdfs:subClassOf obo:NCBITaxon_481 .
+
+obo:NCBITaxon_546 rdfs:label "Citrobacter freundii" ;
+    rdfs:subClassOf obo:NCBITaxon_1344959 .
+
+obo:NCBITaxon_547 rdfs:label "Enterobacter" ;
+    rdfs:subClassOf obo:NCBITaxon_543 .
+
+obo:NCBITaxon_562 rdfs:label "Escherichia coli" ;
+    rdfs:subClassOf obo:NCBITaxon_561 .
+
+obo:NCBITaxon_571 rdfs:label "Klebsiella oxytoca" ;
+    rdfs:subClassOf obo:NCBITaxon_570 .
+
+obo:NCBITaxon_573 rdfs:label "Klebsiella pneumoniae" ;
+    rdfs:subClassOf obo:NCBITaxon_3390273 .
+
+obo:NCBITaxon_582 rdfs:label "Morganella morganii" ;
+    rdfs:subClassOf obo:NCBITaxon_581 .
+
+obo:NCBITaxon_615 rdfs:label "Serratia marcescens" ;
+    rdfs:subClassOf obo:NCBITaxon_613 .
+
+obo:NCBITaxon_61648 rdfs:label "Kluyvera intermedia" ;
+    rdfs:subClassOf obo:NCBITaxon_579 .
+
+obo:NCBITaxon_620 rdfs:label "Shigella" ;
+    rdfs:subClassOf obo:NCBITaxon_543 .
+
+obo:NCBITaxon_666 rdfs:label "Vibrio cholerae" ;
+    rdfs:subClassOf obo:NCBITaxon_662 .
+
+obo:NCBITaxon_670 rdfs:label "Vibrio parahaemolyticus" ;
+    rdfs:subClassOf obo:NCBITaxon_717610 .
+
+obo:NCBITaxon_87882 rdfs:label "Burkholderia cepacia complex" ;
+    rdfs:subClassOf obo:NCBITaxon_32008 .
 
 obo:NCIT_C146817 rdfs:label "Illumina Sequencing" ;
     rdfs:subClassOf obo:NCIT_C101293,
@@ -80,6 +149,12 @@ obo:NCIT_C146817 rdfs:label "Illumina Sequencing" ;
 
 obo:NCIT_C146818 rdfs:label "Nanopore Sequencing" ;
     rdfs:subClassOf obo:NCIT_C101293 .
+
+obo:NCIT_C53190 rdfs:label "Sample Size" ;
+    rdfs:subClassOf obo:NCIT_C71559 .
+
+obo:STATO_0000607 rdfs:label "proportion" ;
+    rdfs:subClassOf obo:STATO_0000184 .
 
 obo:STATO_0000628 rdfs:label "F1 score" ;
     rdfs:subClassOf obo:STATO_0000663 .
@@ -195,8 +270,152 @@ obo:ARO_3009107 rdfs:label "third-generation cephalosporin" ;
 
 obo:NCBITaxon_1 rdfs:label "root" .
 
+obo:NCBITaxon_119060 rdfs:label "Burkholderiaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_80840 .
+
+obo:NCBITaxon_1239 rdfs:label "Bacillota" ;
+    rdfs:subClassOf obo:NCBITaxon_1783272 .
+
+obo:NCBITaxon_1279 rdfs:label "Staphylococcus" ;
+    rdfs:subClassOf obo:NCBITaxon_90964 .
+
+obo:NCBITaxon_1300 rdfs:label "Streptococcaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_186826 .
+
+obo:NCBITaxon_1301 rdfs:label "Streptococcus" ;
+    rdfs:subClassOf obo:NCBITaxon_1300 .
+
 obo:NCBITaxon_131567 rdfs:label "cellular organisms" ;
     rdfs:subClassOf obo:NCBITaxon_1 .
+
+obo:NCBITaxon_1344959 rdfs:label "Citrobacter freundii complex" ;
+    rdfs:subClassOf obo:NCBITaxon_544 .
+
+obo:NCBITaxon_1350 rdfs:label "Enterococcus" ;
+    rdfs:subClassOf obo:NCBITaxon_81852 .
+
+obo:NCBITaxon_135614 rdfs:label "Lysobacterales" ;
+    rdfs:subClassOf obo:NCBITaxon_1236 .
+
+obo:NCBITaxon_135621 rdfs:label "Pseudomonadaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_72274 .
+
+obo:NCBITaxon_135623 rdfs:label "Vibrionales" ;
+    rdfs:subClassOf obo:NCBITaxon_1236 .
+
+obo:NCBITaxon_136841 rdfs:label "Pseudomonas aeruginosa group" ;
+    rdfs:subClassOf obo:NCBITaxon_286 .
+
+obo:NCBITaxon_1385 rdfs:label "Caryophanales" ;
+    rdfs:subClassOf obo:NCBITaxon_91061 .
+
+obo:NCBITaxon_1653 rdfs:label "Corynebacteriaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_85007 .
+
+obo:NCBITaxon_1716 rdfs:label "Corynebacterium" ;
+    rdfs:subClassOf obo:NCBITaxon_1653 .
+
+obo:NCBITaxon_1760 rdfs:label "Actinomycetes" ;
+    rdfs:subClassOf obo:NCBITaxon_201174 .
+
+obo:NCBITaxon_1903411 rdfs:label "Yersiniaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_91347 .
+
+obo:NCBITaxon_194 rdfs:label "Campylobacter" ;
+    rdfs:subClassOf obo:NCBITaxon_72294 .
+
+obo:NCBITaxon_201174 rdfs:label "Actinomycetota" ;
+    rdfs:subClassOf obo:NCBITaxon_1783272 .
+
+obo:NCBITaxon_206351 rdfs:label "Neisseriales" ;
+    rdfs:subClassOf obo:NCBITaxon_28216 .
+
+obo:NCBITaxon_213849 rdfs:label "Campylobacterales" ;
+    rdfs:subClassOf obo:NCBITaxon_3031852 .
+
+obo:NCBITaxon_286 rdfs:label "Pseudomonas" ;
+    rdfs:subClassOf obo:NCBITaxon_135621 .
+
+obo:NCBITaxon_2887326 rdfs:label "Moraxellales" ;
+    rdfs:subClassOf obo:NCBITaxon_1236 .
+
+obo:NCBITaxon_29547 rdfs:label "Campylobacterota" ;
+    rdfs:subClassOf obo:NCBITaxon_3379134 .
+
+obo:NCBITaxon_3031852 rdfs:label "Epsilonproteobacteria" ;
+    rdfs:subClassOf obo:NCBITaxon_29547 .
+
+obo:NCBITaxon_32008 rdfs:label "Burkholderia" ;
+    rdfs:subClassOf obo:NCBITaxon_119060 .
+
+obo:NCBITaxon_32033 rdfs:label "Lysobacteraceae" ;
+    rdfs:subClassOf obo:NCBITaxon_135614 .
+
+obo:NCBITaxon_3390273 rdfs:label "Klebsiella pneumoniae complex" ;
+    rdfs:subClassOf obo:NCBITaxon_570 .
+
+obo:NCBITaxon_40323 rdfs:label "Stenotrophomonas" ;
+    rdfs:subClassOf obo:NCBITaxon_32033 .
+
+obo:NCBITaxon_468 rdfs:label "Moraxellaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_2887326 .
+
+obo:NCBITaxon_469 rdfs:label "Acinetobacter" ;
+    rdfs:subClassOf obo:NCBITaxon_468 .
+
+obo:NCBITaxon_481 rdfs:label "Neisseriaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_206351 .
+
+obo:NCBITaxon_544 rdfs:label "Citrobacter" ;
+    rdfs:subClassOf obo:NCBITaxon_543 .
+
+obo:NCBITaxon_561 rdfs:label "Escherichia" ;
+    rdfs:subClassOf obo:NCBITaxon_543 .
+
+obo:NCBITaxon_579 rdfs:label "Kluyvera" ;
+    rdfs:subClassOf obo:NCBITaxon_543 .
+
+obo:NCBITaxon_581 rdfs:label "Morganella <enterobacteria>" ;
+    rdfs:subClassOf obo:NCBITaxon_1903414 .
+
+obo:NCBITaxon_586 rdfs:label "Providencia" ;
+    rdfs:subClassOf obo:NCBITaxon_1903414 .
+
+obo:NCBITaxon_590 rdfs:label "Salmonella" ;
+    rdfs:subClassOf obo:NCBITaxon_543 .
+
+obo:NCBITaxon_613 rdfs:label "Serratia <enterobacteria>" ;
+    rdfs:subClassOf obo:NCBITaxon_1903411 .
+
+obo:NCBITaxon_641 rdfs:label "Vibrionaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_135623 .
+
+obo:NCBITaxon_717610 rdfs:label "Vibrio harveyi group" ;
+    rdfs:subClassOf obo:NCBITaxon_662 .
+
+obo:NCBITaxon_72274 rdfs:label "Pseudomonadales" ;
+    rdfs:subClassOf obo:NCBITaxon_1236 .
+
+obo:NCBITaxon_72294 rdfs:label "Campylobacteraceae" ;
+    rdfs:subClassOf obo:NCBITaxon_213849 .
+
+obo:NCBITaxon_80840 rdfs:label "Burkholderiales" ;
+    rdfs:subClassOf obo:NCBITaxon_28216 .
+
+obo:NCBITaxon_81852 rdfs:label "Enterococcaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_186826 .
+
+obo:NCBITaxon_85007 rdfs:label "Mycobacteriales" ;
+    rdfs:subClassOf obo:NCBITaxon_1760 .
+
+obo:NCBITaxon_90964 rdfs:label "Staphylococcaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_1385 .
+
+obo:NCBITaxon_909768 rdfs:label "Acinetobacter calcoaceticus/baumannii complex" ;
+    rdfs:subClassOf obo:NCBITaxon_469 .
+
+obo:NCBITaxon_995085 rdfs:label "Stenotrophomonas maltophilia group" ;
+    rdfs:subClassOf obo:NCBITaxon_40323 .
 
 obo:NCIT_C153598 rdfs:label "DNA Sequencing" ;
     rdfs:subClassOf obo:NCIT_C17632,
@@ -214,13 +433,30 @@ obo:NCIT_C17632 rdfs:label "DNA Analysis" ;
 obo:NCIT_C19645 rdfs:label "Large-Scale Sequencing" ;
     rdfs:subClassOf obo:NCIT_C18881 .
 
+obo:NCIT_C20181 rdfs:label "Conceptual Entity" .
+
 obo:NCIT_C25218 rdfs:label "Clinical Intervention or Procedure" ;
     rdfs:subClassOf obo:NCIT_C16203 .
 
 obo:NCIT_C25294 rdfs:label "Laboratory Procedure" ;
     rdfs:subClassOf obo:NCIT_C25218 .
 
+obo:NCIT_C25474 rdfs:label "Data" ;
+    rdfs:subClassOf obo:NCIT_C48191 .
+
 obo:NCIT_C43431 rdfs:label "Activity" .
+
+obo:NCIT_C48191 rdfs:label "Information" ;
+    rdfs:subClassOf obo:NCIT_C20181 .
+
+obo:NCIT_C71559 rdfs:label "Sample Statistic" ;
+    rdfs:subClassOf obo:NCIT_C83503 .
+
+obo:NCIT_C83503 rdfs:label "Statistic" ;
+    rdfs:subClassOf obo:NCIT_C25474 .
+
+obo:STATO_0000184 rdfs:label "ratio" ;
+    rdfs:subClassOf obo:STATO_0000039 .
 
 obo:STATO_0000209 rdfs:label "area under curve" ;
     rdfs:subClassOf obo:STATO_0000039 .
@@ -255,6 +491,36 @@ obo:ARO_0000016 rdfs:label "aminoglycoside antibiotic" ;
 obo:ARO_3000007 rdfs:label "beta-lactam antibiotic" ;
     rdfs:subClassOf obo:ARO_1000003 .
 
+obo:NCBITaxon_1224 rdfs:label "Pseudomonadota" ;
+    rdfs:subClassOf obo:NCBITaxon_3379134 .
+
+obo:NCBITaxon_1783272 rdfs:label "Bacillati" ;
+    rdfs:subClassOf obo:NCBITaxon_2 .
+
+obo:NCBITaxon_186826 rdfs:label "Lactobacillales" ;
+    rdfs:subClassOf obo:NCBITaxon_91061 .
+
+obo:NCBITaxon_1903414 rdfs:label "Morganellaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_91347 .
+
+obo:NCBITaxon_2 rdfs:label "Bacteria" ;
+    rdfs:subClassOf obo:NCBITaxon_131567 .
+
+obo:NCBITaxon_28216 rdfs:label "Betaproteobacteria" ;
+    rdfs:subClassOf obo:NCBITaxon_1224 .
+
+obo:NCBITaxon_3379134 rdfs:label "Pseudomonadati" ;
+    rdfs:subClassOf obo:NCBITaxon_2 .
+
+obo:NCBITaxon_570 rdfs:label "Klebsiella" ;
+    rdfs:subClassOf obo:NCBITaxon_543 .
+
+obo:NCBITaxon_662 rdfs:label "Vibrio" ;
+    rdfs:subClassOf obo:NCBITaxon_641 .
+
+obo:NCBITaxon_91061 rdfs:label "Bacilli" ;
+    rdfs:subClassOf obo:NCBITaxon_1239 .
+
 obo:NCIT_C101293 rdfs:label "Next Generation Sequencing" ;
     rdfs:subClassOf obo:NCIT_C19645 .
 
@@ -264,17 +530,26 @@ obo:NCIT_C18881 rdfs:label "Nucleic Acid Sequencing" ;
 obo:NCIT_C19770 rdfs:label "Molecular Analysis" ;
     rdfs:subClassOf obo:NCIT_C25294 .
 
-obo:STATO_0000039 rdfs:label "statistic" .
-
 edam:format_2330 rdfs:label "Textual format" ;
     rdfs:subClassOf edam:format_1915 .
 
 obo:ARO_1000003 rdfs:label "antibiotic molecule" ;
     rdfs:subClassOf obo:ARO_1000001 .
 
+obo:NCBITaxon_91347 rdfs:label "Enterobacterales" ;
+    rdfs:subClassOf obo:NCBITaxon_1236 .
+
+obo:STATO_0000039 rdfs:label "statistic" .
+
 edam:data_0006 rdfs:label "Data" .
 
 edam:format_1915 rdfs:label "Format" .
 
 edam:operation_0004 rdfs:label "Operation" .
+
+obo:NCBITaxon_1236 rdfs:label "Gammaproteobacteria" ;
+    rdfs:subClassOf obo:NCBITaxon_1224 .
+
+obo:NCBITaxon_543 rdfs:label "Enterobacteriaceae" ;
+    rdfs:subClassOf obo:NCBITaxon_91347 .
 

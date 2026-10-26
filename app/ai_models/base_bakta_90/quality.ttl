@@ -28,3 +28,874 @@
     dqv:isMeasurementOf obo:STATO_0000691 ;   # area under the precision-recall curve
     dqv:value "0.77"^^xsd:decimal ;
     dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#test-data> .
+
+# How much training data there is for each antibiotic of the model, overall and by species:
+# labelled isolates and proportion of resistant ones. Generated from S1 and S2 of BioStudies
+# S-BSST2698 (counts of NDARO; the BAKTA matrices hold those whose genome Bakta annotated).
+
+<https://w3id.org/cocos/model/base_bakta_90>
+    dqv:hasQualityMeasurement
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-e-coli-and-shigella-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-e-coli-and-shigella-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-salmonella-enterica-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-salmonella-enterica-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-acinetobacter-baumannii-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-acinetobacter-baumannii-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-klebsiella-pneumoniae-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-klebsiella-pneumoniae-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-pseudomonas-aeruginosa-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-pseudomonas-aeruginosa-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-enterobacter-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-enterobacter-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-serratia-marcescens-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-serratia-marcescens-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-providencia-alcalifaciens-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-providencia-alcalifaciens-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-citrobacter-freundii-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-citrobacter-freundii-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-klebsiella-oxytoca-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-klebsiella-oxytoca-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-staphylococcus-aureus-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-staphylococcus-aureus-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-morganella-morganii-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-morganella-morganii-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-kluyvera-intermedia-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-kluyvera-intermedia-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-enterococcus-faecalis-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-enterococcus-faecalis-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-stenotrophomonas-maltophilia-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-stenotrophomonas-maltophilia-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-burkholderia-cepacia-complex-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-burkholderia-cepacia-complex-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-streptococcus-pneumoniae-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#amikacin-streptococcus-pneumoniae-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-e-coli-and-shigella-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-e-coli-and-shigella-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-acinetobacter-baumannii-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-acinetobacter-baumannii-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-klebsiella-pneumoniae-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-klebsiella-pneumoniae-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-salmonella-enterica-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-salmonella-enterica-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-enterobacter-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-enterobacter-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-serratia-marcescens-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-serratia-marcescens-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-providencia-alcalifaciens-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-providencia-alcalifaciens-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-citrobacter-freundii-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-citrobacter-freundii-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-klebsiella-oxytoca-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-klebsiella-oxytoca-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-pseudomonas-aeruginosa-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-pseudomonas-aeruginosa-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-morganella-morganii-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-morganella-morganii-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-kluyvera-intermedia-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#cefotaxime-kluyvera-intermedia-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-salmonella-enterica-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-salmonella-enterica-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-e-coli-and-shigella-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-e-coli-and-shigella-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-campylobacter-jejuni-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-campylobacter-jejuni-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-acinetobacter-baumannii-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-acinetobacter-baumannii-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-staphylococcus-aureus-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-staphylococcus-aureus-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-klebsiella-pneumoniae-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-klebsiella-pneumoniae-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-pseudomonas-aeruginosa-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-pseudomonas-aeruginosa-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-enterobacter-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-enterobacter-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-serratia-marcescens-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-serratia-marcescens-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-citrobacter-freundii-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-citrobacter-freundii-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-providencia-alcalifaciens-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-providencia-alcalifaciens-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-vibrio-parahaemolyticus-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-vibrio-parahaemolyticus-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-klebsiella-oxytoca-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-klebsiella-oxytoca-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-enterococcus-faecalis-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-enterococcus-faecalis-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-neisseria-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-neisseria-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-morganella-morganii-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-morganella-morganii-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-corynebacterium-striatum-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-corynebacterium-striatum-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-stenotrophomonas-maltophilia-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-stenotrophomonas-maltophilia-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-streptococcus-pneumoniae-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-streptococcus-pneumoniae-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-burkholderia-cepacia-complex-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-burkholderia-cepacia-complex-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-cronobacter-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-cronobacter-resistant> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-vibrio-cholerae-isolates> ,
+        <https://w3id.org/cocos/model/base_bakta_90#gentamicin-vibrio-cholerae-resistant> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 7288 ;
+    obo:IAO_0000136 obo:ARO_0000013 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.080"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-e-coli-and-shigella-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 2797 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_562 , obo:NCBITaxon_620 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-e-coli-and-shigella-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.011"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_562 , obo:NCBITaxon_620 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-salmonella-enterica-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 2757 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_28901 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-salmonella-enterica-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.001"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_28901 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-acinetobacter-baumannii-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 988 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_470 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-acinetobacter-baumannii-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.420"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_470 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-klebsiella-pneumoniae-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 387 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_573 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-klebsiella-pneumoniae-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.243"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_573 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-pseudomonas-aeruginosa-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 229 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_287 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-pseudomonas-aeruginosa-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.135"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_287 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-enterobacter-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 63 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_547 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-enterobacter-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.032"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_547 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-serratia-marcescens-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 17 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_615 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-serratia-marcescens-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_615 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-providencia-alcalifaciens-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 13 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_126385 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-providencia-alcalifaciens-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.231"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_126385 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-citrobacter-freundii-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 12 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_546 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-citrobacter-freundii-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_546 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-klebsiella-oxytoca-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 9 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_571 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-klebsiella-oxytoca-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_571 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-staphylococcus-aureus-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 6 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_1280 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-staphylococcus-aureus-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_1280 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-morganella-morganii-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 5 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_582 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-morganella-morganii-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_582 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-kluyvera-intermedia-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_61648 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-kluyvera-intermedia-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_61648 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-enterococcus-faecalis-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_1351 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-enterococcus-faecalis-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "1.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_1351 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-stenotrophomonas-maltophilia-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_40324 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-stenotrophomonas-maltophilia-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_40324 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-burkholderia-cepacia-complex-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_87882 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-burkholderia-cepacia-complex-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_87882 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-streptococcus-pneumoniae-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_1313 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#amikacin-streptococcus-pneumoniae-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_0000013 , obo:NCBITaxon_1313 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1845 ;
+    obo:IAO_0000136 obo:ARO_3000645 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.834"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-e-coli-and-shigella-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 729 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_562 , obo:NCBITaxon_620 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-e-coli-and-shigella-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.842"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_562 , obo:NCBITaxon_620 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-acinetobacter-baumannii-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 598 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_470 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-acinetobacter-baumannii-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.955"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_470 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-klebsiella-pneumoniae-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 342 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_573 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-klebsiella-pneumoniae-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.830"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_573 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-salmonella-enterica-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 78 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_28901 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-salmonella-enterica-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.038"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_28901 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-enterobacter-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 51 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_547 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-enterobacter-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.882"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_547 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-serratia-marcescens-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 14 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_615 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-serratia-marcescens-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.071"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_615 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-providencia-alcalifaciens-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 13 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_126385 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-providencia-alcalifaciens-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.769"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_126385 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-citrobacter-freundii-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 8 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_546 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-citrobacter-freundii-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.375"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_546 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-klebsiella-oxytoca-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 5 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_571 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-klebsiella-oxytoca-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.200"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_571 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-pseudomonas-aeruginosa-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 3 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_287 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-pseudomonas-aeruginosa-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "1.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_287 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-morganella-morganii-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 3 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_582 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-morganella-morganii-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.667"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_582 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-kluyvera-intermedia-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_61648 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#cefotaxime-kluyvera-intermedia-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "1.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3000645 , obo:NCBITaxon_61648 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 19392 ;
+    obo:IAO_0000136 obo:ARO_3007382 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.146"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-salmonella-enterica-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 8085 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_28901 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-salmonella-enterica-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.101"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_28901 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-e-coli-and-shigella-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 5686 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_562 , obo:NCBITaxon_620 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-e-coli-and-shigella-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.120"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_562 , obo:NCBITaxon_620 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-campylobacter-jejuni-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 3134 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_197 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-campylobacter-jejuni-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.009"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_197 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-acinetobacter-baumannii-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1008 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_470 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-acinetobacter-baumannii-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.781"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_470 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-staphylococcus-aureus-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 525 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_1280 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-staphylococcus-aureus-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.046"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_1280 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-klebsiella-pneumoniae-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 411 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_573 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-klebsiella-pneumoniae-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.474"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_573 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-pseudomonas-aeruginosa-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 388 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_287 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-pseudomonas-aeruginosa-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.693"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_287 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-enterobacter-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 70 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_547 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-enterobacter-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.214"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_547 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-serratia-marcescens-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 17 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_615 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-serratia-marcescens-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.118"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_615 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-citrobacter-freundii-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 13 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_546 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-citrobacter-freundii-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.231"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_546 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-providencia-alcalifaciens-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 12 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_126385 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-providencia-alcalifaciens-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.500"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_126385 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-vibrio-parahaemolyticus-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 9 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_670 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-vibrio-parahaemolyticus-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_670 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-klebsiella-oxytoca-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 8 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_571 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-klebsiella-oxytoca-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_571 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-enterococcus-faecalis-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 7 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_1351 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-enterococcus-faecalis-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.571"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_1351 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-neisseria-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 7 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_482 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-neisseria-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_482 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-morganella-morganii-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 5 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_582 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-morganella-morganii-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.400"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_582 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-corynebacterium-striatum-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 2 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_43770 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-corynebacterium-striatum-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.500"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_43770 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-stenotrophomonas-maltophilia-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_40324 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-stenotrophomonas-maltophilia-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_40324 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-streptococcus-pneumoniae-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_1313 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-streptococcus-pneumoniae-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_1313 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-burkholderia-cepacia-complex-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_87882 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-burkholderia-cepacia-complex-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_87882 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-cronobacter-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_413496 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-cronobacter-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_413496 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-vibrio-cholerae-isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: labelled isolates
+    dqv:value 1 ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_666 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
+
+<https://w3id.org/cocos/model/base_bakta_90#gentamicin-vibrio-cholerae-resistant>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000607 ;   # proportion of resistant isolates
+    dqv:value "0.000"^^xsd:decimal ;
+    obo:IAO_0000136 obo:ARO_3007382 , obo:NCBITaxon_666 ;
+    dqv:computedOn <https://w3id.org/cocos/model/base_bakta_90#training-data> .
