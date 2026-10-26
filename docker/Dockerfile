@@ -20,13 +20,16 @@ RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app /app
+# Usuario sin privilegios: el código y lo que escribe la aplicación son suyos
+RUN addgroup --system app && adduser --system --ingroup app app
+
+COPY --chown=app:app app /app
 
 
 # CSS y librerías JS compilados (en desarrollo los genera el servicio frontend del compose)
-COPY --from=frontend /frontend/static /app/static/
+COPY --chown=app:app --from=frontend /frontend/static /app/static/
 
+# media existe antes de montar el volumen para que Docker lo cree con este dueño y no como root
+RUN mkdir -p /app/media && chown app:app /app /app/media
 
-# Non-root user for security
-RUN addgroup --system app && adduser --system --ingroup app app
-RUN chown -R app:app /app
+USER app
