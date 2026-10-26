@@ -21,6 +21,8 @@ OBO = Namespace('http://purl.obolibrary.org/obo/')
 VANN = Namespace('http://purl.org/vocab/vann/')
 # Provenance: PROV-O (W3C) and P-Plan, its extension for the plans that activities follow.
 PPLAN = Namespace('http://purl.org/net/p-plan#')
+# Quality of a plug-in (W3C Data Quality Vocabulary): measurements such as its F1 score.
+DQV = Namespace('http://www.w3.org/ns/dqv#')
 
 PREFIXES = {
     'amrf': AMRF,
@@ -33,6 +35,7 @@ PREFIXES = {
     'vann': VANN,
     'prov': PROV,
     'p-plan': PPLAN,
+    'dqv': DQV,
     'dcterms': DCTERMS,
     'owl': OWL,
     'rdf': RDF,

@@ -18,7 +18,7 @@ TERMS_FILE = Path(__file__).resolve().parents[1] / 'vocab' / 'terms.ttl'
 OLS_API = 'https://www.ebi.ac.uk/ols4/api'
 
 # OBO prefix (as in obo:ARO_0000073) -> OLS ontology id.
-OBO_ONTOLOGIES = {'ARO': 'aro', 'NCBITaxon': 'ncbitaxon', 'NCIT': 'ncit', 'IAO': 'iao'}
+OBO_ONTOLOGIES = {'ARO': 'aro', 'NCBITaxon': 'ncbitaxon', 'NCIT': 'ncit', 'IAO': 'iao', 'STATO': 'stato'}
 
 # Ontology IRI and license of each source; terms.ttl copies their labels.
 SOURCES = {
@@ -27,6 +27,7 @@ SOURCES = {
     'ncbitaxon': ('http://purl.obolibrary.org/obo/ncbitaxon.owl', 'https://creativecommons.org/publicdomain/zero/1.0/'),
     'ncit': ('http://purl.obolibrary.org/obo/ncit.owl', 'https://creativecommons.org/licenses/by/4.0/'),
     'iao': ('http://purl.obolibrary.org/obo/iao.owl', 'https://creativecommons.org/licenses/by/4.0/'),
+    'stato': ('http://purl.obolibrary.org/obo/stato.owl', 'http://creativecommons.org/licenses/by/3.0/'),
 }
 
 HEADER = """# Labels and hierarchy of the ontology terms Cocos reuses, copied from their sources.

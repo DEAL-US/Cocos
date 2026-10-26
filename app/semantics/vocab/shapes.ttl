@@ -3,6 +3,7 @@
 @prefix bioschemas: <https://bioschemas.org/> .
 @prefix bsc:        <https://bioschemas.org/properties/> .
 @prefix dcterms:    <http://purl.org/dc/terms/> .
+@prefix dqv:        <http://www.w3.org/ns/dqv#> .
 @prefix edam:       <http://edamontology.org/> .
 @prefix obo:        <http://purl.obolibrary.org/obo/> .
 @prefix owl:        <http://www.w3.org/2002/07/owl#> .
@@ -281,4 +282,25 @@ amrfsh:PlanStepShape
     sh:property [
         sh:path p-plan:isStepOfPlan ; sh:minCount 1 ; sh:maxCount 1 ; sh:class p-plan:Plan ;
         sh:message "A step of a plan belongs to exactly one p-plan:Plan."@en ;
+    ] .
+
+# --- Quality of a plug-in (DQV, in its quality.ttl): optional, for any kind of model or step
+
+amrfsh:QualityMeasurementShape
+    a sh:NodeShape ;
+    sh:targetClass dqv:QualityMeasurement ;
+    sh:targetObjectsOf dqv:hasQualityMeasurement ;
+    sh:property [
+        sh:path dqv:isMeasurementOf ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ;
+        sh:message "A measurement is of exactly one metric (dqv:isMeasurementOf), a term such as STATO F1 score."@en ;
+    ] , [
+        sh:path dqv:value ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:or ( [ sh:datatype xsd:decimal ] [ sh:datatype xsd:integer ] [ sh:datatype xsd:double ] ) ;
+        sh:message "A measurement has exactly one numeric dqv:value."@en ;
+    ] , [
+        sh:path dqv:computedOn ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A measurement says on which data it was computed (dqv:computedOn): training, validation..."@en ;
+    ] , [
+        sh:path obo:IAO_0000136 ; sh:nodeKind sh:IRI ;
+        sh:message "What a measurement is about (obo:IAO_0000136, e.g. an antibiotic of ARO or an organism of NCBITaxon) are terms."@en ;
     ] .
