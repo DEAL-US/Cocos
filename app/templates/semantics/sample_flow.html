@@ -23,13 +23,29 @@
           Select a box to see its details.
         </p>
       </div>
-      <div class="flex flex-wrap items-center gap-2">
-        {% include 'semantics/_provenance_downloads.html' with process_id=process.id %}
-        <span class="text-sm text-base-content/70">Everything Cocos knows about this sample and how its data was obtained (PROV-O), in RDF.</span>
-      </div>
+
       {% include 'semantics/_flow_graph.html' with mode='sample' description='Data flow of this sample. The page of the process lists the same steps and files.' %}
     </div>
   </div>
+
+  <details class="collapse collapse-arrow rounded-box bg-base-100 border border-base-300 shadow-sm">
+    <summary class="collapse-title">
+      <span class="text-lg font-semibold"><i class="bi bi-file-earmark-code text-primary mr-2"></i>Provenance data</span>
+      <span class="block text-sm text-base-content/70">For researchers and other programs: this sample, how its data was obtained and how much its predictions can be trusted, in RDF.</span>
+    </summary>
+    <div class="collapse-content space-y-3">
+      <p class="text-sm text-base-content/80">
+        It describes the data of the sample and its files (with their SHA-256), each step that was run, when, with which
+        software, versions and databases (<a class="link link-primary" href="https://www.w3.org/TR/prov-o/">PROV-O</a>
+        and <a class="link link-primary" href="https://www.opmw.org/model/p-plan/">P-Plan</a>), and the trust of each
+        prediction with its evidence (<a class="link link-primary" href="https://www.w3.org/TR/vocab-dqv/">DQV</a>).
+        It can be queried with SPARQL. Who you are never appears in it.
+      </p>
+      <div class="flex flex-wrap gap-2">
+        {% include 'semantics/_provenance_downloads.html' with process_id=process.id %}
+      </div>
+    </div>
+  </details>
 </div>
 
 <script src="{% static 'vendor/cytoscape.min.js' %}"></script>

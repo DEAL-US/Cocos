@@ -69,13 +69,11 @@ class ProcessFlowViewTests(ConversionFlowMixin, TestCase):
     def test_the_page_of_the_process_links_to_it(self):
         self.assertContains(self.client.get(reverse('conversion:process_status', args=[self.process.id])), self.url)
 
-    def test_the_flow_and_the_process_offer_the_rdf_with_its_provenance(self):
+    def test_the_flow_offers_the_rdf_with_its_provenance(self):
         rdf = reverse('semantics:process_rdf', args=[self.process.id])
-        for page in (self.url, reverse('conversion:process_status', args=[self.process.id])):
-            with self.subTest(page):
-                response = self.client.get(page)
-                self.assertContains(response, f'href="{rdf}?format=ttl"')
-                self.assertContains(response, f'href="{rdf}?format=jsonld"')
+        response = self.client.get(self.url)
+        self.assertContains(response, f'href="{rdf}?format=ttl"')
+        self.assertContains(response, f'href="{rdf}?format=jsonld"')
 
     def test_only_the_owner_gets_it(self):
         self.client.login(username='other-user', password='pass1234')

@@ -92,11 +92,8 @@
       </div>
 
       <div class="mt-4">
-        <h2 class="font-semibold mb-2">Data flow and provenance</h2>
-        <div class="flex flex-wrap gap-2">
-          <a href="{% url 'semantics:process_flow' process_id=process_id %}" class="btn btn-sm process-download-btn"><i class="bi bi-share"></i>View data flow</a>
-          {% include 'semantics/_provenance_downloads.html' with process_id=process_id %}
-        </div>
+        <h2 class="font-semibold mb-2">Data flow</h2>
+        <a href="{% url 'semantics:process_flow' process_id=process_id %}" class="btn btn-sm process-download-btn"><i class="bi bi-share"></i>View data flow</a>
       </div>
 
         <div class="mt-3 flex flex-wrap gap-2">
