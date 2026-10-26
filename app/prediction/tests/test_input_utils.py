@@ -1,6 +1,9 @@
+import shutil
+import tempfile
+
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from core.models import FileGene, Gene
 from core.models import File
@@ -11,6 +14,12 @@ User = get_user_model()
 
 class PresenceFromListTests(TestCase):
     def setUp(self):
+        self.media_dir = tempfile.mkdtemp()
+        media_override = override_settings(MEDIA_ROOT=self.media_dir)
+        media_override.enable()
+        self.addCleanup(media_override.disable)
+        self.addCleanup(shutil.rmtree, self.media_dir, ignore_errors=True)
+
         self.user = User.objects.create_user(username="pred_user", password="pass1234")
         self.file_upload = File.objects.create(
             user=self.user,
