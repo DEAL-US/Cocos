@@ -12,7 +12,7 @@ from core.models import TaskInput, TaskOutput, TaskStatus
 from core.testing import FakeBioService
 from prediction.models import PredictionRun, PredictionTask
 from semantics.checks import check_trust_rules
-from semantics.namespaces import COCOS, DQV, OA, OBO
+from semantics.namespaces import COCOS, DQV, OA, OBO, SCHEMA
 from semantics.registry.graph import registry_graph
 from semantics.sample import sample_graph
 from semantics.trust import RULES, RulesError, antibiotic_iri, assess, check_rules, evidence, load_rules
@@ -152,6 +152,25 @@ class TrustTests(ConversionFlowMixin, TestCase):
         task.save(update_fields=['software'])
 
         self.assertEqual(self.trust(process, task)['by_rule']['weights']['judgement'], 'serious')
+
+    def test_the_weights_for_all_antibiotics_must_be_the_declared_ones_too(self):
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)
+        process, task = self.predict()
+        registry = registry_graph() + Graph()  # a copy, with a file about no antibiotic
+        shared = URIRef(f'{MODEL}#weights-shared')
+        registry.add((MODEL, SCHEMA.hasPart, shared))
+        registry.add((shared, SCHEMA.sha256, Literal('cd' * 32)))
+
+        def judgement():
+            graph = sample_graph(process, str(SAMPLE), with_provenance=True)
+            facts = evidence(registry, graph, SAMPLE, URIRef(f'{SAMPLE}#task-{task.pk}'), MODEL, AMIKACIN)
+            return {item['rule']: item for item in assess(registry, facts, 'amikacin')['evidence']}['weights']['judgement']
+
+        self.assertEqual(judgement(), 'serious')
+        task.software[0]['weights'].append({'sha256': 'cd' * 32})
+        task.save(update_fields=['software'])
+        self.assertEqual(judgement(), 'for')
 
     def test_thresholds_and_switches_come_from_the_rules(self):
         with FakeBioService():

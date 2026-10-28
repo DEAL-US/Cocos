@@ -138,7 +138,8 @@ def add_software(graph, sample, activity, entry):
         for weights in entry.get('weights', []):
             node = URIRef(f"{sample}#weights-{weights['sha256'][:16]}")
             graph.add((node, RDF.type, PROV.Entity))
-            graph.add((node, RDFS.label, Literal(f"{entry['name']} weights for {weights['antibiotic']}")))
+            about = f" for {weights['antibiotic']}" if weights.get('antibiotic') else ''
+            graph.add((node, RDFS.label, Literal(f"{entry['name']} weights{about}")))
             graph.add((node, SCHEMA.sha256, Literal(weights['sha256'])))
             graph.add((activity, PROV.used, node))
     graph.add((activity, PROV.wasAssociatedWith, agent))

@@ -74,15 +74,20 @@ class PredictionStepTests(FlowTestMixin, TestCase):
             weights = Path(directory) / 'amikacin.pt'
             weights.write_bytes(b'WEIGHTS')
 
+            shared = Path(directory) / 'shared.pt'
+            shared.write_bytes(b'SHARED')
+
             def declared(model_name, antibiotic):
-                return [weights] if antibiotic == 'amikacin' else []  # colistin has no weights
+                # colistin has no weights; shared.pt is for all the antibiotics
+                return {'amikacin': [weights], '': [shared]}.get(antibiotic, [])
 
             with patch('prediction.steps.get_model_weights', side_effect=declared):
                 software = task.get_step().software(task)
 
         self.assertEqual(software, [{
             'name': 'fake_half', 'version': FAKE_MODEL_VERSION, 'type': 'model',
-            'weights': [{'antibiotic': 'amikacin', 'sha256': hashlib.sha256(b'WEIGHTS').hexdigest()}],
+            'weights': [{'antibiotic': 'amikacin', 'sha256': hashlib.sha256(b'WEIGHTS').hexdigest()},
+                        {'sha256': hashlib.sha256(b'SHARED').hexdigest()}],
         }])
 
     def test_a_model_that_predicts_nothing_fails_but_keeps_its_results(self):

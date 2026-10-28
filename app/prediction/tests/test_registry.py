@@ -144,10 +144,11 @@ class ModelDescriptorTests(TestCase):
 
     def test_the_weights_of_an_antibiotic_are_the_files_its_descriptor_declares_for_it(self):
         self.register('test_weights', antibiotics=('amikacin', 'meropenem'),
-                      weights=[('amikacin', 'weights/amikacin.pt'), ('meropenem', 'meropenem.joblib')])
+                      weights=[('', 'shared.pt'), ('amikacin', 'weights/amikacin.pt'), ('meropenem', 'meropenem.joblib')])
 
         self.assertEqual(get_model_weights('test_weights', 'meropenem'), [model_dir('test_weights') / 'meropenem.joblib'])
         self.assertEqual(get_model_weights('test_weights', 'colistin'), [])
+        self.assertEqual(get_model_weights('test_weights', ''), [model_dir('test_weights') / 'shared.pt'])
 
     def test_real_models_support_any_organism(self):
         for name in ('base_bakta_50', 'base_bakta_90'):

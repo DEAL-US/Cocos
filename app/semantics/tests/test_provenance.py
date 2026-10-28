@@ -94,7 +94,7 @@ class ProvenanceTests(ConversionFlowMixin, TestCase):
             self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
         task = self.process_tasks(self.latest_process()).get()
         task.software = [{'name': 'base_bakta_50', 'version': '1.0.0', 'type': 'model',
-                          'weights': [{'antibiotic': 'amikacin', 'sha256': 'ab' * 32}]}]
+                          'weights': [{'antibiotic': 'amikacin', 'sha256': 'ab' * 32}, {'sha256': 'cd' * 32}]}]
         task.save(update_fields=['software'])
         graph = self.provenance()
 
@@ -102,6 +102,10 @@ class ProvenanceTests(ConversionFlowMixin, TestCase):
         self.assertIn((self.activity(0), PROV.wasAssociatedWith, model), graph)
         weights = next(graph.subjects(SCHEMA.sha256, Literal('ab' * 32)))
         self.assertIn((self.activity(0), PROV.used, weights), graph)
+        self.assertEqual(graph.value(weights, RDFS.label), Literal('base_bakta_50 weights for amikacin'))
+        shared = next(graph.subjects(SCHEMA.sha256, Literal('cd' * 32)))  # for all the antibiotics
+        self.assertIn((self.activity(0), PROV.used, shared), graph)
+        self.assertEqual(graph.value(shared, RDFS.label), Literal('base_bakta_50 weights'))
 
     def test_the_plan_its_order_and_the_activity_that_carried_out_each_step(self):
         with FakeBioService():

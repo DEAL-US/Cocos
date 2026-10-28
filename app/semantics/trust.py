@@ -141,8 +141,12 @@ SELECT ?tool ?label ?name ?databaseLabel WHERE {
                FILTER NOT EXISTS { ?database schema:sha256 ?sha256 } }
 }"""
 
+# The files the model declares for the antibiotic, and those about no antibiotic (for all of them)
 DECLARED_WEIGHTS = """
-SELECT ?sha256 WHERE { ?model schema:hasPart ?file . ?file schema:sha256 ?sha256 ; obo:IAO_0000136 ?antibiotic }"""
+SELECT ?sha256 WHERE {
+    ?model schema:hasPart ?file . ?file schema:sha256 ?sha256 .
+    { ?file obo:IAO_0000136 ?antibiotic } UNION { FILTER NOT EXISTS { ?file obo:IAO_0000136 ?any } }
+}"""
 
 USED_WEIGHTS = 'SELECT ?sha256 WHERE { ?prediction prov:used ?weights . ?weights a prov:Entity ; schema:sha256 ?sha256 }'
 
@@ -286,7 +290,7 @@ def check_same_annotation(registry, facts, rule):
 def check_weights(registry, facts, rule):
     if not facts['declared_weights'] or not facts['used_weights']:
         return None
-    return ('for' if facts['declared_weights'] & facts['used_weights'] else 'different'), {}
+    return ('for' if facts['declared_weights'] <= facts['used_weights'] else 'different'), {}
 
 
 def check_annotation_origin(registry, facts, rule):

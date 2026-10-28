@@ -41,7 +41,7 @@ MODEL_DATA_ORGANISMS = {
 }
 
 MODEL_WEIGHTS = {
-    # 'model_name': (('amikacin', 'weights/amikacin.pt'), ...): files the descriptor declares for one antibiotic
+    # 'model_name': (('amikacin', 'weights/amikacin.pt'), ('', 'shared.pt'), ...): files the descriptor declares, by antibiotic
 }
 
 def _validate_adapter_init(cls) -> None:
@@ -133,5 +133,6 @@ def model_dir(name: str) -> Path:
 
 def get_model_weights(name: str, antibiotic: str):
     """Return the paths of the files the descriptor of a registered model declares for `antibiotic`
-    (e.g. its weights); none if it declares none, as a rule-based model."""
+    (e.g. its weights), or for all of them if `antibiotic` is ''; none if it declares none, as a
+    rule-based model."""
     return [model_dir(name) / path for about, path in MODEL_WEIGHTS.get(name.lower(), ()) if about == antibiotic]
