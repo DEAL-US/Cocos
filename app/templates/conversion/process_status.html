@@ -189,7 +189,7 @@
 
                   <div class="prediction-summary-actions">
                     {% if prediction.can_download %}
-                    <div class="mt-4 flex justify-end">
+                    <div class="mt-4 flex justify-end gap-2">
                       <form
                         method="post"
                         action="{% url 'prediction:download_csv' prediction.id %}"
@@ -201,6 +201,12 @@
                           CSV
                         </button>
                       </form>
+                      <a href="{% url 'semantics:prediction_crate' process_id=process_id run_id=prediction.id %}"
+                         class="btn btn-sm btn-primary"
+                         title="The prediction with its files and how it was obtained, as an RO-Crate (a zip), to attach or archive it">
+                        <i class="bi bi-file-earmark-zip"></i>
+                        RO-Crate
+                      </a>
                     </div>
                   {% endif %}
 

@@ -5,9 +5,11 @@ AMRF term and the shapes, so that their IRIs (https://w3id.org/cocos/..., https:
 resolve once w3id redirects them here. Browsers get HTML; RDF clients get Turtle or JSON-LD.
 """
 import os
+import tempfile
+import zipfile
 
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -17,9 +19,10 @@ from rdflib.namespace import RDF, RDFS
 from rdflib.plugins.sparql import prepareQuery
 from rdflib.plugins.sparql.parserutils import CompValue
 
-from core.models import ProcessGroup
+from core.models import ProcessGroup, TaskStatus
 from core.orchestration import permanent_failures
 from core.steps import UnknownStepError, used_software_labels
+from prediction.models import PredictionRun
 from prediction.services import assess_predictions
 
 from .flow import registry_flow, sample_flow, tool_node_id
@@ -28,6 +31,7 @@ from .namespaces import AMRF, BSC, COCOS, PREFIXES, SCHEMA, bind_prefixes
 from .registry.graph import registry_graph
 from .registry.vocabulary import load_vocabulary
 from .provenance import task_iri
+from .rocrate import prediction_crate, write_crate
 from .sample import sample_graph
 from .trust import add_trust
 from .validation import shapes_graph
@@ -71,17 +75,38 @@ def process_rdf_view(request, process_id):
     """The RDF description of a process of the user, with its provenance and the trust of its
     predictions: Turtle, or JSON-LD if the client asks for it."""
     process = get_object_or_404(ProcessGroup, id=process_id, user=request.user)
-    sample = request.build_absolute_uri(reverse('conversion:process_status', args=[process.id]))
-    graph = sample_graph(
-        process,
-        sample_iri=sample,
-        content_url=lambda file: request.build_absolute_uri(reverse('conversion:process_file', args=[process.id, file.id])),
-        with_provenance=True,
-    )
-    for task, model_name, antibiotic, term, trust in assess_predictions(process, graph, URIRef(sample)):
-        add_trust(graph, task_iri(URIRef(sample), task), model_name, antibiotic, term, trust)
+    graph, _ = _full_description(request, process)
     rdf = rdf_format(request)
     return rdf_response(graph, 'turtle' if rdf == 'html' else rdf)
+
+
+@login_required
+def prediction_crate_view(request, process_id, run_id):
+    """A completed prediction of a process of the user as an RO-Crate (a zip, see semantics.rocrate)."""
+    process = get_object_or_404(ProcessGroup, id=process_id, user=request.user)
+    run = get_object_or_404(PredictionRun, id=run_id, process=process, status=TaskStatus.COMPLETED)
+    graph, sample = _full_description(request, process)
+    metadata, files = prediction_crate(run, graph, sample)
+    archive = tempfile.SpooledTemporaryFile(max_size=50 * 1024 * 1024)
+    with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        write_crate(zip_file, metadata, files, graph.serialize(format='turtle'))
+    archive.seek(0)
+    return FileResponse(archive, as_attachment=True, filename=f'prediction-{run.pk}-ro-crate.zip',
+                        content_type='application/zip')
+
+
+def _full_description(request, process):
+    """(graph, IRI) of the RDF description of a process, with its provenance and the trust of its predictions."""
+    sample = URIRef(request.build_absolute_uri(reverse('conversion:process_status', args=[process.id])))
+    graph = sample_graph(process, sample_iri=str(sample), content_url=lambda file: _file_url(request, process, file),
+                         with_provenance=True)
+    for task, model_name, antibiotic, term, trust in assess_predictions(process, graph, sample):
+        add_trust(graph, task_iri(sample, task), model_name, antibiotic, term, trust)
+    return graph, sample
+
+
+def _file_url(request, process, file):
+    return request.build_absolute_uri(reverse('conversion:process_file', args=[process.id, file.id]))
 
 
 @login_required
