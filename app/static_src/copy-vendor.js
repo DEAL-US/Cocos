@@ -6,6 +6,8 @@ const path = require('path');
 const FILES = {
   'cytoscape.min.js': 'cytoscape/dist/cytoscape.min.js',
   'cytoscape-dagre.min.js': 'cytoscape-dagre/dist/cytoscape-dagre.min.js',
+  // The file it refers to: collectstatic stops if a static file refers to one that is missing
+  'cytoscape-dagre.min.js.map': 'cytoscape-dagre/dist/cytoscape-dagre.min.js.map',
 };
 
 const root = path.join(__dirname, '..');
