@@ -74,12 +74,10 @@ class PredictionStepTests(FlowTestMixin, TestCase):
             weights = Path(directory) / 'amikacin.pt'
             weights.write_bytes(b'WEIGHTS')
 
-            def weights_path(antibiotic, model_name):
-                if antibiotic != 'amikacin':
-                    raise FileNotFoundError(antibiotic)  # colistin has no weights
-                return str(weights)
+            def declared(model_name, antibiotic):
+                return [weights] if antibiotic == 'amikacin' else []  # colistin has no weights
 
-            with patch('prediction.steps.get_model_weights_path', side_effect=weights_path):
+            with patch('prediction.steps.get_model_weights', side_effect=declared):
                 software = task.get_step().software(task)
 
         self.assertEqual(software, [{

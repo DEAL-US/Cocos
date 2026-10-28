@@ -81,6 +81,7 @@ class PluginFilesTests(SimpleTestCase):
         files = dict(describe_model('base_bakta_50').files)
         self.assertEqual(set(files), {'weights/amikacin.pt', 'weights/cefotaxime.pt', 'weights/meropenem.pt'})
         self.assertTrue(all(len(sha256) == 64 for sha256 in files.values()))
+        self.assertIn(('amikacin', 'weights/amikacin.pt'), describe_model('base_bakta_50').weights)
 
     def test_a_file_must_be_there_and_be_the_one_declared(self):
         with tempfile.TemporaryDirectory() as folder:

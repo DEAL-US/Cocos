@@ -7,7 +7,8 @@ and label of each parser. Labels of reused terms come from terms.ttl.
 Each descriptor is validated against the AMRF shapes when it is read. A plug-in whose descriptor
 is invalid is not registered: it is recorded in REJECTED_PLUGINS, which the system checks report.
 A descriptor can also declare the files the plug-in depends on (e.g. the weights of a model) with
-their SHA-256; a plug-in whose files are missing or changed is not registered either.
+their SHA-256, and the antibiotic each one is about; a plug-in whose files are missing or changed is
+not registered either. A model needs no files: a rule-based one may have none.
 """
 import logging
 from dataclasses import dataclass, field
@@ -57,6 +58,7 @@ class ModelDescription:
     antibiotics: tuple       # ARO labels, e.g. ('amikacin', 'meropenem')
     version: str = ''        # schema:softwareVersion
     files: tuple = ()        # (path in the folder of the model, SHA-256) of the files it depends on
+    weights: tuple = ()      # (antibiotic, path) of those files that are about one antibiotic, e.g. its weights
     # Organisms its data has measurements about (quality.ttl), e.g. the species it was trained on
     data_organisms: dict = field(default_factory=dict)
 
@@ -86,6 +88,9 @@ def describe_model(model_name):
         version=str(graph.value(resource, SCHEMA.softwareVersion) or ''),
         files=tuple(sorted((str(graph.value(part, SCHEMA.name)), str(graph.value(part, SCHEMA.sha256)))
                            for part in graph.objects(resource, SCHEMA.hasPart))),
+        weights=tuple(sorted((_label(antibiotic), str(graph.value(part, SCHEMA.name)))
+                             for part in graph.objects(resource, SCHEMA.hasPart)
+                             for antibiotic in graph.objects(part, OBO.IAO_0000136) if antibiotic in antibiotics)),
         data_organisms={_curie(taxon): _label(taxon) for taxon in _measured_taxa(graph, resource)},
     )
 

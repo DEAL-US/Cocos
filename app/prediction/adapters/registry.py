@@ -40,6 +40,10 @@ MODEL_DATA_ORGANISMS = {
     # 'model_name': {'NCBITaxon:28901': 'Salmonella enterica', ...}: organisms its data has measurements about
 }
 
+MODEL_WEIGHTS = {
+    # 'model_name': (('amikacin', 'weights/amikacin.pt'), ...): files the descriptor declares for one antibiotic
+}
+
 def _validate_adapter_init(cls) -> None:
     try:
         sig = inspect.signature(cls.__init__)
@@ -73,6 +77,7 @@ def register_model(name: str = None):
         MODEL_PORTS[key] = (description.inputs, description.outputs)
         MODEL_VERSIONS[key] = description.version
         MODEL_DATA_ORGANISMS[key] = description.data_organisms
+        MODEL_WEIGHTS[key] = description.weights
         return cls
     return _decorator
 
@@ -125,3 +130,8 @@ def list_all_antibiotics():
 # ---- Files
 def model_dir(name: str) -> Path:
     return Path(__file__).resolve().parents[2] / 'ai_models' / name
+
+def get_model_weights(name: str, antibiotic: str):
+    """Return the paths of the files the descriptor of a registered model declares for `antibiotic`
+    (e.g. its weights); none if it declares none, as a rule-based model."""
+    return [model_dir(name) / path for about, path in MODEL_WEIGHTS.get(name.lower(), ()) if about == antibiotic]

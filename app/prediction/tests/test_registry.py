@@ -11,12 +11,15 @@ from prediction.adapters.registry import (
     MODEL_ORGANISMS,
     MODEL_PORTS,
     MODEL_REGISTRY,
+    MODEL_WEIGHTS,
     get_model_adapter_class,
     get_model_ports,
     get_model_supported_antibiotics,
     get_model_supported_organisms,
+    get_model_weights,
     list_all_organisms,
     list_registered_models,
+    model_dir,
     register_model,
 )
 from semantics.registry.plugins import REJECTED_PLUGINS, ModelDescription
@@ -25,10 +28,11 @@ GENES = (Port('genes', DataKind.GENE_SET, File.FileType.JSON),)
 PREDICTIONS = (Port('predictions', DataKind.RESISTANCE_PREDICTION, File.FileType.CSV),)
 
 
-def description(organisms=None, antibiotics=('amikacin',)):
-    """What a descriptor declares: any organism unless `organisms` ({CURIE: name}) is given."""
+def description(organisms=None, antibiotics=('amikacin',), weights=()):
+    """What a descriptor declares: any organism unless `organisms` ({CURIE: name}) is given, and
+    no files unless `weights` ((antibiotic, path) pairs) are given."""
     return ModelDescription(inputs=GENES, outputs=PREDICTIONS, any_organism=organisms is None,
-                            organisms=dict(organisms or {}), antibiotics=tuple(antibiotics))
+                            organisms=dict(organisms or {}), antibiotics=tuple(antibiotics), weights=tuple(weights))
 
 
 @contextmanager
@@ -91,7 +95,7 @@ class ModelDescriptorTests(TestCase):
     """What a model supports comes from its descriptor."""
 
     def setUp(self):
-        registries = (MODEL_REGISTRY, MODEL_ANTIBIOTICS, MODEL_ORGANISMS, MODEL_PORTS, REJECTED_PLUGINS)
+        registries = (MODEL_REGISTRY, MODEL_ANTIBIOTICS, MODEL_ORGANISMS, MODEL_PORTS, MODEL_WEIGHTS, REJECTED_PLUGINS)
         backups = [dict(registry) for registry in registries]
 
         def restore():
@@ -136,6 +140,14 @@ class ModelDescriptorTests(TestCase):
 
         self.assertIn('test_rule_based', list_registered_models())
         self.assertNotIn(('model', 'test_rule_based'), REJECTED_PLUGINS)
+        self.assertEqual(get_model_weights('test_rule_based', 'amikacin'), [])
+
+    def test_the_weights_of_an_antibiotic_are_the_files_its_descriptor_declares_for_it(self):
+        self.register('test_weights', antibiotics=('amikacin', 'meropenem'),
+                      weights=[('amikacin', 'weights/amikacin.pt'), ('meropenem', 'meropenem.joblib')])
+
+        self.assertEqual(get_model_weights('test_weights', 'meropenem'), [model_dir('test_weights') / 'meropenem.joblib'])
+        self.assertEqual(get_model_weights('test_weights', 'colistin'), [])
 
     def test_real_models_support_any_organism(self):
         for name in ('base_bakta_50', 'base_bakta_90'):

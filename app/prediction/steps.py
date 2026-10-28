@@ -9,13 +9,13 @@ from core.models import File
 from core.utils import sha256_of
 from core.steps import LocalStep, StepError, register_step_provider
 
-from .adapters.input_utils import get_model_weights_path
 from .adapters.registry import (
     get_model_adapter_class,
     get_model_ports,
     get_model_supported_antibiotics,
     get_model_supported_organisms,
     get_model_version,
+    get_model_weights,
     list_registered_models,
 )
 from .models import NO_RESULT, PredictionTask
@@ -79,14 +79,13 @@ class ModelPredictionStep(LocalStep):
             finish_run_if_done(node['run'], failed_task)
 
     def software(self, task):
-        """The model, its version and the SHA-256 of the weights of each antibiotic it predicted."""
+        """The model, its version and the SHA-256 of the weights of each antibiotic it predicted: the
+        files its descriptor declares for the antibiotic, if any."""
         weights = []
         for antibiotic in task.parameters.get('antibiotics', []):
-            try:
-                path = get_model_weights_path(antibiotic, self.model_name)
-            except FileNotFoundError:
-                continue
-            weights.append({'antibiotic': antibiotic, 'sha256': _weights_sha256(path, os.path.getmtime(path))})
+            for path in get_model_weights(self.model_name, antibiotic):
+                if path.is_file():
+                    weights.append({'antibiotic': antibiotic, 'sha256': _weights_sha256(path, os.path.getmtime(path))})
         return [{'name': self.model_name, 'version': get_model_version(self.model_name), 'type': 'model',
                  'weights': weights}]
 
