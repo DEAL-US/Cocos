@@ -290,8 +290,8 @@
 
 {# The evidence of the trust of a result of the matrix, filled by prediction-matrix.js #}
 <dialog id="trust-dialog" class="modal modal-bottom sm:modal-middle">
-  <div class="modal-box p-0 sm:max-w-lg max-h-[85vh] flex flex-col" tabindex="-1" autofocus>
-    <div class="flex items-center gap-3 p-5 pb-4 border-b border-base-200">
+  <div class="modal-box p-0 sm:max-w-xl lg:max-w-2xl max-h-[85vh] flex flex-col" tabindex="-1" autofocus>
+    <div class="flex items-center gap-3 p-5 pb-4 lg:px-7 border-b border-base-200">
       <span class="trust-dialog-icon shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-xl"><i aria-hidden="true"></i></span>
       <div class="min-w-0 flex-1">
         <p class="text-xs font-medium uppercase tracking-wide text-base-content/60">Trust</p>
@@ -304,7 +304,7 @@
         </button>
       </form>
     </div>
-    <div class="p-5 space-y-5 overflow-y-auto">
+    <div class="p-5 lg:px-7 space-y-5 overflow-y-auto">
       <div class="trust-dialog-groups space-y-5"></div>
       <p class="text-xs text-base-content/60">Cocos computes it from how the data of this sample was obtained and from what the model declares about its data and how well it works. The worst evidence decides the level.</p>
     </div>
