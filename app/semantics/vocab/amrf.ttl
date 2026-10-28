@@ -16,6 +16,8 @@
     dcterms:title "AMRF: AntiMicrobial Resistance Framework vocabulary"@en ;
     dcterms:description "Terms to describe antimicrobial resistance prediction models and the processing steps that prepare their inputs, so that a framework can discover which models can be applied to a sample. Complements EDAM, Bioschemas, ARO and NCBITaxon."@en ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:creator <https://orcid.org/0009-0005-7434-9883> ;
+    dcterms:publisher <https://deal.us.es> ;
     dcterms:created "2026-10-15"^^xsd:date ;
     owl:versionInfo "0.1.0" ;
     owl:versionIRI <https://w3id.org/amrf/0.1.0> ;

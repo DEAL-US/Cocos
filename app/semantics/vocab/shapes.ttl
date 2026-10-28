@@ -24,6 +24,8 @@ amrfsh:
     a owl:Ontology ;
     dcterms:title "AMRF shapes: validation of antimicrobial resistance model descriptions"@en ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:creator <https://orcid.org/0009-0005-7434-9883> ;
+    dcterms:publisher <https://deal.us.es> ;
     dcterms:created "2026-10-16"^^xsd:date ;
     owl:versionInfo "0.1.0" ;
     rdfs:seeAlso amrf: .
