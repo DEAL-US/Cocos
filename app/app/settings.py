@@ -113,8 +113,8 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'tfg'),
-        'USER': os.getenv('DB_USER', 'tfg'),
+        'NAME': os.getenv('DB_NAME', 'cocos'),
+        'USER': os.getenv('DB_USER', 'cocos'),
         'PASSWORD': required_in_production('DB_PASSWORD', 'cocos_database_password'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
