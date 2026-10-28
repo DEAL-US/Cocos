@@ -10,7 +10,7 @@ class PredictionConfig(AppConfig):
     name = 'prediction'
     
     def ready(self):
-        from . import checks, steps  # noqa: F401 (checks registers the system checks)
+        from . import steps  # noqa: F401 (steps registers the step provider)
 
         # Import all modules under ai_models (recursively) so that model adapter
         # decorators run. We prefer `app.ai_models` (package under the Django

@@ -1,5 +1,5 @@
-"""System checks: plug-ins that were not registered because of their descriptor or weights, and
-mistakes in the trust rules."""
+"""System checks: plug-ins that were not registered because of their descriptor or the files it
+declares, and mistakes in the trust rules."""
 from django.core.checks import Error, Warning, register
 
 from .registry.plugins import REJECTED_PLUGINS

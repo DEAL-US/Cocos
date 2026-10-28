@@ -32,12 +32,9 @@ def description(organisms=None, antibiotics=('amikacin',)):
 
 
 @contextmanager
-def describing(weights=None, **kwargs):
-    """Patch the descriptor reader so registered test models declare `kwargs`, and have weights for
-    the declared antibiotics (or for `weights`, if given)."""
-    declared = description(**kwargs)
-    weights = list(declared.antibiotics if weights is None else weights)
-    with patch('prediction.adapters.registry.describe_model', return_value=declared),             patch('prediction.adapters.registry.list_model_weights', return_value=weights):
+def describing(**kwargs):
+    """Patch the descriptor reader so registered test models declare `kwargs`."""
+    with patch('prediction.adapters.registry.describe_model', return_value=description(**kwargs)):
         yield
 
 
@@ -103,8 +100,8 @@ class ModelDescriptorTests(TestCase):
                 registry.update(backup)
         self.addCleanup(restore)
 
-    def register(self, name, weights=None, **kwargs):
-        with describing(weights, **kwargs):
+    def register(self, name, **kwargs):
+        with describing(**kwargs):
             @register_model(name)
             class Adapter:
                 def __init__(self, antibiotic: str):
@@ -134,11 +131,11 @@ class ModelDescriptorTests(TestCase):
         self.assertNotIn('test_without_descriptor', list_registered_models())
         self.assertIn('not found', REJECTED_PLUGINS[('model', 'test_without_descriptor')])
 
-    def test_a_model_without_weights_for_a_declared_antibiotic_is_skipped_and_reported(self):
-        self.register('test_missing_weights', antibiotics=('amikacin', 'meropenem'), weights=['amikacin'])
+    def test_a_model_without_weights_is_registered(self):
+        self.register('test_rule_based', antibiotics=('amikacin', 'meropenem'))
 
-        self.assertNotIn('test_missing_weights', list_registered_models())
-        self.assertIn('meropenem', REJECTED_PLUGINS[('model', 'test_missing_weights')])
+        self.assertIn('test_rule_based', list_registered_models())
+        self.assertNotIn(('model', 'test_rule_based'), REJECTED_PLUGINS)
 
     def test_real_models_support_any_organism(self):
         for name in ('base_bakta_50', 'base_bakta_90'):

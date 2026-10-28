@@ -55,17 +55,14 @@ def _validate_adapter_init(cls) -> None:
 
 def register_model(name: str = None):
     """Register an adapter. The model is skipped (and reported by the system checks) if its
-    descriptor is missing or invalid, if an antibiotic it declares has no weights, or if a file it
-    declares (with its SHA-256) is missing or changed."""
+    descriptor is missing or invalid, or if a file it declares (with its SHA-256) is missing or
+    changed. It needs no weights: how it predicts is up to its adapter."""
     def _decorator(cls):
         _validate_adapter_init(cls)
         key = (name or cls.__name__).lower()
         try:
             description = describe_model(key)
-            missing = sorted(set(description.antibiotics) - set(list_model_weights(key)))
-            if missing:
-                raise DescriptorError(f'it declares {", ".join(missing)} but has no weights for them in {model_weights_dir(key)}')
-            check_files(model_weights_dir(key).parent, description.files)
+            check_files(model_dir(key), description.files)
         except DescriptorError as error:
             reject_plugin('model', key, error)
             return cls
@@ -125,11 +122,6 @@ def list_all_antibiotics():
         antibiotics.update(ab_list)
     return sorted(antibiotics)
 
-# ---- Weights
-def model_weights_dir(name: str) -> Path:
-    return Path(__file__).resolve().parents[2] / 'ai_models' / name / 'weights'
-
-def list_model_weights(name: str):
-    """Return the sorted names of the weight files (<antibiotic>.pt) of a model."""
-    weights_dir = model_weights_dir(name)
-    return sorted(p.stem for p in weights_dir.glob('*.pt')) if weights_dir.is_dir() else []
+# ---- Files
+def model_dir(name: str) -> Path:
+    return Path(__file__).resolve().parents[2] / 'ai_models' / name
