@@ -169,8 +169,12 @@ STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
+    # In production, collectstatic names each file after a hash of its content (app.3f2a9c.js), so
+    # browsers can cache them for long and still get a new version as soon as it changes. Development
+    # and the tests (DJANGO_DEBUG=1) have no manifest of those names, so they use the plain names.
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND": ("django.contrib.staticfiles.storage.StaticFilesStorage" if DEBUG
+                    else "whitenoise.storage.CompressedManifestStaticFilesStorage"),
     },
 }
 
