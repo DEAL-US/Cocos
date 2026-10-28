@@ -18,7 +18,7 @@ class StepsGraphTests(SimpleTestCase):
         self.assertEqual(graph.value(step, SCHEMA.applicationCategory), Literal('Web service'))
         self.assertTrue(str(graph.value(step, SCHEMA.description)))
         self.assertEqual(str(graph.value(step, SCHEMA.url)),
-                         'https://github.com/mquirosq/cocos/blob/main/app/conversion/steps.py')
+                         'https://github.com/DEAL-US/Cocos/blob/main/app/conversion/steps.py')
         self.assertEqual(set(graph.objects(step, BSC.input)), {r1, COCOS['step/assembly_illumina#r2']})
         self.assertIn((r1, RDF.type, BIOSCHEMAS.FormalParameter), graph)
         self.assertIn((r1, SCHEMA.name, Literal('r1')), graph)
