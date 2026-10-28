@@ -1,3 +1,4 @@
 -r requirements.txt
 coverage==7.17.0
 responses==0.26.3
+roc-validator==0.13.0
