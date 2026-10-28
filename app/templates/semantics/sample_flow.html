@@ -28,12 +28,12 @@
     </div>
   </div>
 
-  <details class="collapse collapse-arrow rounded-box bg-base-100 border border-base-300 shadow-sm">
-    <summary class="collapse-title">
-      <span class="text-lg font-semibold"><i class="bi bi-file-earmark-code text-primary mr-2"></i>Provenance data</span>
-      <span class="block text-sm text-base-content/70">For researchers and other programs: this sample, how its data was obtained and how much its predictions can be trusted, in RDF.</span>
-    </summary>
-    <div class="collapse-content space-y-3">
+  <div class="card bg-base-100 border border-base-300 shadow-sm">
+    <div class="card-body gap-4">
+      <div>
+        <h2 class="card-title text-xl mb-1"><i class="bi bi-file-earmark-code text-primary"></i>Provenance data</h2>
+        <p class="text-base-content/70">For researchers and other programs: this sample, how its data was obtained and how much its predictions can be trusted, in RDF.</p>
+      </div>
       <p class="text-sm text-base-content/80">
         It describes the data of the sample and its files (with their SHA-256), each step that was run, when, with which
         software, versions and databases (<a class="link link-primary" href="https://www.w3.org/TR/prov-o/">PROV-O</a>
@@ -45,7 +45,7 @@
         {% include 'semantics/_provenance_downloads.html' with process_id=process.id %}
       </div>
     </div>
-  </details>
+  </div>
 </div>
 
 <script src="{% static 'vendor/cytoscape.min.js' %}"></script>
