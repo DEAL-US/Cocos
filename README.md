@@ -382,6 +382,10 @@ The discovery reads the same description without the provenance (`sample_graph(.
 
 The data flow of the sample has a *Provenance data* section to download this description, with the trust of the predictions, in Turtle or JSON-LD (`/processes/<id>/rdf/`, only for its owner). The page of each process links to the **data flow of the sample** (`/processes/<id>/flow/`, only for its owner, built by `semantics.flow.sample_flow` from this description and the discovery): the data flow of the registry with the data the sample has (and its files), the state of the latest task of each step and model, the preparation steps the discovery would run for each model, and whether each model is ready, needs preparation or is not available (and why).
 
+#### Predictions as RO-Crates
+
+Each completed prediction can be downloaded as an [RO-Crate](https://w3id.org/ro/crate) (the *RO-Crate* button next to its CSV, only for the owner of the sample; `semantics/rocrate.py`): a zip with every file of the steps that led to it, from the reads to the matrix, Cocos's description of the sample (`provenance.ttl`, with the trust of its predictions) and `ro-crate-metadata.json`, which describes them with schema.org following the [Process Run Crate](https://w3id.org/ro/wfrun/process/0.5) profile, so that tools such as WorkflowHub, Galaxy or Zenodo can read it. It is built from the provenance of the sample, with SPARQL: each activity that led to the prediction is a `CreateAction` with the software that ran it (`instrument`, with its version and its bio.tools entry), what it used (`object`: files, databases by DOI, weights by SHA-256) and what it generated (`result`), and building the matrix is one more action. Files keep their name and SHA-256; the genes, which Cocos keeps in its database, are an entity based on the annotation they come from. The crate sets no license (the data belongs to the user) and follows RO-Crate 1.1 and Process Run Crate 0.5, the versions `roc-validator` checks in the tests.
+
 #### Trust of the Predictions
 
 Cocos does not store how much a prediction can be trusted: it computes it each time from the provenance of the sample and from what the descriptor of the model says (`semantics/trust.py`). It reads the evidence with SPARQL: from the registry, the organisms of the model, its measurements (`quality.ttl`), how its training data was annotated and the SHA-256 of its weights; from the description of the sample with its provenance, its organism, the weights the prediction used and the annotation its input comes from, following the activities that generated it back to what the user uploaded. Each rule judges one piece of evidence as *for*, *caution* or *serious*, and the prediction gets the level of its worst evidence (*High*, *With reservations* or *Low*):
@@ -406,7 +410,7 @@ Cocos does not store how much a prediction can be trusted: it computes it each t
 Dependencies are split in two files:
 
 - `requirements.txt` - what the application needs to run (installed in the Docker image).
-- `requirements-dev.txt` - test tools (`coverage`, `responses`). It includes `requirements.txt`, so a single command installs everything:
+- `requirements-dev.txt` - test tools (`coverage`, `responses`, and `roc-validator`, which checks the RO-Crates of the predictions). It includes `requirements.txt`, so a single command installs everything:
 
 ```bash
 pip install -r requirements-dev.txt
