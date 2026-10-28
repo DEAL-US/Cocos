@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: "Cocos"
+message: "If you use Cocos in a research project, please consider citing it as:"
+authors:
+  - family-names: "Quirós Quiroga"
+    given-names: "María"
+    orcid: "https://orcid.org/0009-0005-7434-9883"
+  - family-names: "Ayala"
+    given-names: "Daniel"
+    orcid: "https://orcid.org/0000-0003-2095-1009"
+  - family-names: "Sola"
+    given-names: "Fernando"
+    orcid: "https://orcid.org/0000-0003-1685-3270"
+url: "https://github.com/DEAL-US/Cocos"
+license: GPL-3.0
