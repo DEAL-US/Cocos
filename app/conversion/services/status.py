@@ -317,13 +317,15 @@ def build_process_status_context(process, page=1):
     ]
 
     latest_status = view.status(latest_task)
+    # The organisms Cocos knows something about (declared by the models, or in their data).
+    organism_options = list_all_organisms()
 
     return {
         'process_name': process.name,
         'process_id': process.id,
         'organism': process.organism,
-        # The organisms Cocos knows something about (declared by the models, or in their data).
-        'organism_options': list_all_organisms(),
+        'organism_name': dict(organism_options).get(process.organism, process.organism),
+        'organism_options': organism_options,
         'process_kind': process_kind,
         'pipeline_badges': pipeline_badges,
         'latest_task_status': latest_status,

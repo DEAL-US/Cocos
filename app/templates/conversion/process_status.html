@@ -7,14 +7,16 @@
 <link rel="stylesheet" href="{% static 'css/components/pagination.css' %}">
 {% endblock %}
 
+{% block title %}{{ process_name }}{% endblock %}
+
 {% block content %}
-<div class="process-shell container mx-auto px-4 py-8">
-  <div class="mb-4">
+<div class="process-shell container mx-auto px-4 py-8 max-w-5xl space-y-6">
+  <div>
     <a href="{% url 'conversion:process_list' %}" class="process-back-link"><i class="bi bi-arrow-left"></i>Back to Processes</a>
   </div>
 
   {% if extracted_without_genes %}
-    <div role="alert" class="alert alert-warning alert-soft border border-base-300 items-start gap-3 mb-4">
+    <div role="alert" class="alert alert-warning alert-soft border border-base-300 items-start gap-3">
       <i class="bi bi-exclamation-triangle-fill text-lg mt-0.5"></i>
       <div>
         <h3 class="font-semibold">No genes found</h3>
@@ -23,163 +25,171 @@
     </div>
   {% endif %}
 
-  <div class="card bg-base-100 border border-base-300 shadow-sm mb-4 process-hero process-hero-{{ process_kind }}">
-    <div class="card-body">
-      <h1 class="card-title text-2xl process-title-text">{{ process_name }}</h1>
-      <div class="flex flex-wrap items-center gap-2">
-        {% for badge in pipeline_badges %}
-          <span class="badge badge-soft process-pipeline-badge">{{ badge }}</span>
-        {% endfor %}
-        <span class="badge process-status-badge {{ status_badge }}">{{ latest_task_status|capfirst }}</span>
-      </div>
+  <div class="card bg-base-100 border border-base-300 shadow-sm">
+    <div class="card-body gap-5">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div class="min-w-0 flex-1 space-y-3">
+          {# The name and the organism are shown as text; their pencil shows the form to change them (process-status.js). #}
+          <div id="process-name" data-inline-edit>
+            <div data-inline-view>
+              <div class="flex items-center gap-1">
+                <h1 class="text-3xl font-bold process-title-text">{{ process_name }}</h1>
+                <button type="button" class="btn btn-ghost btn-sm btn-square text-base-content/60" data-inline-open aria-label="Rename the process" title="Rename the process">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </div>
+            </div>
+            {# The input keeps the place of the title, so the name does not move when editing it. #}
+            <form method="post" action="{% url 'conversion:rename_process' process_id=process_id %}" class="flex items-center gap-2 max-w-2xl" data-inline-form hidden>
+              {% csrf_token %}
+              <input type="text" name="process_name" value="{{ process_name }}" class="input input-bordered process-name-input w-full h-auto -ml-3 px-3 py-1 text-2xl font-normal" maxlength="255" required aria-label="Process name">
+              <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check-lg"></i>Save</button>
+              <button type="button" class="btn btn-ghost btn-sm btn-square text-base-content/60" data-inline-cancel aria-label="Cancel" title="Cancel"><i class="bi bi-x-lg"></i></button>
+            </form>
+          </div>
 
-      <form method="post" action="{% url 'conversion:rename_process' process_id=process_id %}" class="mt-4 max-w-2xl process-name-form">
-        {% csrf_token %}
-        <label class="label py-1"><span class="label-text font-semibold">Process name</span></label>
-        <div class="process-name-row">
-          <input type="text" name="process_name" value="{{ process_name }}" class="input input-bordered w-full process-name-input" maxlength="255" required>
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-floppy"></i>
-            Save
-          </button>
-        </div>
-      </form>
-
-      <form id="organism" method="post" action="{% url 'conversion:set_organism' process_id=process_id %}" class="mt-4 max-w-2xl process-name-form">
-        {% csrf_token %}
-        <label class="label py-1"><span class="label-text font-semibold">Organism</span></label>
-        <div class="process-name-row">
-          <select name="organism" class="select select-bordered w-full source-job-select">
-            <option value="">Other / unknown</option>
-            {% for curie, name in organism_options %}
-              <option value="{{ curie }}"{% if curie == organism %} selected{% endif %}>{{ name }}</option>
+          <div class="flex flex-wrap items-center gap-2">
+            {% for badge in pipeline_badges %}
+              <span class="badge badge-soft badge-primary">{{ badge }}</span>
             {% endfor %}
-          </select>
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-floppy"></i>
-            Save
-          </button>
+            <span class="badge process-status-badge {{ status_badge }}">{{ latest_task_status|capfirst }}</span>
+          </div>
+
+          <div id="organism" class="scroll-mt-24 flex items-start gap-2 text-sm" data-inline-edit>
+            <span class="text-base-content/70 leading-8">Organism</span>
+            <div class="flex items-center gap-1" data-inline-view>
+              <span class="font-semibold">{{ organism_name|default:'Other / unknown' }}</span>
+              <button type="button" class="btn btn-ghost btn-xs btn-square text-base-content/60" data-inline-open aria-label="Change the organism" title="Change the organism">
+                <i class="bi bi-pencil"></i>
+              </button>
+            </div>
+            <form method="post" action="{% url 'conversion:set_organism' process_id=process_id %}" class="min-w-0 flex-1 max-w-xl" data-inline-form hidden>
+              {% csrf_token %}
+              <div class="flex items-center gap-2">
+                <select name="organism" class="select select-sm select-bordered source-job-select w-full max-w-xs" aria-label="Organism">
+                  <option value="">Other / unknown</option>
+                  {% for curie, name in organism_options %}
+                    <option value="{{ curie }}"{% if curie == organism %} selected{% endif %}>{{ name }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check-lg"></i>Save</button>
+                <button type="button" class="btn btn-ghost btn-sm btn-square text-base-content/60" data-inline-cancel aria-label="Cancel" title="Cancel"><i class="bi bi-x-lg"></i></button>
+              </div>
+              <p class="text-xs text-base-content/70 mt-1.5">Cocos uses it to find the models built for it and to tell how much data they had about it. Leave it as Other / unknown if it is not in the list.</p>
+            </form>
+          </div>
+
+          <p class="text-sm text-base-content/70">
+            Created {{ created_at|timesince }} ago · Last update {{ last_updated|date:'d-m-Y H:i' }}
+          </p>
         </div>
-        <p class="text-xs text-base-content/70 mt-1">The organism of the sample: Cocos uses it to find the models built for it and to tell how much data they had about it. Leave it as Other / unknown if it is not in the list.</p>
-      </form>
 
-      <div class="mt-3 text-sm text-base-content/70">
-        <p>Created {{ created_at|timesince }} ago</p>
-        <p>Last update: {{ last_updated|date:'d-m-Y H:i' }}</p>
-      </div>
-
-      <div class="mt-4">
-        <h2 class="font-semibold mb-2">Downloads</h2>
         <div class="flex flex-wrap gap-2">
-          {% if assembly_task_id %}
-            <a href="{% url 'conversion:download_fastq' assembly_task_id %}" class="btn btn-sm process-download-btn"><i class="bi bi-download"></i>FASTQ</a>
-          {% else %}
-            <button class="btn btn-sm process-download-btn" disabled><i class="bi bi-download"></i>FASTQ</button>
-          {% endif %}
-
-          {% if fasta_download_task_id %}
-            <a href="{% url 'conversion:download_fasta' fasta_download_task_id %}" class="btn btn-sm process-download-btn"><i class="bi bi-download"></i>FASTA</a>
-          {% else %}
-            <button class="btn btn-sm process-download-btn" disabled><i class="bi bi-download"></i>FASTA</button>
-          {% endif %}
-
-          {% if json_download_task_id %}
-            <a href="{% url 'conversion:download_json' json_download_task_id %}" class="btn btn-sm process-download-btn"><i class="bi bi-download"></i>JSON</a>
-          {% else %}
-            <button class="btn btn-sm process-download-btn" disabled><i class="bi bi-download"></i>JSON</button>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="mt-4">
-        <h2 class="font-semibold mb-2">Data flow</h2>
-        <a href="{% url 'semantics:process_flow' process_id=process_id %}" class="btn btn-sm process-download-btn"><i class="bi bi-share"></i>View data flow</a>
-      </div>
-
-        <div class="mt-3 flex flex-wrap gap-2">
+          <a href="{% url 'semantics:process_flow' process_id=process_id %}" class="btn btn-sm btn-outline btn-primary"><i class="bi bi-share"></i>View data flow</a>
           {% if can_retry_assembly %}
             <form method="post" action="{% url 'conversion:retry_step' process_id=process_id %}">
               {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-primary">
-                  Retry Assembly
-              </button>
-          </form>
+              <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-arrow-clockwise"></i>Retry Assembly</button>
+            </form>
           {% endif %}
           {% if can_annotate %}
             <form method="post" action="{% url 'conversion:start_annotation_task' %}">
               {% csrf_token %}
               <input type="hidden" name="source_task_id" value="{{ assembly_task_id }}">
-              <button type="submit" class="btn btn-sm btn-primary">
-                  Annotate
-              </button>
-          </form>
+              <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-tags"></i>Annotate</button>
+            </form>
           {% elif can_retry_annotation %}
             <form method="post" action="{% url 'conversion:retry_step' process_id=process_id %}">
               {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-primary">
-                  Retry Annotation
-              </button>
-          </form>
+              <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-arrow-clockwise"></i>Retry Annotation</button>
+            </form>
           {% endif %}
         </div>
+      </div>
 
-    </div>
-  </div>
-
- <div class="card bg-base-100 border border-base-300 shadow-sm process-timeline-card process-timeline-card-{{ process_kind }}">
-    <div class="card-body">
-      <h2 class="card-title text-xl">Timeline</h2>
-      {% for entry in timeline %}
-        <div class="rounded-box border border-base-300 p-4 {% if not forloop.last %}mb-3{% endif %}">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <p class="font-semibold">{{ entry.label }}</p>
-            <span class="badge process-status-badge {{ entry.status_badge }}">
-              {{ entry.status|capfirst }}
-            </span>
-          </div>
-
-          <p class="text-sm text-base-content/70 mt-1">
-            {{ entry.updated_at|date:'d-m-Y H:i' }}
-            {% if entry.input_filename %}
-              · {{ entry.input_filename }}
-            {% endif %}
-          </p>
-          {% if entry.software %}
-            <div class="flex flex-wrap items-center gap-1 mt-2 text-sm">
-              <span class="font-medium mr-1">Used</span>
-              {% for label in entry.software %}
-                <span class="badge badge-sm badge-soft badge-neutral">{{ label }}</span>
-              {% endfor %}
+      <div class="border-t border-base-300 pt-5">
+        <h2 class="font-semibold text-lg flex items-center gap-2 mb-3"><i class="bi bi-folder2-open text-primary"></i>Files</h2>
+        <ul class="rounded-box border border-base-300 divide-y divide-base-300">
+          <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div>
+              <p class="font-medium">Assembly input <span class="badge badge-sm badge-soft badge-neutral ml-1">FASTQ</span></p>
+              <p class="text-sm text-base-content/70">The reads uploaded for the assembly.</p>
             </div>
-          {% endif %}
-        </div>
-      {% endfor %}
+            {% if assembly_task_id %}
+              <a href="{% url 'conversion:download_fastq' assembly_task_id %}" class="btn btn-sm process-download-btn"><i class="bi bi-download"></i>Download</a>
+            {% else %}
+              <span class="text-sm text-base-content/50">Not available</span>
+            {% endif %}
+          </li>
+          <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div>
+              <p class="font-medium">Assembly results <span class="badge badge-sm badge-soft badge-neutral ml-1">FASTA</span></p>
+              <p class="text-sm text-base-content/70">The genome assembled from the reads.</p>
+            </div>
+            {% if fasta_download_task_id %}
+              <a href="{% url 'conversion:download_fasta' fasta_download_task_id %}" class="btn btn-sm process-download-btn"><i class="bi bi-download"></i>Download</a>
+            {% else %}
+              <span class="text-sm text-base-content/50">Not available</span>
+            {% endif %}
+          </li>
+          <li class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div>
+              <p class="font-medium">Annotation data <span class="badge badge-sm badge-soft badge-neutral ml-1">JSON</span></p>
+              <p class="text-sm text-base-content/70">The genes and features found in the genome.</p>
+            </div>
+            {% if json_download_task_id %}
+              <a href="{% url 'conversion:download_json' json_download_task_id %}" class="btn btn-sm process-download-btn"><i class="bi bi-download"></i>Download</a>
+            {% else %}
+              <span class="text-sm text-base-content/50">Not available</span>
+            {% endif %}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 
-  
-  <div id="predictions-section" class="card bg-base-100 border border-base-300 shadow-sm process-timeline-card mt-4">
-    <div class="card-body">
-      <h2 class="card-title text-xl">Predictions</h2>
+  <div class="card bg-base-100 border border-base-300 shadow-sm">
+    <div class="card-body gap-4">
+      <h2 class="card-title text-xl"><i class="bi bi-clock-history text-primary"></i>Timeline</h2>
+      <ul class="space-y-2">
+        {% for entry in timeline %}
+          <li class="rounded-box border border-base-300 px-4 py-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <p class="font-semibold">{{ entry.label }}</p>
+              <span class="badge process-status-badge {{ entry.status_badge }}">{{ entry.status|capfirst }}</span>
+            </div>
+            <p class="text-sm text-base-content/70 mt-1">
+              {{ entry.updated_at|date:'d-m-Y H:i' }}{% if entry.input_filename %} · {{ entry.input_filename }}{% endif %}
+            </p>
+            {% if entry.software %}
+              <div class="flex flex-wrap items-center gap-1 mt-2 text-sm">
+                <span class="text-base-content/70 mr-1">Used</span>
+                {% for label in entry.software %}
+                  <span class="badge badge-sm badge-soft badge-neutral">{{ label }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div id="predictions-section" class="card bg-base-100 border border-base-300 shadow-sm scroll-mt-24">
+    <div class="card-body gap-4">
+      <h2 class="card-title text-xl"><i class="bi bi-activity text-primary"></i>Predictions</h2>
 
       {% if predictions %}
         <div class="space-y-3">
           {% for prediction in predictions %}
             <details class="rounded-box border border-base-300 prediction-item">
-
-              <summary class="cursor-pointer list-none p-4 prediction-summary">
+              <summary class="cursor-pointer list-none px-4 py-3 hover:bg-base-200 rounded-box transition-colors">
                 <div class="flex flex-wrap items-center justify-between gap-3 w-full">
                   <div>
                     <div class="flex flex-wrap items-center gap-2">
-                      <p class="font-semibold">
-                        Prediction · {{ prediction.created_at|date:'d-m-Y H:i' }}
-                      </p>
-
-                      <span class="badge process-status-badge {{ prediction.status_badge }}">
-                        {{ prediction.status|capfirst }}
-                      </span>
+                      <p class="font-semibold">Prediction · {{ prediction.created_at|date:'d-m-Y H:i' }}</p>
+                      <span class="badge process-status-badge {{ prediction.status_badge }}">{{ prediction.status|capfirst }}</span>
                     </div>
-
                     <p class="text-sm text-base-content/70 mt-1">
                       {{ prediction.models|length }} model{{ prediction.models|length|pluralize }}
                       ·
@@ -187,106 +197,66 @@
                     </p>
                   </div>
 
-                  <div class="prediction-summary-actions">
+                  <div class="flex items-center gap-2">
                     {% if prediction.can_download %}
-                    <div class="mt-4 flex justify-end gap-2">
-                      <form
-                        method="post"
-                        action="{% url 'prediction:download_csv' prediction.id %}"
-                      >
+                      <form method="post" action="{% url 'prediction:download_csv' prediction.id %}">
                         {% csrf_token %}
-
-                        <button type="submit" class="btn btn-sm btn-primary">
-                          <i class="bi bi-download"></i>
-                          CSV
-                        </button>
+                        <button type="submit" class="btn btn-sm process-download-btn"><i class="bi bi-download"></i>CSV</button>
                       </form>
-                      <a href="{% url 'semantics:prediction_crate' process_id=process_id run_id=prediction.id %}"
-                         class="btn btn-sm btn-primary">
-                        <i class="bi bi-file-earmark-zip"></i>
-                        RO-Crate
+                      <a href="{% url 'semantics:prediction_crate' process_id=process_id run_id=prediction.id %}" class="btn btn-sm process-download-btn">
+                        <i class="bi bi-file-earmark-zip"></i>RO-Crate
                       </a>
-                    </div>
-                  {% endif %}
-
+                    {% endif %}
+                    <i class="bi bi-chevron-down prediction-chevron text-base-content/50 ml-1"></i>
                   </div>
-
-                  <i class="bi bi-chevron-down prediction-chevron"></i>
-
                 </div>
               </summary>
 
               <div class="border-t border-base-300 p-4">
-
                 <div class="prediction-selection-grid mb-4">
-
                   <div>
                     <p class="text-sm font-semibold mb-2">Models</p>
-                    <div class="prediction-badges">
+                    <div class="flex flex-wrap gap-1">
                       {% for model in prediction.models %}
-                        <span class="badge badge-soft"> {{ model }} </span>
+                        <span class="badge badge-soft badge-primary">{{ model }}</span>
                       {% endfor %}
                     </div>
                   </div>
 
                   <div>
                     <p class="text-sm font-semibold mb-2">Antibiotics</p>
-                    <div class="prediction-badges">
+                    <div class="flex flex-wrap gap-1">
                       {% for antibiotic in prediction.antibiotics %}
-                        <span class="badge badge-soft"> {{ antibiotic }} </span>
+                        <span class="badge badge-soft badge-neutral">{{ antibiotic }}</span>
                       {% endfor %}
                     </div>
                   </div>
-
                 </div>
 
                 {% if prediction.status == 'completed' %}
-
                   {{ prediction.matrix|json_script:prediction.matrix_json_id }}
-
-                    <div class="prediction-matrix" data-matrix-id="{{ prediction.matrix_json_id }}"></div>
-
-
+                  <div class="prediction-matrix" data-matrix-id="{{ prediction.matrix_json_id }}"></div>
                 {% elif prediction.status == 'pending' %}
-
-                  <div class="text-sm text-base-content/70">
-                    <i class="bi bi-clock"></i>
-                    Prediction is waiting to start.
-                  </div>
-
+                  <p class="text-sm text-base-content/70"><i class="bi bi-clock"></i> Prediction is waiting to start.</p>
                 {% elif prediction.status == 'running' %}
-
-                  <div class="text-sm text-base-content/70">
-                    <span class="loading loading-spinner loading-sm"></span>
-                    Prediction is running...
-                  </div>
-
+                  <p class="flex items-center gap-2 text-sm text-base-content/70"><span class="loading loading-spinner loading-sm"></span>Prediction is running...</p>
                 {% elif prediction.status == 'failed' %}
-
-                  <div class="alert alert-error">
+                  <div role="alert" class="alert alert-error alert-soft">
                     <i class="bi bi-exclamation-triangle"></i>
                     Prediction failed.
                   </div>
-
                 {% endif %}
-
               </div>
             </details>
           {% endfor %}
         </div>
 
         {% include 'includes/pagination.html' with pagination_url=pagination_url pagination_query=pagination_query pagination_label=pagination_label pagination_link_attribute=pagination_link_attribute %}
-        
       {% else %}
-
-        <p class="text-sm text-base-content/70">
-          No predictions have been made for this process yet.
-        </p>
-
+        <p class="text-sm text-base-content/70">No predictions have been made for this process yet.</p>
       {% endif %}
     </div>
   </div>
-
 </div>
 
 <template id="prediction-matrix-template">
@@ -321,4 +291,3 @@
 <script src="{% static 'js/conversion/process-status.js' %}"></script>
 
 {% endblock %}
-
