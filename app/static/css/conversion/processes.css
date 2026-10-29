@@ -175,12 +175,6 @@
   font-size: 0.95rem;
 }
 
-.process-name-row {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-}
-
 .process-name-input {
   background-color: var(--color-base-100);
   border-color: color-mix(in oklab, var(--color-base-content) 16%, white);
@@ -198,23 +192,6 @@
   border-color: color-mix(in oklab, var(--color-primary) 64%, white);
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 22%, transparent);
   outline: none !important;
-}
-
-.process-name-save-btn {
-  border-color: color-mix(in oklab, var(--color-primary) 44%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 22%, var(--color-base-100));
-  color: color-mix(in oklab, var(--color-primary) 82%, black);
-  font-weight: 600;
-}
-
-.process-name-save-btn:hover {
-  border-color: color-mix(in oklab, var(--color-primary) 62%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 30%, var(--color-base-100));
-  color: color-mix(in oklab, var(--color-primary) 92%, black);
-}
-
-.process-name-save-btn .bi {
-  font-size: 0.95rem;
 }
 
 .process-download-btn {
@@ -257,63 +234,6 @@
   line-height: 1.45;
 }
 
-.process-hero {
-  background: var(--color-base-100);
-}
-
-.process-timeline-card .rounded-box {
-  border-radius: 0.9rem;
-  background: color-mix(in oklab, var(--color-base-100) 94%, white);
-}
-
-.process-hero-assembly {
-  border-color: color-mix(in oklab, var(--color-primary) 30%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 8%, var(--color-base-100));
-}
-
-.process-hero-annotation {
-  border-color: color-mix(in oklab, var(--color-primary) 42%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-base-100));
-}
-
-.process-hero-json {
-  border-color: color-mix(in oklab, var(--color-primary) 52%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 16%, var(--color-base-100));
-}
-
-.process-hero-assembly .process-pipeline-badge {
-  color: color-mix(in oklab, var(--color-primary) 60%, black);
-  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-base-100));
-  border-color: color-mix(in oklab, var(--color-primary) 30%, var(--color-base-300));
-}
-
-.process-hero-annotation .process-pipeline-badge {
-  color: color-mix(in oklab, var(--color-primary) 74%, black);
-  background: color-mix(in oklab, var(--color-primary) 18%, var(--color-base-100));
-  border-color: color-mix(in oklab, var(--color-primary) 42%, var(--color-base-300));
-}
-
-.process-hero-json .process-pipeline-badge {
-  color: color-mix(in oklab, var(--color-primary) 86%, black);
-  background: color-mix(in oklab, var(--color-primary) 24%, var(--color-base-100));
-  border-color: color-mix(in oklab, var(--color-primary) 52%, var(--color-base-300));
-}
-
-.process-timeline-card-assembly .rounded-box {
-  border-color: color-mix(in oklab, var(--color-primary) 30%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 8%, var(--color-base-100));
-}
-
-.process-timeline-card-annotation .rounded-box {
-  border-color: color-mix(in oklab, var(--color-primary) 42%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-base-100));
-}
-
-.process-timeline-card-json .rounded-box {
-  border-color: color-mix(in oklab, var(--color-primary) 52%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 16%, var(--color-base-100));
-}
-
 @media (max-width: 860px) {
   .process-row-grid {
     grid-template-columns: 1fr;
@@ -336,21 +256,11 @@
     max-width: 320px;
   }
 
-  .process-name-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .process-name-save-btn {
-    width: 100%;
-  }
-
   .process-steps {
     overflow-x: auto;
     padding-bottom: 0.2rem;
   }
 }
-
 
 .prediction-item > summary {
     list-style: none;
