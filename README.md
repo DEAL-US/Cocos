@@ -27,6 +27,8 @@ Cocos is then at `http://localhost:8080`.
 
 ## Documentation
 
+The documentation is also published at [deal-us.github.io/Cocos](https://deal-us.github.io/Cocos/).
+
 | Guide                                       | What                                                                                     |
 | ------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | [Development](docs/development.md)          | Development environment, configuration and tests                                         |
