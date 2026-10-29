@@ -192,7 +192,7 @@ Each plug-in has a **`descriptor.ttl`**: an RDF description (Turtle) of what it 
 
 Every descriptor is validated with the [SHACL](https://www.w3.org/TR/shacl/) shapes in `app/semantics/vocab/shapes.ttl` when the plug-in is registered. They require what [Bioschemas ComputationalTool](https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE) requires (`name`, `description`, `url`), EDAM terms for operations, inputs and outputs and, for models, a version, ARO antibiotics and NCBITaxon organisms; `author`, `license` and `citation` are recommended. **A plug-in whose descriptor is invalid is not registered**: the rest of Cocos keeps working, and `python manage.py check` reports why (`semantics.W001`). The test suite fails while any plug-in is invalid.
 
-**Checklist** to add or change a plug-in (commands run from `app/`, or in the dev container with `docker exec bio-web-web-1 python manage.py ...`):
+**Checklist** to add or change a plug-in (commands run from `app/`, or in the dev container with `docker exec cocos-dev-web python manage.py ...`):
 
 1. Create the folder with the code and its `descriptor.ttl` (see the sections below).
 2. Run `python manage.py fetch_terms` (needs internet). It looks every ontology term of every descriptor up in the [EBI Ontology Lookup Service](https://www.ebi.ac.uk/ols4), fails if one does not exist or is obsolete, and stores their labels and hierarchy in `app/semantics/vocab/terms.ttl`. The application and the tests only read that file, so they never need internet.

@@ -1,15 +1,17 @@
 # Para desarrollo
 
+name: cocos-dev
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: bio-web-postgres
+    container_name: cocos-dev-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-cocos}
       POSTGRES_USER: ${POSTGRES_USER:-cocos}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cocos_database_password}
     volumes:
-      - postgres_data_web:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
@@ -24,9 +26,10 @@ services:
     networks:
       bio-network:
         aliases:
-          - bio-web-postgres
+          - cocos-dev-postgres
 
   web:
+    container_name: cocos-dev-web
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -43,7 +46,7 @@ services:
     env_file:
       - ../.env
     environment:
-      DB_HOST: bio-web-postgres
+      DB_HOST: cocos-dev-postgres
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,6 +56,7 @@ services:
       - bio-network
 
   worker:
+    container_name: cocos-dev-worker
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -64,7 +68,7 @@ services:
     env_file:
       - ../.env
     environment:
-      DB_HOST: bio-web-postgres
+      DB_HOST: cocos-dev-postgres
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,6 +82,7 @@ services:
   # porque Docker en Windows no avisa de los cambios de las carpetas montadas (tailwindcss --watch
   # no los vería). node_modules va en un volumen: el de la máquina trae binarios de Windows.
   frontend:
+    container_name: cocos-dev-frontend
     image: node:20-alpine
     working_dir: /app
     command:
@@ -98,13 +103,13 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: bio-web-redis
+    container_name: cocos-dev-redis
     volumes:
-      - redis_data_web:/data
+      - redis_data:/data
     networks:
       bio-network:
         aliases:
-          - bio-web-redis
+          - cocos-dev-redis
 
 networks:
   bio-network:
@@ -112,6 +117,6 @@ networks:
     name: bio-network
 
 volumes:
-  postgres_data_web:
-  redis_data_web:
+  postgres_data:
+  redis_data:
   frontend_node_modules:
