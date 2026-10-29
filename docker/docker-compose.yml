@@ -24,7 +24,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      bio-network:
+      cocos-network:
         aliases:
           - cocos-dev-postgres
 
@@ -53,7 +53,7 @@ services:
       redis:
         condition: service_started
     networks:
-      - bio-network
+      - cocos-network
 
   worker:
     container_name: cocos-dev-worker
@@ -75,7 +75,7 @@ services:
       redis:
         condition: service_started
     networks:
-      - bio-network
+      - cocos-network
 
   # Genera en la carpeta montada el CSS (Tailwind) y las librerías JS (static/vendor/) y vuelve a
   # compilar el CSS cuando una plantilla, un .py o un .js es más nuevo que él. Lo comprueba cada 2 s
@@ -107,14 +107,14 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      bio-network:
+      cocos-network:
         aliases:
           - cocos-dev-redis
 
 networks:
-  bio-network:
+  cocos-network:
     external: true
-    name: bio-network
+    name: cocos-network
 
 volumes:
   postgres_data:

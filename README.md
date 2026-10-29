@@ -144,7 +144,7 @@ The production stack contains:
 
 The application data and uploaded files are stored in Docker volumes. The web and worker containers run as the unprivileged user `app`, not as root.
 
-Cocos reaches the bio service (assembly and annotation) at `ANNOTATION_BASE`, `http://bio-assembly-api:8000` by default, through the `bio-network` Docker network. The bio service has no authentication and publishes no ports, so users only reach it through Cocos. For development, the bio service can also be published on `127.0.0.1:8000` (see `docker-servicios-bio/docker-servicios-bio/INSTRUCCIONES.md` in the deployment repository, or `python deploy.py --dev`).
+Cocos reaches the bio service (assembly and annotation) at `ANNOTATION_BASE`, `http://bio-assembly-api:8000` by default, through the `cocos-network` Docker network. The bio service has no authentication and publishes no ports, so users only reach it through Cocos. For development, the bio service can also be published on `127.0.0.1:8000` (see `docker-servicios-bio/docker-servicios-bio/INSTRUCCIONES.md` in the deployment repository, or `python deploy.py --dev`).
 
 Access at: `http://localhost` (port 80)
 

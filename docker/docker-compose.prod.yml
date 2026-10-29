@@ -13,7 +13,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - bio-network
+      - cocos-network
 
   redis:
     image: redis:7-alpine
@@ -22,7 +22,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - bio-network
+      - cocos-network
 
   web:
     build:
@@ -48,7 +48,7 @@ services:
     volumes:
       - media_volume:/app/media
     networks:
-      - bio-network
+      - cocos-network
 
   nginx:
     image: nginx:alpine
@@ -62,7 +62,7 @@ services:
       - web
     restart: unless-stopped
     networks:
-      - bio-network
+      - cocos-network
 
   worker:
     build:
@@ -83,7 +83,7 @@ services:
     volumes:
       - media_volume:/app/media
     networks:
-      - bio-network
+      - cocos-network
 
 volumes:
   postgres_data:
@@ -91,6 +91,6 @@ volumes:
   media_volume:
 
 networks:
-  bio-network:
+  cocos-network:
     external: true
-    name: bio-network
+    name: cocos-network
