@@ -1,1 +1,1 @@
-"""Gene extraction parsers, one folder per parser (see the README, "Add New Annotation Parsers")."""
+"""Gene extraction parsers, one folder per parser (see docs/extending.md, "Add New Annotation Parsers")."""
