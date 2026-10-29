@@ -2,15 +2,16 @@ import os
 from django.db.models import Max, Prefetch, Q
 from django.core.paginator import Paginator
 from django.urls import reverse
+from django.utils import timezone
 
 from ..models import ConversionTask
 from prediction.adapters.registry import list_all_organisms
 from prediction.models import PredictionRun
 from prediction.services import prediction_trust
-from core.models import File, ProcessGroup, TaskInput, TaskOutput, TaskStatus
+from core.models import Failure, File, ProcessGroup, TaskInput, TaskOutput, TaskStatus
 from core.steps import used_software_labels
 from ..steps import GENE_EXTRACTION_STEP_PREFIX
-from .presentation import status_badge_class, build_process_steps
+from .presentation import status_badge_class, build_process_steps, format_duration
 from core.pagination import get_pagination_page_range
 
 READ_ROLES = ('reads', 'r1', 'r2')
@@ -90,6 +91,21 @@ class _ProcessTasks:
     def updated_at(self, task):
         _, extraction = self._extraction(task)
         return max(task.updated_at, extraction.updated_at) if extraction else task.updated_at
+
+    def finished_at(self, task):
+        """When the shown step finished: with its gene extraction, if it has one."""
+        _, extraction = self._extraction(task)
+        if task.status == TaskStatus.COMPLETED and extraction:
+            return extraction.finished_at
+        return task.finished_at
+
+    def genes_found(self, task):
+        """How many genes the gene extraction of the shown step found, or None if none has finished."""
+        _, extraction = self._extraction(task)
+        extraction = extraction or task
+        if extraction.get_step().category != 'extraction' or extraction.status != TaskStatus.COMPLETED:
+            return None
+        return extraction.output_file('genes').genes.count()
 
     def latest(self, category):
         """The most recently updated shown task of the given step category."""
@@ -372,24 +388,43 @@ def _get_json_download_task_id(view, assembly_task, latest_annotation, latest_js
     return None
 
 def _build_timeline_entry(view, task):
-    """Build a timeline entry representing a conversion task."""
-
-    input_filename = None
-
-    for link in task.task_inputs.all():
-        if link.file.file_type in (File.FileType.FASTQ, File.FileType.FASTA, File.FileType.JSON):
-            input_filename = os.path.basename(link.file.file.name)
-            break
+    """Build a timeline entry representing a conversion task: when it ran, what it used and
+    produced, and why it failed, if it did."""
 
     status = view.status(task)
+    finished_at = view.finished_at(task)
+    if status == TaskStatus.RUNNING and task.started_at:
+        duration = format_duration(task.started_at, timezone.now())
+    elif status in (TaskStatus.COMPLETED, TaskStatus.FAILED) and task.started_at and finished_at:
+        duration = format_duration(task.started_at, finished_at)
+    else:
+        duration = None
+
     return {
         'label': task.get_step().label,
         'status': status,
         'status_badge': status_badge_class(status),
+        'started_at': task.started_at,
         'updated_at': view.updated_at(task),
-        'input_filename': input_filename,
+        'duration': duration,
+        'inputs': _data_filenames(task.task_inputs),
+        # The genes are counted, not listed: their file is internal to Cocos.
+        'outputs': _data_filenames(task.task_outputs, exclude_roles=('genes',)),
+        'genes_found': view.genes_found(task),
+        'error': task.error if status == TaskStatus.FAILED else '',
+        'may_work_again': task.failure != Failure.PERMANENT,
         'software': used_software_labels(task),
     }
+
+
+def _data_filenames(links, exclude_roles=()):
+    """The names of the sequence and annotation files linked to a task, by role (r1 before r2)."""
+    return [
+        os.path.basename(link.file.file.name)
+        for link in sorted(links.all(), key=lambda link: link.role)
+        if link.role not in exclude_roles
+        and link.file.file_type in (File.FileType.FASTQ, File.FileType.FASTA, File.FileType.JSON)
+    ]
 
 
 

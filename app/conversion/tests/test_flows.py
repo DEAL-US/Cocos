@@ -5,6 +5,7 @@ These tests describe user-visible behaviour (what gets created, stored and notif
 import hashlib
 import json
 import zipfile
+from datetime import datetime, timedelta
 from io import BytesIO
 from unittest.mock import patch
 
@@ -17,6 +18,7 @@ from django.urls import reverse
 
 from bioservice.steps import TOOLS_CACHE_KEY
 from conversion.models import ConversionTask
+from conversion.services.presentation import format_duration
 from core.models import Failure, File, FileGene, ProcessGroup, TaskStatus
 from core.testing import ASSEMBLY_FASTA, BAKTA_JSON, FakeBioService, FlowTestMixin
 from notifications.models import TaskNotification
@@ -906,3 +908,51 @@ class SoftwareDisplayTests(ConversionFlowMixin, TestCase):
         self.assertEqual(assembly['software'],
                          ['Raven 1.8.3', 'Bakta 1.12.1', 'Bakta database 6.0 (light)', f'Cocos {settings.COCOS_VERSION}'])
         self.assertContains(response, 'Raven 1.8.3')
+
+
+class TimelineTests(ProcessContractMixin, TestCase):
+    """The timeline says what each step read and produced, how long it took and why it failed."""
+
+    def timeline(self):
+        response = self.client.get(reverse('conversion:process_status', args=[self.latest_process().id]))
+        return {entry['label']: entry for entry in response.context['timeline']}, response
+
+    def test_each_step_shows_its_files_genes_and_duration(self):
+        with FakeBioService():
+            self.run_assembly('illumina')
+            self.annotate_assembly_of(self.latest_process())
+
+        timeline, _ = self.timeline()
+        assembly, annotation = timeline['Assembly · Illumina'], timeline['Annotation']
+        self.assertEqual(assembly['inputs'], ['reads_R1.fastq.gz', 'reads_R2.fastq.gz'])
+        self.assertEqual(len(assembly['outputs']), 1)
+        self.assertTrue(assembly['outputs'][0].endswith('.fasta'))
+        self.assertIsNone(assembly['genes_found'])
+        self.assertEqual(annotation['inputs'], assembly['outputs'])
+        self.assertGreater(annotation['genes_found'], 0)
+        self.assertIsNotNone(annotation['duration'])
+
+    def test_a_failed_step_says_why_and_whether_to_run_it_again(self):
+        with FakeBioService(status_sequence=['failed'], error_kind='input'):
+            self.run_assembly('ont')
+
+        timeline, response = self.timeline()
+        entry = timeline['Assembly · ONT']
+        self.assertEqual(entry['error'], 'Annotation failed: Command failed: bakta')
+        self.assertFalse(entry['may_work_again'])
+        self.assertContains(response, 'This step could not process its input')
+
+    def test_a_step_that_may_work_later_says_so(self):
+        with FakeBioService(status_sequence=['failed'], error_kind='resources'):
+            self.run_assembly('ont')
+
+        timeline, response = self.timeline()
+        self.assertTrue(timeline['Assembly · ONT']['may_work_again'])
+        self.assertContains(response, 'This step could not finish')
+
+    def test_durations_read_well(self):
+        start = datetime(2026, 1, 1, 12, 0)
+        cases = {timedelta(seconds=45): '45 s', timedelta(minutes=12, seconds=30): '12 min',
+                 timedelta(hours=2, minutes=5): '2 h 5 min'}
+        for elapsed, text in cases.items():
+            self.assertEqual(format_duration(start, start + elapsed), text)

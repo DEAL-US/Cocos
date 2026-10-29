@@ -22,6 +22,17 @@ def status_badge_class(status):
     return STATUS_BADGE_CLASSES.get(status, 'badge-soft badge-neutral')
 
 
+def format_duration(start, end):
+    """How long it took from `start` to `end`, for people: '45 s', '12 min' or '2 h 5 min'."""
+    seconds = max(int((end - start).total_seconds()), 0)
+    if seconds < 60:
+        return f'{seconds} s'
+    minutes = seconds // 60
+    if minutes < 60:
+        return f'{minutes} min'
+    return f'{minutes // 60} h {minutes % 60} min'
+
+
 def build_process_steps(assembly_status=None, annotation_status=None, json_status=None, is_auto_annotated=False):
     """Progress steps of a process row, from the statuses shown for its assembly, annotation or JSON task."""
     if assembly_status is not None:

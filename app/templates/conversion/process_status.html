@@ -159,15 +159,66 @@
               <span class="badge process-status-badge {{ entry.status_badge }}">{{ entry.status|capfirst }}</span>
             </div>
             <p class="text-sm text-base-content/70 mt-1">
-              {{ entry.updated_at|date:'d-m-Y H:i' }}{% if entry.input_filename %} · {{ entry.input_filename }}{% endif %}
+              {% if entry.status == 'pending' %}
+                Waiting to start
+              {% elif entry.started_at %}
+                Started {{ entry.started_at|date:'d-m-Y H:i' }}{% if entry.duration %} · {% if entry.status == 'running' %}running for{% else %}took{% endif %} {{ entry.duration }}{% endif %}
+              {% else %}
+                Updated {{ entry.updated_at|date:'d-m-Y H:i' }}
+              {% endif %}
             </p>
-            {% if entry.software %}
-              <div class="flex flex-wrap items-center gap-1 mt-2 text-sm">
-                <span class="text-base-content/70 mr-1">Used</span>
-                {% for label in entry.software %}
-                  <span class="badge badge-sm badge-soft badge-neutral">{{ label }}</span>
-                {% endfor %}
+
+            {% if entry.inputs or entry.outputs or entry.genes_found is not None %}
+              <dl class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 mt-2 text-sm">
+                {% if entry.inputs %}
+                  <dt class="text-base-content/70">Input</dt>
+                  <dd class="break-all">{{ entry.inputs|join:', ' }}</dd>
+                {% endif %}
+                {% if entry.outputs or entry.genes_found is not None %}
+                  <dt class="text-base-content/70">Output</dt>
+                  <dd class="break-all">
+                    {{ entry.outputs|join:', ' }}{% if entry.outputs and entry.genes_found is not None %} · {% endif %}
+                    {% if entry.genes_found is not None %}<span class="font-medium">{{ entry.genes_found }} gene{{ entry.genes_found|pluralize }}</span>{% endif %}
+                  </dd>
+                {% endif %}
+              </dl>
+            {% endif %}
+
+            {% if entry.error %}
+              {# What the failure means for the user first; the error of the step, for who needs it, folded. #}
+              <div role="alert" class="alert {% if entry.may_work_again %}alert-warning{% else %}alert-error{% endif %} alert-soft items-start gap-3 mt-3 py-3">
+                <i class="bi bi-exclamation-triangle mt-0.5"></i>
+                <div class="min-w-0 text-base-content">
+                  {% if entry.may_work_again %}
+                    <p class="font-semibold">This step could not finish</p>
+                    <p class="text-sm mt-1">It does not seem to be a problem of your files: the service may have been busy, or the step ran out of time or memory. Running it again with Retry may work.</p>
+                  {% else %}
+                    <p class="font-semibold">This step could not process its input</p>
+                    <p class="text-sm mt-1">The files given to this step are probably not valid, or not what it expects, so running it again with them would fail too. Check them and start a new process.</p>
+                  {% endif %}
+                  <details class="mt-2 text-xs group">
+                    <summary class="cursor-pointer list-none inline-flex items-center gap-1 text-base-content/70 hover:text-base-content">
+                      <i class="bi bi-chevron-right transition-transform group-open:rotate-90"></i>
+                      Technical details
+                    </summary>
+                    <p class="font-mono mt-1 wrap-break-word text-base-content/80">{{ entry.error }}</p>
+                  </details>
+                </div>
               </div>
+            {% endif %}
+
+            {% if entry.software %}
+              <details class="mt-2 text-sm group">
+                <summary class="cursor-pointer list-none inline-flex items-center gap-1 text-base-content/70 hover:text-base-content">
+                  <i class="bi bi-chevron-right text-xs transition-transform group-open:rotate-90"></i>
+                  Tools used ({{ entry.software|length }})
+                </summary>
+                <div class="flex flex-wrap gap-1 mt-2">
+                  {% for label in entry.software %}
+                    <span class="badge badge-sm badge-soft badge-neutral">{{ label }}</span>
+                  {% endfor %}
+                </div>
+              </details>
             {% endif %}
           </li>
         {% endfor %}
