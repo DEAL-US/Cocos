@@ -58,7 +58,9 @@ With `DJANGO_DEBUG=0`, Django refuses to start (`ImproperlyConfigured`) if `DJAN
 
 ## Start
 
-When `setup_prod.py` reports that `.env.prod` is ready, start the stack with:
+From [Cocos-deployment](https://github.com/DEAL-US/Cocos-deployment), `python deploy.py --prod` starts the bio service and this stack, after running `setup_prod.py` on `.env.prod`.
+
+To start only this stack, when `setup_prod.py` reports that `.env.prod` is ready, run:
 
 ```bash
 python scripts/setup_prod.py --start
