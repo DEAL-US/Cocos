@@ -1,3 +1,8 @@
+---
+title: Production
+nav_order: 3
+---
+
 # Production
 
 The production stack of Cocos (`docker/docker-compose.prod.yml`) is:

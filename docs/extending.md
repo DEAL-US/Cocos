@@ -1,3 +1,8 @@
+---
+title: Extending Cocos
+nav_order: 4
+---
+
 # Extending Cocos
 
 Prediction models and annotation parsers are plug-ins: each one is a folder that Cocos discovers when it starts, so adding one does not require changing the rest of the code.

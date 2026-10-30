@@ -1,3 +1,8 @@
+---
+title: Semantic Layer
+nav_order: 5
+---
+
 # Semantic Layer
 
 Cocos describes what it can do, and what each sample has, in RDF, and uses those descriptions to decide which models can run on a sample. The code is in `app/semantics/`:

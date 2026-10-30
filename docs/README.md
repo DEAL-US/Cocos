@@ -1,3 +1,9 @@
+---
+title: Home
+nav_order: 1
+permalink: /
+---
+
 # Cocos Documentation
 
 | Guide                                  | What                                                                                                  |

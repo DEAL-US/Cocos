@@ -1,3 +1,8 @@
+---
+title: Development
+nav_order: 2
+---
+
 # Development
 
 Cocos sends the assembly and annotation jobs to a separate bio service, which lives in the [Cocos-deployment](https://github.com/DEAL-US/Cocos-deployment) repository together with a mock of it. The easiest way to develop is to clone that repository, which includes this one as a submodule, and start everything with its `deploy.py`:
