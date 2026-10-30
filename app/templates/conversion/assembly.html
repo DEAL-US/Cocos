@@ -126,7 +126,7 @@
             <legend class="fieldset-legend text-base font-semibold">Assembler</legend>
             <div class="grid gap-3 sm:grid-cols-2">
               {% for assembler in ont_assemblers %}
-                <label class="flex cursor-pointer items-start gap-3 rounded-box border border-base-300 bg-base-100 px-4 py-3 has-[:checked]:border-primary">
+                <label class="flex cursor-pointer items-start gap-3 rounded-box border border-base-300 bg-base-100 px-4 py-3 has-checked-border-primary">
                   <input type="radio" name="assembler" value="{{ assembler.name }}" class="radio radio-primary radio-sm mt-1" {% if assembler.default %}checked{% endif %}>
                   <div class="min-w-0">
                     <span class="font-medium">{{ assembler.label }}</span>
