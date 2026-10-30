@@ -80,7 +80,9 @@ services:
   # Genera en la carpeta montada el CSS (Tailwind) y las librerías JS (static/vendor/) y vuelve a
   # compilar el CSS cuando una plantilla, un .py o un .js es más nuevo que él. Lo comprueba cada 2 s
   # porque Docker en Windows no avisa de los cambios de las carpetas montadas (tailwindcss --watch
-  # no los vería). node_modules va en un volumen: el de la máquina trae binarios de Windows.
+  # no los vería). Tailwind no reescribe el CSS si no cambia, así que se toca después de compilar:
+  # si no, su fecha no avanzaría y volvería a compilar cada 2 s sin fin.
+  # node_modules va en un volumen: el de la máquina trae binarios de Windows.
   frontend:
     container_name: cocos-dev-frontend
     image: node:20-alpine
@@ -93,7 +95,7 @@ services:
         while true; do
           if [ -n "$$(find templates static/js static_src -type f -newer static/css/tailwind.css | head -n 1)" ] ||
              [ -n "$$(find . \( -path ./node_modules -o -path ./media -o -path ./uploads \) -prune -o -name '*.py' -newer static/css/tailwind.css -print | head -n 1)" ]; then
-            npm run build:css
+            npm run build:css && touch static/css/tailwind.css
           fi
           sleep 2
         done
