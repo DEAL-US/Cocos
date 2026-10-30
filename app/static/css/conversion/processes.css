@@ -1,21 +1,13 @@
 
-.process-steps .step:not(.step-primary):not(.step-error):not(.step-info) {
-  --step-bg: color-mix(in oklab, var(--color-accent) 50%, white);
-}
 .process-list {
   display: grid;
-  row-gap: 1.85rem;
+  row-gap: 1rem;
 }
 
+/* A thin bar on the left of each process, stronger as the process advances (stage_class of its row). */
 .process-row {
-  border-radius: 1rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 24px color-mix(in oklab, var(--color-base-content) 8%, transparent);
-}
-
-.process-row .card-body {
-  padding: 1.55rem;
 }
 
 .process-title-text {
@@ -29,40 +21,24 @@
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: 0.42rem;
+  width: 0.25rem;
   background: var(--process-accent, var(--color-primary));
 }
 
-.process-row::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: transparent;
-}
-
 .process-row.process-stage-light {
-  --process-accent: color-mix(in oklab, var(--color-primary) 46%, white);
-  border-color: color-mix(in oklab, var(--color-primary) 20%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 6%, var(--color-base-100));
+  --process-accent: color-mix(in oklab, var(--color-primary) 30%, white);
 }
 
 .process-row.process-stage-mid {
-  --process-accent: color-mix(in oklab, var(--color-primary) 72%, white);
-  border-color: color-mix(in oklab, var(--color-primary) 34%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 11%, var(--color-base-100));
+  --process-accent: color-mix(in oklab, var(--color-primary) 55%, white);
 }
 
 .process-row.process-stage-dark {
-  --process-accent: color-mix(in oklab, var(--color-primary) 88%, black 6%);
-  border-color: color-mix(in oklab, var(--color-primary) 46%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 15%, var(--color-base-100));
+  --process-accent: color-mix(in oklab, var(--color-primary) 80%, white);
 }
 
 .process-row.process-stage-max {
-  --process-accent: color-mix(in oklab, var(--color-primary) 94%, black 14%);
-  border-color: color-mix(in oklab, var(--color-primary) 58%, var(--color-base-300));
-  background: color-mix(in oklab, var(--color-primary) 20%, var(--color-base-100));
+  --process-accent: var(--color-primary);
 }
 
 .process-row-assembly .process-pipeline-badge {
@@ -220,12 +196,6 @@
   margin-right: 0.3rem;
 }
 
-.process-steps .step {
-  min-width: 5.2rem;
-  font-size: 0.8rem;
-  text-wrap: nowrap;
-}
-
 .process-meta {
   margin-top: 1.1rem !important;
 }
@@ -254,11 +224,6 @@
 
   .process-actions .stats {
     max-width: 320px;
-  }
-
-  .process-steps {
-    overflow-x: auto;
-    padding-bottom: 0.2rem;
   }
 }
 
@@ -312,4 +277,25 @@
   border-color: color-mix(in oklab, var(--color-primary) 64%, white);
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 22%, transparent);
   outline: none !important;
+}
+
+.process-steps .step {
+  font-size: 0.8rem;
+}
+
+/* daisyUI colours a line only between two steps of the same colour: colour also the line from a
+   done step to the step that failed (from one colour to the other) or that is running. */
+.process-steps .step-primary + .step-error::before {
+  background-image: linear-gradient(to right, var(--color-primary), var(--color-error));
+  border-color: transparent;
+}
+
+.process-steps .step-primary + .process-step-current::before {
+  --step-bg: color-mix(in oklab, var(--color-primary) 45%, var(--color-base-300));
+}
+
+/* The icons of Bootstrap sit a little low in the circle of a step. */
+.process-steps .step-icon .bi {
+  line-height: 1;
+  display: block;
 }

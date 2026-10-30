@@ -6,104 +6,108 @@
 <link rel="stylesheet" href="{% static 'css/components/pagination.css' %}">
 {% endblock %}
 
+{% block title %}Conversion processes{% endblock %}
+
 {% block content %}
-<div class="process-shell container mx-auto px-4 py-8">
-  <div class="mb-6">
+<div class="process-shell container mx-auto px-4 py-8 max-w-5xl space-y-6">
+  <div>
     <h1 class="text-3xl font-bold mb-2">Conversion processes</h1>
     <p class="text-base-content/70">Track all conversion processes in one place.</p>
   </div>
 
   <div class="process-list">
     {% for row in page_obj %}
-      <article class="process-row process-row-{{ row.kind }} {{ row.stage_class }} card bg-base-100 border border-base-300 shadow-sm">
-        <div class="card-body">
-          <div class="process-row-grid">
-            
-            <section>
-              <h2 class="card-title text-xl leading-tight process-title-text">{{ row.process_name }}</h2>
-              <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                
-                <span class="badge badge-soft process-pipeline-badge {% if row.kind == 'assembly' and row.annotation_started %}process-pipeline-badge-advanced{% endif %}">{{row.pipeline_type}}</span>
-                
-                {% if row.top_pipeline and row.top_pipeline != row.pipeline_type %}
-                  <span class="badge badge-soft process-pipeline-badge">{{ row.top_pipeline }}</span>
+      {# The bar on the left gets stronger as the process advances (processes.css). #}
+      <article class="process-row {{ row.stage_class }} card bg-base-100 border border-base-300 shadow-sm hover:border-primary/40 transition-colors">
+        <div class="card-body gap-4">
+          <div class="flex w-full flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h2 class="text-xl font-semibold leading-tight process-title-text min-w-0">
+              <a href="{% url 'conversion:process_status' row.task.process.id %}" class="hover:text-primary transition-colors">{{ row.process_name }}</a>
+            </h2>
+            <p class="text-sm text-base-content/70 shrink-0" title="{{ row.updated_at|date:'d-m-Y H:i' }}">Updated {{ row.updated_at|timesince }} ago</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="badge badge-soft badge-primary">{{ row.pipeline_type }}</span>
+            {% if row.top_pipeline and row.top_pipeline != row.pipeline_type %}
+              <span class="badge badge-soft badge-primary">{{ row.top_pipeline }}</span>
+            {% endif %}
+            <span class="badge process-status-badge {{ row.status_badge }}">{{ row.status|capfirst }}</span>
+          </div>
+
+          {# daisyUI steps; processes.css colours the line up to a failed or running step too. #}
+          <ul class="steps steps-horizontal process-steps w-full" aria-label="Progress">
+            {% for step in row.steps %}
+              <li class="step {% if step.state == 'complete' %}step-primary{% elif step.state == 'error' %}step-error{% elif step.state == 'current' %}process-step-current{% endif %}">
+                <span class="step-icon">
+                  {% if step.state == 'complete' %}<i class="bi bi-check-lg" aria-hidden="true"></i>
+                  {% elif step.state == 'error' %}<i class="bi bi-x-lg" aria-hidden="true"></i>
+                  {% elif step.state == 'current' %}<span class="loading loading-spinner loading-xs" aria-hidden="true"></span>
+                  {% endif %}
+                </span>
+                {{ step.label }}<span class="sr-only">: {% if step.state == 'complete' %}done{% elif step.state == 'error' %}failed{% elif step.state == 'current' %}in progress{% else %}pending{% endif %}</span>
+              </li>
+            {% endfor %}
+          </ul>
+
+          <div class="flex flex-wrap items-end justify-between gap-3 border-t border-base-300 pt-4">
+            <dl class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 text-sm min-w-0">
+              <dt class="text-base-content/70">Input</dt>
+              <dd class="truncate" title="{{ row.input_filename }}">{{ row.input_filename|default:'—' }}</dd>
+              {% if row.organism_name %}
+                <dt class="text-base-content/70">Organism</dt>
+                <dd>{{ row.organism_name }}</dd>
+              {% endif %}
+              <dt class="text-base-content/70">Files</dt>
+              <dd class="flex flex-wrap items-center gap-1">
+                {# Named as in the Files of the page of the process. #}
+                {% if row.has_fastq %}<span class="badge badge-sm badge-soft badge-neutral">Assembly input (FASTQ)</span>{% endif %}
+                {% if row.has_fasta %}<span class="badge badge-sm badge-soft badge-neutral">Assembly results (FASTA)</span>{% endif %}
+                {% if row.has_json %}<span class="badge badge-sm badge-soft badge-neutral">Annotation data (JSON)</span>{% endif %}
+                {% if not row.has_fastq and not row.has_fasta and not row.has_json %}<span class="text-base-content/50">None yet</span>{% endif %}
+              </dd>
+              <dt class="text-base-content/70">Predictions</dt>
+              <dd class="flex flex-wrap items-center gap-2">
+                {% if row.predictions %}
+                  {{ row.predictions }}
+                  <span class="text-base-content/70">· last</span>
+                  <span class="badge badge-sm process-status-badge {{ row.latest_prediction_badge }}">{{ row.latest_prediction_status|capfirst }}</span>
+                {% else %}
+                  <span class="text-base-content/50">None yet</span>
                 {% endif %}
-                <span class="badge process-status-badge {{ row.status_badge }}">{{ row.status|capfirst }}</span>
-              </div>
+              </dd>
+            </dl>
 
-              <ul class="steps steps-horizontal process-steps mt-4 w-full">
-                {% for step in row.steps %}
-                  <li class="step {% if step.state == 'complete' %}step-primary{% elif step.state == 'error' %}step-error{% endif %}">
-                    {{ step.label }}
-                  </li>
-                {% endfor %}
-              </ul>
-
-              <div class="process-meta mt-4 grid gap-2 text-sm sm:grid-cols-2">
-                    <p class="process-input-line sm:col-span-2">
-                      <span class="font-semibold shrink-0">Input:</span>
-                      <span class="process-input-filename" title="{{ row.input_filename }}">{{ row.input_filename }}</span>
-                  </p>
-              </div>
-            </section>
-
-            <aside class="process-actions">
-              <div class="text-right text-sm text-base-content/70">
-                <p>Updated {{ row.updated_at|timesince }} ago</p>
-                <p>{{ row.updated_at|date:'d-m-Y H:i' }}</p>
-              </div>
-
-              <div class="stats stats-vertical mt-3 w-full border border-base-300 bg-base-200 shadow-sm">
-                <div class="stat px-4 py-3">
-                  <div class="stat-title">Outputs</div>
-                  <div class="stat-value text-base">
-                    {% if row.has_fasta %}
-                      FASTA
-                    {% else %}
-                      -
-                    {% endif %}
-                    /
-                    {% if row.has_json %}
-                      JSON
-                    {% else %}
-                      -
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-3 flex flex-wrap justify-end gap-2">
-                {% if row.can_annotate %}
-                  <form method="post" action="{% url 'conversion:start_annotation_task' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="source_task_id" value="{{ row.task.id }}">
-                    <button type="submit" class="btn btn-sm btn-primary">
-                        Annotate
-                    </button>
+            <div class="flex flex-wrap items-center gap-2">
+              {% if row.can_retry_assembly %}
+                <form method="post" action="{% url 'conversion:retry_step' process_id=row.task.process.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-arrow-clockwise"></i>Retry assembly</button>
                 </form>
-                {% elif row.can_retry_annotation %}
-                  <form method="post" action="{% url 'conversion:start_annotation_task' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="source_task_id" value="{{ row.task.id }}">
-                    <button type="submit" class="btn btn-sm btn-primary">
-                        Retry annotation
-                    </button>
+              {% elif row.can_annotate %}
+                <form method="post" action="{% url 'conversion:start_annotation_task' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="source_task_id" value="{{ row.task.id }}">
+                  <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-tags"></i>Annotate</button>
                 </form>
-                {% endif %}
-
-                <a href="{% url 'conversion:process_status' row.task.process.id %}" class="btn btn-sm process-details-btn">
-                  <i class="bi bi-arrow-right-circle"></i>
-                  Details
-                </a>
-              </div>
-            </aside>
+              {% elif row.can_retry_annotation %}
+                <form method="post" action="{% url 'conversion:start_annotation_task' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="source_task_id" value="{{ row.task.id }}">
+                  <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-arrow-clockwise"></i>Retry annotation</button>
+                </form>
+              {% endif %}
+              <a href="{% url 'conversion:process_status' row.task.process.id %}" class="btn btn-sm btn-outline btn-primary">Open<i class="bi bi-chevron-right"></i></a>
+            </div>
           </div>
         </div>
       </article>
-    
     {% empty %}
-      <div class="alert alert-soft">
-        <span>No processes started yet!</span>
+      <div class="card bg-base-100 border border-base-300 shadow-sm">
+        <div class="card-body items-center text-center text-base-content/70">
+          <i class="bi bi-inbox text-3xl"></i>
+          <p>No processes started yet!</p>
+        </div>
       </div>
     {% endfor %}
 

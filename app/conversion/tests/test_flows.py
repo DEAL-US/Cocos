@@ -781,6 +781,7 @@ class OrganismTests(ConversionFlowMixin, TestCase):
         self.client.post(set_organism, data={'organism': TUBERCULOSIS[0]})
         process.refresh_from_db()
         self.assertEqual(process.organism, TUBERCULOSIS[0])
+        self.assertContains(self.client.get(reverse('conversion:process_list')), TUBERCULOSIS[1])
 
         self.client.post(set_organism, data={'organism': 'NCBITaxon:9606'})  # Homo sapiens: no model knows it
         process.refresh_from_db()
