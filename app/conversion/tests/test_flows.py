@@ -624,13 +624,18 @@ class ProcessPagesTests(ProcessContractMixin, TestCase):
                 response = self.client.get(reverse('conversion:process_status', args=[process.id]))
                 self.assertContains(response, process.name)
 
-    def test_process_list_paginates_three_per_page(self):
+    def test_process_list_paginates_by_the_chosen_size_and_remembers_it(self):
         with FakeBioService():
             self.run_assembly('ont')
-        first = self.client.get(reverse('conversion:process_list')).context['page_obj']
-        self.assertEqual((first.paginator.count, len(first.object_list)), (4, 3))
-        second = self.client.get(reverse('conversion:process_list'), {'page': 2}).context['page_obj']
-        self.assertEqual(len(second.object_list), 1)
+            for _ in range(2):
+                self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+        page = lambda **query: self.client.get(reverse('conversion:process_list'), query).context['page_obj']
+
+        self.assertEqual((page().paginator.count, len(page().object_list)), (6, 6))  # 10 by default
+        self.assertEqual(len(page(per_page=5).object_list), 5)
+        self.assertEqual(len(page(page=2).object_list), 1)  # the size chosen is remembered
+        self.assertEqual(page(per_page=7).paginator.per_page, 5)  # a size not offered is ignored
+        self.assertContains(self.client.get(reverse('conversion:process_list')), '<option value="5" selected>', html=False)
 
     def test_fastq_download_zips_both_reads(self):
         archive_bytes = self.download('conversion:download_fastq', self.status_context(self.assembly_process)['assembly_task_id'])

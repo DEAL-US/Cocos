@@ -12,7 +12,7 @@ from core.models import Failure, File, ProcessGroup, TaskInput, TaskOutput, Task
 from core.steps import used_software_labels
 from ..steps import GENE_EXTRACTION_STEP_PREFIX
 from .presentation import status_badge_class, build_process_steps, format_duration
-from core.pagination import get_pagination_page_range
+from core.pagination import PAGE_SIZES, get_pagination_page_range
 
 READ_ROLES = ('reads', 'r1', 'r2')
 
@@ -282,7 +282,7 @@ def _build_json_row(view):
     }
 
 
-def build_process_status_context(process, page=1):
+def build_process_status_context(process, page=1, page_size=5):
     """Build the context for the process status template."""
 
     view = _ProcessTasks(process, list(_conversion_tasks().filter(process=process)))
@@ -317,7 +317,7 @@ def build_process_status_context(process, page=1):
         .order_by('-created_at', '-id')
     )
 
-    paginator = Paginator(prediction_runs, 3)
+    paginator = Paginator(prediction_runs, page_size)
     prediction_page = paginator.get_page(page)
 
     pagination_url = reverse('conversion:process_status', kwargs={'process_id': process.id})
@@ -382,6 +382,10 @@ def build_process_status_context(process, page=1):
         'pagination_query': '',
         'pagination_label': 'Predictions',
         'pagination_link_attribute': 'data-prediction-page',
+        'pagination_page_size': page_size,
+        'pagination_page_sizes': PAGE_SIZES,
+        # The page reloads on a new page size: come back to the predictions.
+        'pagination_anchor': '#predictions-section',
     }
 
 def _get_fasta_download_task_id(view, assembly_task, latest_annotation):

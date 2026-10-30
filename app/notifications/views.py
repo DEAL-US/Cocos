@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from core.pagination import get_pagination_page_range
+from core.pagination import PAGE_SIZES, get_page_size, get_pagination_page_range
 from notifications.models import TaskNotification
 
 
@@ -32,7 +32,8 @@ def notifications_view(request):
     elif status_filter == 'unread':
         notifications = notifications.filter(is_read=False)
 
-    paginator = Paginator(notifications.order_by('-created_at'), 6)
+    page_size = get_page_size(request, 'notifications', 10)
+    paginator = Paginator(notifications.order_by('-created_at'), page_size)
     page_obj = paginator.get_page(page_number)
 
     context = {
@@ -42,6 +43,10 @@ def notifications_view(request):
         'pagination_query': f'status={status_filter}',
         'pagination_label': 'Notifications',
         'pagination_link_attribute': 'data-notification-page',
+        'pagination_page_size': page_size,
+        'pagination_page_sizes': PAGE_SIZES,
+        # Kept when the page size changes.
+        'pagination_params': [('status', status_filter)],
         'status_filter': status_filter,
         'page_obj': page_obj,
         'has_unread_notifications': base_notifications.filter(is_read=False).exists(),

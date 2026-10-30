@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from core.pagination import get_pagination_page_range
+from core.pagination import PAGE_SIZES, get_page_size, get_pagination_page_range
 from core.utils import create_file_zip
 from core.models import ProcessGroup, TaskStatus
 from ..services.status import (
@@ -33,9 +33,10 @@ def get_current_user_tasks(request):
 def process_list_view(request):
     """Render process rows for conversion tasks."""
     rows = build_process_rows(request.user)
-    paginator = Paginator(rows, 3)
+    page_size = get_page_size(request, 'samples', 10)
+    paginator = Paginator(rows, page_size)
     page_obj = paginator.get_page(request.GET.get('page', 1))
-    
+
     return render(request, 'conversion/process_list.html', {
         'page_obj': page_obj,
         'pagination_page_range': get_pagination_page_range(paginator, page_obj.number),
@@ -43,6 +44,8 @@ def process_list_view(request):
         'pagination_query': '',
         'pagination_label': 'Samples',
         'pagination_link_attribute': 'data-process-page',
+        'pagination_page_size': page_size,
+        'pagination_page_sizes': PAGE_SIZES,
     })
 
 @login_required
@@ -54,7 +57,8 @@ def process_status_view(request, process_id):
         messages.error(request, 'Sample not found.')
         return redirect('conversion:process_list')
 
-    context = build_process_status_context(process, page=request.GET.get('page'))
+    context = build_process_status_context(process, page=request.GET.get('page'),
+                                          page_size=get_page_size(request, 'predictions', 5))
 
     return render(request, 'conversion/process_status.html', context)
 

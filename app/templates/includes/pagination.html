@@ -1,5 +1,10 @@
-{% if page_obj.paginator.num_pages > 1 %}
-  <div class="mt-5 flex justify-center">
+{% comment %}
+Pages of a list and how many items each shows. The size is chosen with ?per_page= and remembered in the
+session (core.pagination.get_page_size); the form keeps pagination_params and returns to pagination_anchor.
+{% endcomment %}
+{% if page_obj.paginator.count > pagination_page_sizes.0 %}
+  <div class="pagination-bar mt-5">
+    {% if page_obj.paginator.num_pages > 1 %}
     <div class="pagination-nav" role="navigation" aria-label="{{ pagination_label }} pagination">
       {% if page_obj.has_previous %}
         <a
@@ -42,5 +47,20 @@
         </span>
       {% endif %}
     </div>
+    {% endif %}
+
+    <form method="get" action="{{ pagination_url }}{{ pagination_anchor }}" class="pagination-size">
+      {% for name, value in pagination_params %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+      <label class="flex items-center gap-2">
+        Show
+        <select name="per_page" class="select select-sm select-bordered source-job-select" onchange="this.form.submit()">
+          {% for size in pagination_page_sizes %}
+            <option value="{{ size }}"{% if size == pagination_page_size %} selected{% endif %}>{{ size }}</option>
+          {% endfor %}
+        </select>
+        per page
+      </label>
+      <noscript><button type="submit" class="btn btn-sm">Apply</button></noscript>
+    </form>
   </div>
 {% endif %}
