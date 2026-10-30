@@ -16,8 +16,8 @@
 
   <div class="alert alert-soft alert-info border-2 border-base-content mb-4 items-center gap-3">
     <i class="bi bi-hourglass-split text-base"></i>
-    <span>Annotation jobs from FASTA files can take a while. Track progress from Processes.</span>
-    <a class="btn btn-sm btn-outline ml-auto" href="{% url 'conversion:process_list' %}">Open Processes</a>
+    <span>Annotation jobs from FASTA files can take a while. Track progress from Samples.</span>
+    <a class="btn btn-sm btn-outline ml-auto" href="{% url 'conversion:process_list' %}">Open Samples</a>
   </div>
 
   <div class="bg-base-200 border border-base-300 border-b-0 rounded-t-box shadow-sm px-2 sm:px-4 pt-4 mb-0 conversion-card-top">
@@ -58,7 +58,7 @@
             
             <label class="label text-base font-medium" for="source_task_id">Select from a previous Assembly</label>
             <select id="source_task_id" name="source_task_id" class="select w-full bg-base-100 source-job-select">
-              <option value="">Select a previous Assembly process</option>
+              <option value="">Select a previous assembly</option>
               {% for task in available_fasta_jobs %}
                 <option value="{{ task.id }}">{{ task.source_label }}</option>
               {% empty %}
@@ -81,7 +81,7 @@
               </div>
           </fieldset>
 
-          {% include 'conversion/_organism_field.html' with field_id='fasta_organism' help='The organism of the uploaded FASTA. A previous assembly keeps the organism of its process.' %}
+          {% include 'conversion/_organism_field.html' with field_id='fasta_organism' help='The organism of the uploaded FASTA. A previous assembly keeps the organism of its sample.' %}
 
 
             <div class="flex items-start justify-between gap-4 rounded-box border border-base-300 bg-base-200 px-4 py-3">

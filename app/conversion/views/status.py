@@ -41,7 +41,7 @@ def process_list_view(request):
         'pagination_page_range': get_pagination_page_range(paginator, page_obj.number),
         'pagination_url': reverse('conversion:process_list'),
         'pagination_query': '',
-        'pagination_label': 'Processes',
+        'pagination_label': 'Samples',
         'pagination_link_attribute': 'data-process-page',
     })
 
@@ -51,7 +51,7 @@ def process_status_view(request, process_id):
     process = ProcessGroup.objects.filter(id=process_id, user=request.user).first()
 
     if not process:
-        messages.error(request, 'Process not found.')
+        messages.error(request, 'Sample not found.')
         return redirect('conversion:process_list')
 
     context = build_process_status_context(process, page=request.GET.get('page'))
@@ -167,9 +167,9 @@ def rename_process_view(request, process_id):
     process = get_object_or_404(ProcessGroup, id=process_id, user=request.user)
     new_name = (request.POST.get('process_name') or '').strip()
     if not new_name:
-        messages.error(request, 'Process name cannot be empty.')
+        messages.error(request, 'Sample name cannot be empty.')
         return redirect('conversion:process_status', process_id=process.id)
 
     rename_process(process, new_name)
-    messages.success(request, 'Process name updated.')
+    messages.success(request, 'Sample name updated.')
     return redirect('conversion:process_status', process_id=process.id)

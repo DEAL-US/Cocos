@@ -6,13 +6,13 @@
 <link rel="stylesheet" href="{% static 'css/components/pagination.css' %}">
 {% endblock %}
 
-{% block page_title %}Processes{% endblock %}
+{% block page_title %}Samples{% endblock %}
 
 {% block content %}
 <div class="process-shell container mx-auto px-4 py-8 max-w-5xl space-y-6">
   <div>
-    <h1 class="text-3xl font-bold mb-2">Conversion processes</h1>
-    <p class="text-base-content/70">Track all conversion processes in one place.</p>
+    <h1 class="text-3xl font-bold mb-2">Samples</h1>
+    <p class="text-base-content/70">Track all your samples, how they are processed and their predictions, in one place.</p>
   </div>
 
   <div class="process-list">
@@ -106,7 +106,7 @@
       <div class="card bg-base-100 border border-base-300 shadow-sm">
         <div class="card-body items-center text-center text-base-content/70">
           <i class="bi bi-inbox text-3xl"></i>
-          <p>No processes started yet!</p>
+          <p>No samples yet!</p>
         </div>
       </div>
     {% endfor %}

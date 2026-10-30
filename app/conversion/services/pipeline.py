@@ -111,7 +111,7 @@ def retry_failed_step(process):
     failed = [task for task in latest_tasks(process).values()
               if task.status == TaskStatus.FAILED and task.get_step().category in RETRYABLE_CATEGORIES]
     if not failed:
-        raise ValueError('This process has no failed step to retry.')
+        raise ValueError('This sample has no failed step to retry.')
     task = max(failed, key=lambda task: task.id)
     retry_node(process, task.plan_node)
     return task.get_step().label

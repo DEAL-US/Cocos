@@ -10,7 +10,7 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8 max-w-5xl space-y-6">
   <div>
-    <a href="{% url 'conversion:process_status' process_id=process.id %}" class="process-back-link"><i class="bi bi-arrow-left"></i>Back to the process</a>
+    <a href="{% url 'conversion:process_status' process_id=process.id %}" class="process-back-link"><i class="bi bi-arrow-left"></i>Back to the sample</a>
   </div>
 
   <div class="card bg-base-100 border border-base-300 shadow-sm">
@@ -24,7 +24,7 @@
         </p>
       </div>
 
-      {% include 'semantics/_flow_graph.html' with mode='sample' description='Data flow of this sample. The page of the process lists the same steps and files.' %}
+      {% include 'semantics/_flow_graph.html' with mode='sample' description='Data flow of this sample. The page of the sample lists the same steps and files.' %}
     </div>
   </div>
 

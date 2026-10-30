@@ -12,7 +12,7 @@
           <li><a data-nav-link href="{% url 'home' %}">Home</a></li>
           <li><a data-nav-link href="{% url 'conversion:assembly_ui' %}">Assembly</a></li>
           <li><a data-nav-link href="{% url 'conversion:annotation_ui' %}">Annotation</a></li>
-          <li><a data-nav-link href="{% url 'conversion:process_list' %}">Processes</a></li>
+          <li><a data-nav-link href="{% url 'conversion:process_list' %}">Samples</a></li>
           <li><a data-nav-link href="{% url 'prediction:prediction' %}">Prediction</a></li>
           {% endif %}
         </ul>
@@ -30,7 +30,7 @@
         <li><a class="btn btn-ghost btn-md rounded-md nav-menu-link {% if current_view == 'home' %}is-active{% endif %}" href="{% url 'home' %}">Home</a></li>
         <li><a class="btn btn-ghost btn-md rounded-md nav-menu-link {% if current_view == 'conversion:assembly_ui' %}is-active{% endif %}" href="{% url 'conversion:assembly_ui' %}">Assembly</a></li>
         <li><a class="btn btn-ghost btn-md rounded-md nav-menu-link {% if current_view == 'conversion:annotation_ui' or current_view == 'conversion:annotation_from_json' or current_view == 'conversion:start_annotation_task' %}is-active{% endif %}" href="{% url 'conversion:annotation_ui' %}">Annotation</a></li>
-        <li><a class="btn btn-ghost btn-md rounded-md nav-menu-link {% if current_view == 'conversion:process_list' %}is-active{% endif %}" href="{% url 'conversion:process_list' %}">Processes</a></li>
+        <li><a class="btn btn-ghost btn-md rounded-md nav-menu-link {% if current_view == 'conversion:process_list' %}is-active{% endif %}" href="{% url 'conversion:process_list' %}">Samples</a></li>
         <li><a class="btn btn-ghost btn-md rounded-md nav-menu-link {% if current_view == 'prediction:prediction' %}is-active{% endif %}" href="{% url 'prediction:prediction' %}">Prediction</a></li>
         {% endif %}
       </ul>

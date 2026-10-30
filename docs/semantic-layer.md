@@ -88,7 +88,7 @@ SELECT ?step ?software ?version WHERE {
 
 The discovery reads the same description without the provenance (`sample_graph(..., with_provenance=False)`, the default), which it does not need.
 
-The data flow of the sample has a _Provenance data_ section to download this description, with the trust of the predictions, in Turtle or JSON-LD (`/processes/<id>/rdf/`, only for its owner). The page of each process links to the **data flow of the sample** (`/processes/<id>/flow/`, only for its owner, built by `semantics.flow.sample_flow` from this description and the discovery): the data flow of the registry with the data the sample has (and its files), the state of the latest task of each step and model, the preparation steps the discovery would run for each model, and whether each model is ready, needs preparation or is not available (and why).
+The data flow of the sample has a _Provenance data_ section to download this description, with the trust of the predictions, in Turtle or JSON-LD (`/processes/<id>/rdf/`, only for its owner). The page of each sample links to the **data flow of the sample** (`/processes/<id>/flow/`, only for its owner, built by `semantics.flow.sample_flow` from this description and the discovery): the data flow of the registry with the data the sample has (and its files), the state of the latest task of each step and model, the preparation steps the discovery would run for each model, and whether each model is ready, needs preparation or is not available (and why).
 
 ### Predictions as RO-Crates
 

@@ -12,7 +12,7 @@
 {% block content %}
 <div class="process-shell container mx-auto px-4 py-8 max-w-5xl space-y-6">
   <div>
-    <a href="{% url 'conversion:process_list' %}" class="process-back-link"><i class="bi bi-arrow-left"></i>Back to Processes</a>
+    <a href="{% url 'conversion:process_list' %}" class="process-back-link"><i class="bi bi-arrow-left"></i>Back to Samples</a>
   </div>
 
   {% if extracted_without_genes %}
@@ -20,7 +20,7 @@
       <i class="bi bi-exclamation-triangle-fill text-lg mt-0.5"></i>
       <div>
         <h3 class="font-semibold">No genes found</h3>
-        <p class="text-sm mt-1">The annotation of this process has no genes, so it cannot be used for predictions.</p>
+        <p class="text-sm mt-1">The annotation of this sample has no genes, so it cannot be used for predictions.</p>
       </div>
     </div>
   {% endif %}
@@ -34,7 +34,7 @@
             <div data-inline-view>
               <div class="flex items-center gap-1">
                 <h1 class="text-3xl font-bold process-title-text">{{ process_name }}</h1>
-                <button type="button" class="btn btn-ghost btn-sm btn-square text-base-content/60" data-inline-open aria-label="Rename the process" title="Rename the process">
+                <button type="button" class="btn btn-ghost btn-sm btn-square text-base-content/60" data-inline-open aria-label="Rename the sample" title="Rename the sample">
                   <i class="bi bi-pencil"></i>
                 </button>
               </div>
@@ -42,7 +42,7 @@
             {# The input keeps the place of the title, so the name does not move when editing it. #}
             <form method="post" action="{% url 'conversion:rename_process' process_id=process_id %}" class="flex items-center gap-2 max-w-2xl" data-inline-form hidden>
               {% csrf_token %}
-              <input type="text" name="process_name" value="{{ process_name }}" class="input input-bordered process-name-input w-full h-auto -ml-3 px-3 py-1 text-2xl font-normal" maxlength="255" required aria-label="Process name">
+              <input type="text" name="process_name" value="{{ process_name }}" class="input input-bordered process-name-input w-full h-auto -ml-3 px-3 py-1 text-2xl font-normal" maxlength="255" required aria-label="Sample name">
               <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check-lg"></i>Save</button>
               <button type="button" class="btn btn-ghost btn-sm btn-square text-base-content/60" data-inline-cancel aria-label="Cancel" title="Cancel"><i class="bi bi-x-lg"></i></button>
             </form>
@@ -304,7 +304,7 @@
 
         {% include 'includes/pagination.html' with pagination_url=pagination_url pagination_query=pagination_query pagination_label=pagination_label pagination_link_attribute=pagination_link_attribute %}
       {% else %}
-        <p class="text-sm text-base-content/70">No predictions have been made for this process yet.</p>
+        <p class="text-sm text-base-content/70">No predictions have been made for this sample yet.</p>
       {% endif %}
     </div>
   </div>

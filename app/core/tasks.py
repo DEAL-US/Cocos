@@ -58,7 +58,7 @@ def _notify_started(task):
     if _is_prediction_batch(nodes):
         message = "The prediction task has started and is now running."
     else:
-        message = f"The {_batch_label(task, nodes)} for the process {task.process.name} has started and is now running."
+        message = f"The {_batch_label(task, nodes)} for the sample {task.process.name} has started and is now running."
     notify_user_conversion_started(task.process.user, task, message)
 
 
@@ -78,7 +78,7 @@ def _notify_if_batch_done(task):
             return
     notify_user_conversion_complete(
         task.process.user, task,
-        f"The {_batch_label(task, nodes)} for the process {task.process.name} is complete. You can now access your results.",
+        f"The {_batch_label(task, nodes)} for the sample {task.process.name} is complete. You can now access your results.",
     )
 
 

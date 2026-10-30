@@ -163,12 +163,12 @@ class BatchNotificationTests(OrchestrationTestCase):
                                   {'id': 'n4', 'step': 'extract_bakta_json', 'after': ['n3']}])
 
         self.assertEqual(first_request, [
-            (TaskNotification.EVENT_STARTED, 'The Assembly + Annotation · ONT for the process reads.fastq.gz has started and is now running.'),
-            (TaskNotification.EVENT_COMPLETED, 'The Assembly + Annotation · ONT for the process reads.fastq.gz is complete. You can now access your results.'),
+            (TaskNotification.EVENT_STARTED, 'The Assembly + Annotation · ONT for the sample reads.fastq.gz has started and is now running.'),
+            (TaskNotification.EVENT_COMPLETED, 'The Assembly + Annotation · ONT for the sample reads.fastq.gz is complete. You can now access your results.'),
         ])
         self.assertEqual(self.events(process)[2:], [
-            (TaskNotification.EVENT_STARTED, 'The Annotation for the process reads.fastq.gz has started and is now running.'),
-            (TaskNotification.EVENT_COMPLETED, 'The Annotation for the process reads.fastq.gz is complete. You can now access your results.'),
+            (TaskNotification.EVENT_STARTED, 'The Annotation for the sample reads.fastq.gz has started and is now running.'),
+            (TaskNotification.EVENT_COMPLETED, 'The Annotation for the sample reads.fastq.gz is complete. You can now access your results.'),
         ])
 
     def test_failures_are_always_notified(self):
@@ -193,7 +193,7 @@ class BatchNotificationTests(OrchestrationTestCase):
                                  {'n1': {'annotation': self.bakta_json(b'{not json')}})
 
         self.assertEqual(self.events(process), [
-            (TaskNotification.EVENT_STARTED, 'The Gene extraction · Bakta JSON for the process bad.json has started and is now running.'),
+            (TaskNotification.EVENT_STARTED, 'The Gene extraction · Bakta JSON for the sample bad.json has started and is now running.'),
             (TaskNotification.EVENT_FAILED, 'Error decoding JSON file.'),
         ])
 

@@ -53,8 +53,8 @@ class StepTasksTests(FlowTestMixin, TestCase):
             self.assertEqual(f.read(), ASSEMBLY_FASTA)
         self.assertEqual(task.output_file('annotation').file_type, File.FileType.JSON)
         self.assertEqual(self.events(task), [
-            (TaskNotification.EVENT_STARTED, 'The Assembly + Annotation · ONT for the process sample.fastq.gz has started and is now running.'),
-            (TaskNotification.EVENT_COMPLETED, 'The Assembly + Annotation · ONT for the process sample.fastq.gz is complete. You can now access your results.'),
+            (TaskNotification.EVENT_STARTED, 'The Assembly + Annotation · ONT for the sample sample.fastq.gz has started and is now running.'),
+            (TaskNotification.EVENT_COMPLETED, 'The Assembly + Annotation · ONT for the sample sample.fastq.gz is complete. You can now access your results.'),
         ])
 
     def test_local_step_runs_at_once(self):

@@ -36,13 +36,13 @@ class NotificationServiceTests(TestCase):
                 'started',
                 lambda: notify_user_conversion_started(self.user, self.task),
                 TaskNotification.EVENT_STARTED,
-                'The Annotation for the process process-1 has started and is now running.',
+                'The Annotation for the sample process-1 has started and is now running.',
             ),
             (
                 'complete',
                 lambda: notify_user_conversion_complete(self.user, self.task),
                 TaskNotification.EVENT_COMPLETED,
-                'The Annotation for the process process-1 is complete. You can now access your results.',
+                'The Annotation for the sample process-1 is complete. You can now access your results.',
             ),
             (
                 'failed-custom',
@@ -54,7 +54,7 @@ class NotificationServiceTests(TestCase):
                 'failed-default',
                 lambda: notify_user_conversion_failed(self.user, self.task),
                 TaskNotification.EVENT_FAILED,
-                'The Annotation for the process process-1 has failed. Please try again.',
+                'The Annotation for the sample process-1 has failed. Please try again.',
             ),
             (
                 'server-busy',
