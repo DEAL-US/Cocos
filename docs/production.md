@@ -24,7 +24,7 @@ The production stack of Cocos (`docker/docker-compose.prod.yml`) is:
 
 Nginx is the public entry point, on ports 80 and 443, and acts as a reverse proxy for the Django application; the Django/Gunicorn container is not exposed to the host. The application data and uploaded files are stored in Docker volumes. The web and worker containers run as the unprivileged user `app`, not as root. The image compiles the CSS and copies the JavaScript libraries when it is built.
 
-Cocos reaches the bio service (assembly and annotation) at `ANNOTATION_BASE`, `http://bio-assembly-api:8000` by default, through the `cocos-network` Docker network. The bio service has no authentication and publishes no ports, so users only reach it through Cocos. It lives in the [Cocos-deployment](https://github.com/DEAL-US/Cocos-deployment) repository, whose README explains how to start it.
+Cocos reaches the bio service (assembly and annotation) at `ANNOTATION_BASE`, `http://bio-assembly-api:8000` by default, through the `cocos-network` Docker network. The bio service has no authentication and publishes no ports, so users only reach it through Cocos. It lives in the [Cocos-deployment](https://github.com/DEAL-US/Cocos-deployment) repository, whose README explains how to start it. It annotates with a Bakta database, light or full, which has to be downloaded before the first deployment (see [Bakta database](https://github.com/DEAL-US/Cocos-deployment#bakta-database)).
 
 ## Configuration
 

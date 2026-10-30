@@ -8,7 +8,7 @@ cd Cocos-deployment
 python deploy.py --mock
 ```
 
-This starts the mock of the bio service and the development stack of Cocos described below, at `http://localhost:8080`. See the README of Cocos-deployment for the other options, such as the real bio service.
+This starts the mock of the bio service and the development stack of Cocos described below, at `http://localhost:8080`. See the README of Cocos-deployment for the other options, such as the real bio service, which needs a Bakta database (light or full) that `python deploy.py --download-bakta-db light` downloads.
 
 ## Setup
 
