@@ -155,10 +155,11 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         rows = self.download_csv(prediction['id'])
         self.assertEqual(rows[1], ['amikacin', '0.25', '', '0.25'])
 
-    def test_unsupported_antibiotics_are_dropped(self):
+    def test_antibiotics_no_chosen_model_predicts_have_no_result_and_unknown_ones_are_dropped(self):
         self.predict(['fake_genes'], ['amikacin', 'ampicillin', 'unknown'])
         [prediction] = self.predictions_on_status_page()
-        self.assertEqual(prediction['antibiotics'], ['amikacin'])
+        self.assertEqual(prediction['antibiotics'], ['amikacin', 'ampicillin'])
+        self.assertEqual(prediction['matrix']['data'][1], ['NO_RESULT'])
 
     def test_invalid_requests_are_rejected(self):
         cases = [

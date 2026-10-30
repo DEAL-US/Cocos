@@ -20,7 +20,7 @@ from semantics.registry.graph import registry_graph
 from semantics.sample import sample_graph
 from semantics.trust import RulesError, antibiotic_iri, assess, evidence, load_rules
 
-from .adapters.registry import get_model_supported_antibiotics, get_model_version
+from .adapters.registry import get_model_supported_antibiotics, get_model_version, list_all_antibiotics
 from .models import NO_RESULT, PredictionRun, PredictionTask
 from .steps import PREDICTION_STEP_PREFIX
 
@@ -152,9 +152,11 @@ def start_prediction(user, model_names, antibiotics, process_id):
     if is_processing(process):
         raise ValueError('This sample is still being processed. Wait until it finishes.')
 
-    valid_antibiotics = get_valid_prediction_antibiotics(model_names, antibiotics)
-    if not valid_antibiotics:
+    if not get_valid_prediction_antibiotics(model_names, antibiotics):
         raise ValueError('No valid antibiotic/model combinations found.')
+    # Every known antibiotic chosen is kept: one that no chosen model predicts has no result in the matrix.
+    known = set(list_all_antibiotics())
+    valid_antibiotics = [antibiotic for antibiotic in dict.fromkeys(antibiotics) if antibiotic in known]
 
     compatibility = {result.model: result for result in get_compatibility(process)}
     for model_name in model_names:
