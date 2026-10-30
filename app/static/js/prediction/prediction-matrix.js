@@ -1,6 +1,13 @@
 const LOW_THRESHOLD = 0.35;
 const HIGH_THRESHOLD = 0.65;
 
+// How each verdict of a model is shown (see prediction/results.py)
+const CALLS = {
+  R: { label: 'R', level: 'prediction-high' },
+  S: { label: 'S', level: 'prediction-low' },
+  not_detected: { label: 'Not detected', level: 'prediction-no-result' },
+};
+
 // How each judgement of the trust of a prediction is shown (see trust_rules.toml)
 const TRUST_STYLES = {
   for: { badge: 'badge-success', icon: 'bi-check-circle', text: 'text-success', soft: 'bg-success/10', circle: 'bg-success/15 text-success' },
@@ -46,6 +53,9 @@ function renderMatrix(container, matrix) {
 
   renderHeaders(header, matrix.models);
   renderRows(body, matrix);
+
+  const hasCalls = matrix.data.some(row => row.some(result => result?.call));
+  container.querySelector('.prediction-legend-calls').hidden = !hasCalls;
 }
 
 
@@ -89,11 +99,11 @@ function renderRows(body, matrix) {
 }
 
 
-function createPredictionCell(value, trust, model, antibiotic) {
+function createPredictionCell(result, trust, model, antibiotic) {
   const cell = document.createElement('td');
   cell.className = 'prediction-cell';
 
-  if (value === 'NO_RESULT') {
+  if (result === 'NO_RESULT') {
     cell.classList.add('prediction-no-result');
 
     const content = document.createElement('div');
@@ -109,26 +119,44 @@ function createPredictionCell(value, trust, model, antibiotic) {
     return cell;
   }
 
-  const level = getPredictionLevel(value);
-  cell.classList.add(level);
-
   const content = document.createElement('div');
   content.className = 'prediction-cell-content';
 
-  const valueElement = document.createElement('span');
-  valueElement.className = 'prediction-value';
-  valueElement.textContent = value.toFixed(2);
+  // A probability is shown as a value and a bar; a verdict, as its label. With both, the colour is the
+  // probability's.
+  const call = CALLS[result.call];
+  const hasScore = result.score !== undefined && result.score !== null;
 
-  const bar = document.createElement('div');
-  bar.className = 'prediction-bar';
+  if (hasScore) {
+    const value = result.score;
+    const level = getPredictionLevel(value);
+    cell.classList.add(level);
 
-  const fill = document.createElement('div');
-  fill.className = `prediction-bar-fill ${level}`;
-  fill.style.width = `${(value * 100).toFixed(0)}%`;
+    const valueElement = document.createElement('span');
+    valueElement.className = 'prediction-value';
+    valueElement.textContent = value.toFixed(2);
 
-  bar.appendChild(fill);
+    const bar = document.createElement('div');
+    bar.className = 'prediction-bar';
 
-  content.append(valueElement, bar);
+    const fill = document.createElement('div');
+    fill.className = `prediction-bar-fill ${level}`;
+    fill.style.width = `${(value * 100).toFixed(0)}%`;
+
+    bar.appendChild(fill);
+
+    content.append(valueElement, bar);
+  } else {
+    cell.classList.add(call.level);
+  }
+
+  if (call) {
+    const callElement = document.createElement('span');
+    callElement.className = 'prediction-value prediction-call';
+    callElement.textContent = call.label;
+    content.appendChild(callElement);
+  }
+
   if (trust) {
     content.appendChild(createTrustBadge(trust, model, antibiotic));
   }
@@ -229,9 +257,10 @@ function createAverageCell(values) {
   const cell = document.createElement('td');
   cell.className = 'prediction-cell prediction-average';
 
-  const numericValues = values.filter(
-    value => value !== 'NO_RESULT'
-  );
+  // The average is of the probabilities only: a verdict has none.
+  const numericValues = values
+    .filter(result => result !== 'NO_RESULT' && result?.score !== undefined && result?.score !== null)
+    .map(result => result.score);
 
   if (numericValues.length === 0) {
     cell.classList.add('prediction-no-result');

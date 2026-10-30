@@ -219,6 +219,19 @@
     color: var(--prediction-no-result-content);
 }
 
+.prediction-legend-dot.prediction-no-result {
+    background: var(--prediction-no-result-content);
+}
+
+.prediction-legend[hidden] {
+    display: none;
+}
+
+/* A verdict (R, S, Not detected) given instead of, or with, a probability */
+.prediction-call {
+    font-weight: 700;
+}
+
 /* The trust dialog focuses its box when it opens (not its close button), with no visible ring */
 #trust-dialog .modal-box:focus {
     outline: none;
