@@ -133,19 +133,36 @@ def build_process_rows(user):
     information about the process and its tasks reasy for the task list view.
     """
     processes = get_processes_of_user_prefetch_tasks_and_files(user)
+    organism_names = dict(list_all_organisms())
+    # The predictions of each process, newest first, in one query.
+    predictions = {}
+    for process_id, status in (PredictionRun.objects.filter(process__user=user)
+                               .order_by('-created_at', '-id').values_list('process_id', 'status')):
+        predictions.setdefault(process_id, []).append(status)
     rows = []
 
     for process in processes:
         view = _ProcessTasks(process, process.list_tasks)
 
         if view.all('assembly'):
-            rows.append(_build_assembly_row(view))
+            row = _build_assembly_row(view)
 
         elif view.all('annotation'):
-            rows.append(_build_annotation_row(view))
+            row = _build_annotation_row(view)
 
         elif view.all('extraction'):
-            rows.append(_build_json_row(view))
+            row = _build_json_row(view)
+
+        else:
+            continue
+
+        # Blank for other / unknown organisms.
+        row['organism_name'] = organism_names.get(process.organism, process.organism)
+        statuses = predictions.get(process.id, [])
+        row['predictions'] = len(statuses)
+        row['latest_prediction_status'] = statuses[0] if statuses else None
+        row['latest_prediction_badge'] = status_badge_class(statuses[0]) if statuses else None
+        rows.append(row)
 
     rows.sort(
         key=lambda row: (row['updated_at'], row['task'].id),
@@ -202,6 +219,8 @@ def _build_assembly_row(view):
         'annotation_started': annotation_started,
         'can_annotate': can_annotate,
         'can_retry_annotation': can_retry_annotation,
+        'can_retry_assembly': assembly_status == TaskStatus.FAILED,
+        'has_fastq': any(_linked_file(assembly_task.task_inputs, role) for role in READ_ROLES),
         'has_fasta': has_fasta,
         'has_json': has_json,
         'is_auto_annotated': auto_annotated,

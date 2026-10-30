@@ -22,6 +22,7 @@ from conversion.services.presentation import format_duration
 from core.models import Failure, File, FileGene, ProcessGroup, TaskStatus
 from core.testing import ASSEMBLY_FASTA, BAKTA_JSON, FakeBioService, FlowTestMixin
 from notifications.models import TaskNotification
+from prediction.models import PredictionRun
 from prediction.adapters.registry import MODEL_ORGANISMS
 
 N_FEATURES = len(BAKTA_JSON['features'])
@@ -426,13 +427,25 @@ class ProcessContractTests(ProcessContractMixin, TestCase):
         process = self.latest_process()
         self.assertRow(process, kind='assembly', pipeline_type='Assembly · ONT', status='completed',
                        top_pipeline='Assembly · ONT', can_annotate=True, can_retry_annotation=False,
-                       has_fasta=True, has_json=False, is_auto_annotated=False, stage_class='process-stage-light',
+                       has_fastq=True, has_fasta=True, has_json=False, is_auto_annotated=False, stage_class='process-stage-light',
                        steps=steps(('Started', 'complete'), ('Assembled', 'complete'), ('Annotated', 'pending')))
         self.assertEqual(self.row_for(process)['input_filename'], 'reads_R1.fastq.gz')
         context = self.assertStatus(process, [('Assembly · ONT', 'completed')], process_kind='assembly',
                                     pipeline_badges=['Assembly · ONT'], latest_task_status='completed',
                                     can_annotate=True, can_retry_annotation=False, json_download_task_id=None)
         self.assertEqual(self.download('conversion:download_fasta', context['fasta_download_task_id']), ASSEMBLY_FASTA)
+
+    def test_the_row_counts_the_predictions_and_shows_the_latest(self):
+        with FakeBioService():
+            self.run_assembly('ont', annotate=True)
+        process = self.latest_process()
+        self.assertRow(process, predictions=0, latest_prediction_status=None)
+
+        PredictionRun.objects.create(process=process, selected_models=['a'], selected_antibiotics=['amikacin'],
+                                     status=TaskStatus.COMPLETED)
+        PredictionRun.objects.create(process=process, selected_models=['a'], selected_antibiotics=['amikacin'],
+                                     status=TaskStatus.FAILED)
+        self.assertRow(process, predictions=2, latest_prediction_status=TaskStatus.FAILED)
 
     def test_ont_assembly_with_auto_annotation(self):
         with FakeBioService():
@@ -517,13 +530,14 @@ class ProcessContractTests(ProcessContractMixin, TestCase):
             self.run_assembly('ont', annotate=True)
         process = self.latest_process()
         self.assertStatus(process, [('Assembly + Annotation · ONT', 'failed')], can_retry_assembly=True)
+        self.assertRow(process, can_retry_assembly=True)
 
         with FakeBioService() as bio:
             response = self.retry(process)
 
         self.assertRedirects(response, reverse('conversion:process_status', args=[process.id]), fetch_redirect_response=False)
         self.assertEqual(bio.submissions_to('assembly/ont')[0]['files']['reads'], b'R1-CONTENT')
-        self.assertRow(process, status='completed', has_json=True)
+        self.assertRow(process, status='completed', has_json=True, can_retry_assembly=False)
         self.assertEqual(self.status_context(process)['can_retry_assembly'], False)
 
     def test_retry_is_only_for_failed_steps_of_the_user(self):
