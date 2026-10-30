@@ -63,13 +63,13 @@ class PredictionRunTests(FlowTestMixin, TestCase):
         run = self.predict(['fake_half', 'fake_broken'], ['amikacin', 'colistin'])
 
         self.assertEqual(run.status, TaskStatus.COMPLETED)
-        self.assertEqual(run.data, [[0.25, NO_RESULT], [NO_RESULT, NO_RESULT]])
+        self.assertEqual(run.data, [[{'score': 0.25}, NO_RESULT], [NO_RESULT, NO_RESULT]])
         self.assertEqual(sorted(task.status for task in run.tasks.all()), [TaskStatus.COMPLETED, TaskStatus.FAILED])
 
         self.assertEqual(run.output_csv.file_type, File.FileType.CSV)
         with run.output_csv.file.open('rb') as f:
             rows = list(csv.reader(io.StringIO(f.read().decode())))
-        self.assertEqual(rows, [['Antibiotic', 'fake_half', 'fake_broken', 'Average'],
+        self.assertEqual(rows, [['Antibiotic', 'fake_half', 'fake_broken', 'Average probability'],
                                 ['amikacin', '0.25', '', '0.25'],
                                 ['colistin', '', '', '']])
 
@@ -94,7 +94,7 @@ class PreparePredictionCsvTests(TestCase):
         matrix = {
             "models": ["a", "b"],
             "antibiotics": ["amikacin", "ampicillin", "colistin"],
-            "data": [[0.123456, 0.5], [0.2, "NO_RESULT"], ["NO_RESULT", None]],
+            "data": [[{"score": 0.123456}, {"score": 0.5}], [{"score": 0.2}, "NO_RESULT"], ["NO_RESULT", None]],
         }
 
         models, rows = prepare_prediction_csv(matrix)
@@ -105,6 +105,17 @@ class PreparePredictionCsvTests(TestCase):
             ["ampicillin", 0.2, "", 0.2],
             ["colistin", "", "", ""],
         ])
+
+    def test_shows_calls_and_averages_only_the_probabilities(self):
+        matrix = {
+            "models": ["ml", "rules"],
+            "antibiotics": ["amikacin", "colistin"],
+            "data": [[{"score": 0.8}, {"call": "R"}], ["NO_RESULT", {"call": "not_detected"}]],
+        }
+
+        _, rows = prepare_prediction_csv(matrix)
+
+        self.assertEqual(rows, [["amikacin", 0.8, "R", 0.8], ["colistin", "", "Not detected", ""]])
 
     def test_rejects_malformed_matrices(self):
         cases = [
@@ -150,13 +161,13 @@ class PredictionAfterPreparationTests(ConversionFlowMixin, TestCase):
         run = self.predict()
 
         self.assertEqual(run.status, TaskStatus.COMPLETED)
-        self.assertEqual(run.data, [[0.25, 0.25]])
+        self.assertEqual(run.data, [[{'score': 0.25}, {'score': 0.25}]])
 
     def test_a_failed_preparation_cancels_its_prediction_and_the_others_keep_their_results(self):
         run = self.predict({'status_sequence': ['failed']})
 
         self.assertEqual(run.status, TaskStatus.COMPLETED)
-        self.assertEqual(run.data, [[0.25, NO_RESULT]])
+        self.assertEqual(run.data, [[{'score': 0.25}, NO_RESULT]])
         cancelled = {node['id'] for node in self.process.plan if node.get('cancelled')}
         self.assertEqual(cancelled, {'prepared'})  # the extraction stays, so the annotation can be retried
 

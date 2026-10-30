@@ -11,6 +11,7 @@ from core.orchestration import latest_tasks
 from notifications.services import notify_user_conversion_complete, notify_user_conversion_failed
 
 from .models import NO_RESULT, PredictionRun
+from .results import result_label
 
 logger = logging.getLogger(__name__)
 
@@ -100,24 +101,13 @@ def prepare_prediction_csv(matrix):
 
     rows = []
 
-    for antibiotic, values in zip(antibiotics, data):
-        row_values = []
+    for antibiotic, results in zip(antibiotics, data):
+        # The average is of the probabilities only: a call (e.g. R) has none.
+        scores = [result['score'] for result in results
+                  if isinstance(result, dict) and result.get('score') is not None]
+        average = round(sum(scores) / len(scores), 4) if scores else ''
 
-        for value in values:
-            if value in (None, NO_RESULT):
-                row_values.append('')
-                continue
-
-            try:
-                row_values.append(round(float(value), 4))
-            except (ValueError, TypeError):
-                row_values.append('')
-
-        numeric_values = [value for value in row_values if value != '']
-
-        average = (round(sum(numeric_values) / len(numeric_values), 4) if numeric_values else '')
-
-        rows.append([antibiotic] + row_values + [average])
+        rows.append([antibiotic] + [result_label(result) for result in results] + [average])
 
     return models, rows
 
@@ -135,7 +125,7 @@ def create_prediction_csv(task, models, rows):
     output = StringIO()
     writer = csv.writer(output)
 
-    writer.writerow(['Antibiotic', *models, 'Average'])
+    writer.writerow(['Antibiotic', *models, 'Average probability'])
     writer.writerows(rows)
 
     csv_file = File(user=task.process.user, file_type=File.FileType.CSV)

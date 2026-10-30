@@ -19,6 +19,7 @@ from .adapters.registry import (
     list_registered_models,
 )
 from .models import NO_RESULT, PredictionTask
+from .results import CALLS, as_result
 from .runs import finish_run_if_done, mark_run_started
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,8 @@ logger = logging.getLogger(__name__)
 PREDICTION_STEP_PREFIX = 'predict_'
 
 
-def get_prediction(model_name: str, antibiotic: str, file) -> float:
+def get_prediction(model_name: str, antibiotic: str, file):
+    """What the adapter of the model predicts: a probability, or a result (see prediction.results)."""
     model_cls = get_model_adapter_class(model_name)
     if not model_cls:
         raise ValueError(f'Model {model_name} not found in registry.')
@@ -99,7 +101,7 @@ class ModelPredictionStep(LocalStep):
         results = {}
         for antibiotic in task.parameters['antibiotics']:
             try:
-                results[antibiotic] = float(get_prediction(self.model_name, antibiotic, genes))
+                results[antibiotic] = as_result(get_prediction(self.model_name, antibiotic, genes))
             except Exception:
                 logger.exception('Prediction failed for model=%s, antibiotic=%s', self.model_name, antibiotic)
                 results[antibiotic] = NO_RESULT
@@ -116,9 +118,13 @@ class ModelPredictionStep(LocalStep):
 def _results_csv(results):
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['antibiotic', 'probability'])
-    for antibiotic, value in results.items():
-        writer.writerow([antibiotic, '' if value == NO_RESULT else round(value, 4)])
+    writer.writerow(['antibiotic', 'probability', 'call'])
+    for antibiotic, result in results.items():
+        if result == NO_RESULT:
+            writer.writerow([antibiotic, '', ''])
+            continue
+        score, call = result.get('score'), result.get('call')
+        writer.writerow([antibiotic, '' if score is None else round(score, 4), CALLS[call] if call else ''])
     return output.getvalue().encode('utf-8')
 
 

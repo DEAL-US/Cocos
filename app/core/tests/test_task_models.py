@@ -162,11 +162,11 @@ class PredictionRunTests(TaskModelTestCase):
     def test_run_groups_one_task_per_model(self):
         run = PredictionRun.objects.create(process=self.process, selected_models=['a', 'b'], selected_antibiotics=['amikacin'])
         for _ in ('a', 'b'):
-            PredictionTask.objects.create(process=self.process, step='predict_base_bakta_50', run=run, results={'amikacin': 0.5})
+            PredictionTask.objects.create(process=self.process, step='predict_base_bakta_50', run=run, results={'amikacin': {'score': 0.5}})
 
         self.assertEqual(run.status, 'pending')
         self.assertEqual(run.tasks.count(), 2)
-        self.assertEqual([task.results for task in run.tasks.all()], [{'amikacin': 0.5}] * 2)
+        self.assertEqual([task.results for task in run.tasks.all()], [{'amikacin': {'score': 0.5}}] * 2)
         self.assertEqual(list(self.process.prediction_runs.all()), [run])
 
     def test_run_needs_models_and_antibiotics(self):

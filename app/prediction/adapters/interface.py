@@ -13,7 +13,7 @@ class ModelInterface:
     Implementations should provide:
       - `features()` -> Input features for the model (e.g. genes)
       - `load()` -> None
-      - `predict(file)` -> float
+      - `predict(file)` -> float, or a result (see prediction.results)
 
     file is expected to be an identifier for a bakta-annotated file in the database (File instance))
 
@@ -33,8 +33,9 @@ class ModelInterface:
         """
         raise NotImplementedError()
 
-    def predict(self, file) -> float:
+    def predict(self, file):
         """
-        Predict the probability of resistance for a given json bakta file.
-        """ 
+        Predict resistance for a given json bakta file: the probability of resistance, or a dict
+        with a `call` ('R', 'S' or 'not_detected'), a `score` or both, and optionally its `evidence`.
+        """
         raise NotImplementedError()

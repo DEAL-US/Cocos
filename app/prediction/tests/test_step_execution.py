@@ -37,10 +37,20 @@ class BrokenModel(HalfModel):
         raise RuntimeError('model exploded')
 
 
+class RuleModel(HalfModel):
+    """Gives a verdict and its evidence instead of a probability, like a rule-based tool."""
+    def predict(self, file):
+        if self.antibiotic == 'amikacin':
+            return {'call': 'R', 'evidence': [{'gene': "aac(6')-Ib"}]}
+        if self.antibiotic == 'ampicillin':
+            return {'call': 'not_detected'}
+        return {'call': 'resistant'}  # not a known call
+
+
 class PredictionStepTests(FlowTestMixin, TestCase):
     def setUp(self):
         super().setUp()
-        register_fake_models(self, {'fake_half': HalfModel, 'fake_broken': BrokenModel})
+        register_fake_models(self, {'fake_half': HalfModel, 'fake_broken': BrokenModel, 'fake_rules': RuleModel})
 
         self.process = ProcessGroup.objects.create(name='sample', user=self.user)
         self.genes = File(user=self.user, file_type=File.FileType.JSON)
@@ -62,11 +72,26 @@ class PredictionStepTests(FlowTestMixin, TestCase):
 
         task.refresh_from_db()
         n_genes = self.genes.genes.count()
-        self.assertEqual(task.results, {'amikacin': 0.123456, 'ampicillin': n_genes / 10, 'colistin': NO_RESULT})
+        self.assertEqual(task.results, {'amikacin': {'score': 0.123456}, 'ampicillin': {'score': n_genes / 10},
+                                        'colistin': NO_RESULT})
         with task.output_file('predictions').file.open('rb') as f:
             rows = list(csv.reader(io.StringIO(f.read().decode())))
-        self.assertEqual(rows, [['antibiotic', 'probability'], ['amikacin', '0.1235'],
-                                ['ampicillin', str(round(n_genes / 10, 4))], ['colistin', '']])
+        self.assertEqual(rows, [['antibiotic', 'probability', 'call'], ['amikacin', '0.1235', ''],
+                                ['ampicillin', str(round(n_genes / 10, 4)), ''], ['colistin', '', '']])
+
+    def test_a_model_can_give_a_verdict_and_its_evidence_instead_of_a_probability(self):
+        task = self.make_task('fake_rules', ['amikacin', 'ampicillin', 'colistin'])
+
+        task.get_step().process(task)
+
+        task.refresh_from_db()
+        self.assertEqual(task.results, {'amikacin': {'call': 'R', 'evidence': [{'gene': "aac(6')-Ib"}]},
+                                        'ampicillin': {'call': 'not_detected'},
+                                        'colistin': NO_RESULT})  # an unknown call is no result
+        with task.output_file('predictions').file.open('rb') as f:
+            rows = list(csv.reader(io.StringIO(f.read().decode())))
+        self.assertEqual(rows, [['antibiotic', 'probability', 'call'], ['amikacin', '', 'R'],
+                                ['ampicillin', '', 'Not detected'], ['colistin', '', '']])
 
     def test_the_software_is_the_model_its_version_and_the_sha256_of_its_weights(self):
         task = self.make_task('fake_half', ['amikacin', 'colistin'])

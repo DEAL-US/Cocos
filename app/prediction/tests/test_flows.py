@@ -127,11 +127,11 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         self.assertEqual(prediction['matrix']['models'], ['fake_constant', 'fake_genes'])
         self.assertEqual(prediction['matrix']['antibiotics'], ['amikacin', 'ampicillin'])
         n_genes = self.genes_file.genes.count()
-        self.assertEqual(prediction['matrix']['data'][0], [0.25, n_genes / 10])
-        self.assertEqual(prediction['matrix']['data'][1][0], 0.75)
+        self.assertEqual(prediction['matrix']['data'][0], [{'score': 0.25}, {'score': n_genes / 10}])
+        self.assertEqual(prediction['matrix']['data'][1][0], {'score': 0.75})
 
         rows = self.download_csv(prediction['id'])
-        self.assertEqual(rows[0], ['Antibiotic', 'fake_constant', 'fake_genes', 'Average'])
+        self.assertEqual(rows[0], ['Antibiotic', 'fake_constant', 'fake_genes', 'Average probability'])
         self.assertEqual(rows[1], ['amikacin', '0.25', str(round(n_genes / 10, 4)), str(round((0.25 + n_genes / 10) / 2, 4))])
         self.assertEqual(rows[2][0], 'ampicillin')
         self.assertEqual(rows[2][1], '0.75')
@@ -151,7 +151,7 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
 
         [prediction] = self.predictions_on_status_page()
         self.assertEqual(prediction['status'], TaskStatus.COMPLETED)
-        self.assertEqual(prediction['matrix']['data'], [[0.25, 'NO_RESULT']])
+        self.assertEqual(prediction['matrix']['data'], [[{'score': 0.25}, 'NO_RESULT']])
         rows = self.download_csv(prediction['id'])
         self.assertEqual(rows[1], ['amikacin', '0.25', '', '0.25'])
 
@@ -194,7 +194,7 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
 
                 [prediction] = [p for p in self.predictions_on_status_page() if p['id'] == run_id]
                 self.assertEqual(prediction['status'], TaskStatus.COMPLETED)
-                value = prediction['matrix']['data'][0][0]
+                value = prediction['matrix']['data'][0][0]['score']
                 self.assertIsInstance(value, float)
                 self.assertTrue(0 <= value <= 1)
 

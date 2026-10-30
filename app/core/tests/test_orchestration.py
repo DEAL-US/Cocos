@@ -91,7 +91,8 @@ class PlanExecutionTests(OrchestrationTestCase):
 
         tasks = PredictionTask.objects.filter(run=run).order_by('plan_node')
         self.assertEqual([(task.plan_node, task.status, task.results) for task in tasks],
-                         [('n2', TaskStatus.COMPLETED, {'amikacin': 0.5}), ('n3', TaskStatus.COMPLETED, {'amikacin': 0.5})])
+                         [('n2', TaskStatus.COMPLETED, {'amikacin': {'score': 0.5}}),
+                          ('n3', TaskStatus.COMPLETED, {'amikacin': {'score': 0.5}})])
 
     def test_a_failed_node_stops_the_nodes_that_depend_on_it(self):
         nodes = [{'id': 'n1', 'step': 'assembly_ont'}, {'id': 'n2', 'step': 'bakta_annotation', 'after': ['n1']}]
