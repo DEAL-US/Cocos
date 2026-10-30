@@ -239,6 +239,7 @@ class File(models.Model):
         FASTA = 'fasta', 'FASTA'
         JSON = 'json', 'JSON'
         CSV = 'csv', 'CSV'
+        TSV = 'tsv', 'TSV'
 
     created_at = models.DateTimeField(auto_now_add=True)
     file = models.FileField(upload_to=get_file_upload_path)

@@ -21,6 +21,7 @@ FORMATS = {
     File.FileType.FASTA: EDAM.format_1929,
     File.FileType.JSON: EDAM.format_3464,
     File.FileType.CSV: EDAM.format_3752,
+    File.FileType.TSV: EDAM.format_3475,
 }
 
 # Formats more specific than the file type for some kinds of data. Every annotation Cocos
