@@ -90,7 +90,7 @@ class PredictionStepTests(FlowTestMixin, TestCase):
                                         'colistin': NO_RESULT})  # an unknown call is no result
         with task.output_file('predictions').file.open('rb') as f:
             rows = list(csv.reader(io.StringIO(f.read().decode())))
-        self.assertEqual(rows, [['antibiotic', 'probability', 'call'], ['amikacin', '', 'R'],
+        self.assertEqual(rows, [['antibiotic', 'probability', 'call'], ['amikacin', '', 'Resistant'],
                                 ['ampicillin', '', 'Not detected'], ['colistin', '', '']])
 
     def test_the_software_is_the_model_its_version_and_the_sha256_of_its_weights(self):

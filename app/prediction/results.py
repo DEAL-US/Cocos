@@ -8,8 +8,8 @@ could not be predicted has NO_RESULT instead of a result.
 from .models import NO_RESULT
 
 CALLS = {
-    'R': 'R',                         # resistant
-    'S': 'S',                         # susceptible
+    'R': 'Resistant',
+    'S': 'Susceptible',
     'not_detected': 'Not detected',   # no known determinant found, which is not the same as susceptible
 }
 

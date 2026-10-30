@@ -31,7 +31,7 @@ class ResultTests(SimpleTestCase):
 
     def test_label_is_the_rounded_score_or_else_the_call(self):
         self.assertEqual(result_label({'score': 0.123456, 'call': 'R'}), 0.1235)
-        self.assertEqual(result_label({'call': 'S'}), 'S')
+        self.assertEqual(result_label({'call': 'S'}), 'Susceptible')
         self.assertEqual(result_label({'call': 'not_detected'}), 'Not detected')
         self.assertEqual(result_label(NO_RESULT), '')
         self.assertEqual(result_label(None), '')

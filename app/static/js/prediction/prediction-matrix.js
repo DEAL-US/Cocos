@@ -3,8 +3,8 @@ const HIGH_THRESHOLD = 0.65;
 
 // How each verdict of a model is shown (see prediction/results.py)
 const CALLS = {
-  R: { label: 'R', level: 'prediction-high' },
-  S: { label: 'S', level: 'prediction-low' },
+  R: { label: 'Resistant', level: 'prediction-high' },
+  S: { label: 'Susceptible', level: 'prediction-low' },
   not_detected: { label: 'Not detected', level: 'prediction-no-result' },
 };
 
@@ -53,9 +53,6 @@ function renderMatrix(container, matrix) {
 
   renderHeaders(header, matrix.models);
   renderRows(body, matrix);
-
-  const hasCalls = matrix.data.some(row => row.some(result => result?.call));
-  container.querySelector('.prediction-legend-calls').hidden = !hasCalls;
 }
 
 

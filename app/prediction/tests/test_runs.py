@@ -115,7 +115,7 @@ class PreparePredictionCsvTests(TestCase):
 
         _, rows = prepare_prediction_csv(matrix)
 
-        self.assertEqual(rows, [["amikacin", 0.8, "R", 0.8], ["colistin", "", "Not detected", ""]])
+        self.assertEqual(rows, [["amikacin", 0.8, "Resistant", 0.8], ["colistin", "", "Not detected", ""]])
 
     def test_rejects_malformed_matrices(self):
         cases = [
