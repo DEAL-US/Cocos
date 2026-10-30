@@ -268,10 +268,46 @@
                   <div>
                     <p class="text-sm font-semibold mb-2">Models</p>
                     <div class="flex flex-wrap gap-1">
-                      {% for model in prediction.models %}
-                        <span class="badge badge-soft badge-primary">{{ model }}</span>
+                      {% for model in prediction.model_details %}
+                        <span class="badge badge-soft badge-primary">{{ model.name }}{% if model.version %} {{ model.version }}{% endif %}</span>
                       {% endfor %}
                     </div>
+
+                    {% if prediction.models_with_software %}
+                      <details class="mt-2 text-sm group">
+                        <summary class="cursor-pointer list-none inline-flex items-center gap-1 text-base-content/70 hover:text-base-content">
+                          <i class="bi bi-chevron-right text-xs transition-transform group-open:rotate-90"></i>
+                          Tools used
+                        </summary>
+                        <dl class="mt-2 space-y-1.5">
+                          {% for model in prediction.models_with_software %}
+                            <div>
+                              <dt class="text-xs text-base-content/70">{{ model.name }}</dt>
+                              <dd class="flex flex-wrap gap-1 mt-0.5">
+                                {% for label in model.software %}
+                                  <span class="badge badge-sm badge-soft badge-neutral">{{ label }}</span>
+                                {% endfor %}
+                              </dd>
+                            </div>
+                          {% endfor %}
+                        </dl>
+                      </details>
+                    {% endif %}
+
+                    {% if prediction.models_with_errors %}
+                      <details class="mt-1 text-sm group">
+                        <summary class="cursor-pointer list-none inline-flex items-center gap-1 text-error">
+                          <i class="bi bi-chevron-right text-xs transition-transform group-open:rotate-90"></i>
+                          <i class="bi bi-exclamation-triangle"></i>
+                          Errors ({{ prediction.models_with_errors|length }})
+                        </summary>
+                        <ul class="mt-2 space-y-1">
+                          {% for model in prediction.models_with_errors %}
+                            <li><span class="font-medium">{{ model.name }}:</span> {{ model.error }}</li>
+                          {% endfor %}
+                        </ul>
+                      </details>
+                    {% endif %}
                   </div>
 
                   <div>

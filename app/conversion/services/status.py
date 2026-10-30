@@ -6,7 +6,8 @@ from django.utils import timezone
 
 from ..models import ConversionTask
 from prediction.adapters.registry import list_all_organisms
-from prediction.models import PredictionRun
+from prediction.models import PredictionRun, PredictionTask
+from prediction.steps import PREDICTION_STEP_PREFIX
 from prediction.services import prediction_trust
 from core.models import Failure, File, ProcessGroup, TaskInput, TaskOutput, TaskStatus
 from core.steps import used_software_labels
@@ -325,6 +326,7 @@ def build_process_status_context(process, page=1, page_size=5):
     pagination_page_range = get_pagination_page_range(paginator, prediction_page.number)
 
     trust = prediction_trust(process, list(prediction_page))
+    models_of_runs = _prediction_models(list(prediction_page))
     predictions = [
         {
             'id': run.id,
@@ -333,6 +335,9 @@ def build_process_status_context(process, page=1, page_size=5):
             'created_at': run.created_at,
             'updated_at': run.updated_at,
             'models': run.selected_models,
+            'model_details': models_of_runs.get(run.id, []),
+            'models_with_software': [model for model in models_of_runs.get(run.id, []) if model['software']],
+            'models_with_errors': [model for model in models_of_runs.get(run.id, []) if model['error']],
             'antibiotics': run.selected_antibiotics,
             'matrix': {
                 'models': run.selected_models,
@@ -409,6 +414,27 @@ def _get_json_download_task_id(view, assembly_task, latest_annotation, latest_js
             return latest_json.id
 
     return None
+
+def _prediction_models(runs):
+    """{run id: [{name, version, software, error}]}: each model of the runs, from its latest task:
+    the version of the model, the tools it used (as in the timeline) and why it failed, if it did."""
+    latest = {}
+    for task in PredictionTask.objects.filter(run__in=runs).order_by('id'):
+        # By its step key: the model may no longer be registered
+        latest[(task.run_id, task.step.removeprefix(PREDICTION_STEP_PREFIX))] = task
+    details = {}
+    for run in runs:
+        for model in run.selected_models:
+            task = latest.get((run.id, model))
+            entry = next((entry for entry in (task.software if task else []) if entry.get('type') == 'model'), {})
+            details.setdefault(run.id, []).append({
+                'name': model,
+                'version': entry.get('version', ''),
+                'software': used_software_labels(task) if task else [],
+                'error': task.error if task and task.status == TaskStatus.FAILED else '',
+            })
+    return details
+
 
 def _build_timeline_entry(view, task):
     """Build a timeline entry representing a conversion task: when it ran, what it used and

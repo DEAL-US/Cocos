@@ -136,6 +136,18 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         self.assertEqual(rows[2][0], 'ampicillin')
         self.assertEqual(rows[2][1], '0.75')
 
+    def test_each_model_shows_its_version_the_tools_it_used_and_why_it_failed(self):
+        self.predict(['fake_constant', 'fake_broken'], ['amikacin'])
+
+        [prediction] = self.predictions_on_status_page()
+        constant, broken = prediction['model_details']
+        self.assertEqual((constant['name'], constant['version'], constant['error']), ('fake_constant', FAKE_MODEL_VERSION, ''))
+        self.assertEqual(constant['software'][0], f'fake_constant {FAKE_MODEL_VERSION}')
+        self.assertTrue(constant['software'][-1].startswith('Cocos'))
+        self.assertEqual(broken['name'], 'fake_broken')
+        self.assertEqual(broken['error'], 'The model fake_broken could not predict any of the selected antibiotics.')
+        self.assertEqual([model['name'] for model in prediction['models_with_errors']], ['fake_broken'])
+
     def test_each_result_of_the_matrix_has_its_trust(self):
         self.predict(['fake_constant', 'fake_broken'], ['amikacin'])
 
