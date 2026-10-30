@@ -15,7 +15,7 @@ from django.urls import reverse
 from core.models import File, ProcessGroup, TaskStatus
 from core.testing import BAKTA_JSON, FakeBioService, FlowTestMixin
 from prediction.models import PredictionRun
-from prediction.adapters.registry import MODEL_ANTIBIOTICS
+from prediction.adapters.registry import MODEL_ANTIBIOTICS, get_model_endpoint
 from conversion.tests.test_flows import ConversionFlowMixin
 from prediction.testing import FAKE_MODEL_VERSION, register_fake_models
 
@@ -184,7 +184,9 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_real_models_smoke(self):
-        real_models = {name: antibiotics for name, antibiotics in self.real_model_antibiotics.items() if antibiotics}
+        # The models that run in Cocos: those that run in a service need it, and the tests have none
+        real_models = {name: antibiotics for name, antibiotics in self.real_model_antibiotics.items()
+                       if antibiotics and not get_model_endpoint(name)}
         if not real_models:
             self.skipTest('No real models with weights are registered in this environment')
 
