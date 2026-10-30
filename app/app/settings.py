@@ -116,7 +116,7 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', 'cocos'),
         'USER': os.getenv('DB_USER', 'cocos'),
         'PASSWORD': required_in_production('DB_PASSWORD', 'cocos_database_password'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),  # not localhost: on Windows it tries IPv6 first, and Docker publishes Postgres on IPv4 only
         'PORT': os.getenv('DB_PORT', '5432'),
         'CONN_MAX_AGE': int(os.getenv('DB_CONN_MAX_AGE', '60')),
     }
