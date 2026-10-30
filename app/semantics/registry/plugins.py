@@ -62,6 +62,8 @@ class ModelDescription:
     weights: tuple = ()
     # Organisms its data has measurements about (quality.ttl), e.g. the species it was trained on
     data_organisms: dict = field(default_factory=dict)
+    # Where to send its jobs, for a model that runs in a service (schema:potentialAction); '' if it runs in Cocos
+    endpoint: str = ''
 
 
 @dataclass(frozen=True)
@@ -94,7 +96,18 @@ def describe_model(model_name):
                              for antibiotic in set(graph.objects(part, OBO.IAO_0000136)) or {None}
                              if antibiotic is None or antibiotic in antibiotics)),
         data_organisms={_curie(taxon): _label(taxon) for taxon in _measured_taxa(graph, resource)},
+        endpoint=_endpoint(graph, resource),
     )
+
+
+def _endpoint(graph, resource):
+    """The schema:urlTemplate of the EntryPoint of the action of `resource`, or '' if it has none."""
+    for action in graph.objects(resource, SCHEMA.potentialAction):
+        for target in graph.objects(action, SCHEMA.target):
+            template = graph.value(target, SCHEMA.urlTemplate)
+            if template:
+                return str(template)
+    return ''
 
 
 def _measured_taxa(graph, resource):

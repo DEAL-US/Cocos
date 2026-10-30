@@ -319,3 +319,26 @@ amrfsh:PluginFileShape
         sh:path schema:sha256 ; sh:minCount 1 ; sh:maxCount 1 ; sh:pattern "^[0-9a-f]{64}$" ;
         sh:message "A file of a plug-in needs exactly one schema:sha256: 64 lowercase hexadecimal digits."@en ;
     ] .
+
+# --- How to run a model that runs in a service (schema.org Action with an EntryPoint), optional
+# Its schema:urlTemplate is relative to the model service Cocos is configured with (MODEL_SERVICE_BASE),
+# e.g. "predict/amrfinderplus", or an absolute URL for a model with its own service.
+
+amrfsh:ActionShape
+    a sh:NodeShape ;
+    sh:targetObjectsOf schema:potentialAction ;
+    sh:property [
+        sh:path schema:target ; sh:minCount 1 ; sh:maxCount 1 ; sh:class schema:EntryPoint ;
+        sh:message "The action that runs a model needs exactly one schema:target, a schema:EntryPoint."@en ;
+    ] .
+
+amrfsh:EntryPointShape
+    a sh:NodeShape ;
+    sh:targetClass schema:EntryPoint ;
+    sh:property [
+        sh:path schema:urlTemplate ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ;
+        sh:message "An entry point needs exactly one schema:urlTemplate, where the job is sent."@en ;
+    ] , [
+        sh:path schema:httpMethod ; sh:minCount 1 ; sh:maxCount 1 ; sh:in ( "POST" ) ;
+        sh:message "An entry point of a model is called with schema:httpMethod \"POST\"."@en ;
+    ] .
