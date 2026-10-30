@@ -3,9 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from bioservice.steps import installed_tools
 from core.models import ProcessGroup
 from core.steps import get_step, software_labels
 from prediction.adapters.registry import list_all_organisms
+from ..steps import ONT_ASSEMBLERS
 from ..services.pipeline import (
     get_assembly_tasks_can_be_annotated, 
     retry_failed_step,
@@ -18,6 +20,26 @@ from ..services.pipeline import (
 def _expected_software(step_key):
     """Labels of what a new task of a step would use (e.g. 'Bakta 1.12.1'), or None if unknown."""
     return software_labels(get_step(step_key).expected_software())
+
+
+ONT_ASSEMBLER_DESCRIPTIONS = {
+    'raven': 'Fast and light on memory: a good first choice.',
+    'flye': 'Slower and needs more memory, but often gives a more complete assembly.',
+}
+
+
+def _ont_assemblers():
+    """The assemblers the user can choose for ONT reads, the default first, with what each one uses."""
+    step, tools = get_step('assembly_ont'), installed_tools()
+    assemblers = []
+    for name in ONT_ASSEMBLERS:
+        try:
+            software = software_labels(step.assembler_software(tools, name))
+        except (KeyError, TypeError):  # the service does not answer, or does not have it
+            software = None
+        assemblers.append({'name': name, 'label': name.capitalize(), 'software': software,
+                           'description': ONT_ASSEMBLER_DESCRIPTIONS[name], 'default': name == ONT_ASSEMBLERS[0]})
+    return assemblers
 
 
 def _annotation_context(request, active_tab='fasta', **extra):
@@ -37,7 +59,7 @@ def assembly_ui(request):
     return render(request, 'conversion/assembly.html', {
         'organism_options': list_all_organisms(),
         'illumina_software': _expected_software('assembly_illumina'),
-        'ont_software': _expected_software('assembly_ont'),
+        'ont_assemblers': _ont_assemblers(),
         'annotation_software': _expected_software('bakta_annotation'),
     })
 

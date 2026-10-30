@@ -102,10 +102,9 @@
           <div>
             <h3 class="font-semibold">What happens?</h3>
             <p class="text-sm mt-1">
-              Cocos uses Flye or Raven to assemble your long sequencing reads into a genome sequence.
+              Cocos assembles your long sequencing reads into a genome sequence with the assembler you choose below, Raven or Flye.
               The resulting FASTA can then be annotated and used for prediction.
             </p>
-            {% include 'conversion/_software.html' with title='Uses' software=ont_software %}
             {% include 'conversion/_software.html' with title='With annotation, also' software=annotation_software %}
           </div>
         </div>
@@ -120,6 +119,23 @@
             <label class="label text-base font-medium" for="ont_fastq">FASTQ read</label>
             <div class="assembly-input-shell bg-base-100">
               <input id="ont_fastq" type="file" name="fastq_file" accept=".fastq,.fq,.fastq.gz,.fq.gz" required class="file-input w-full">
+            </div>
+          </fieldset>
+
+          <fieldset class="fieldset bg-base-200 border border-base-300 rounded-box p-4">
+            <legend class="fieldset-legend text-base font-semibold">Assembler</legend>
+            <div class="grid gap-3 sm:grid-cols-2">
+              {% for assembler in ont_assemblers %}
+                <label class="flex cursor-pointer items-start gap-3 rounded-box border border-base-300 bg-base-100 px-4 py-3 has-[:checked]:border-primary">
+                  <input type="radio" name="assembler" value="{{ assembler.name }}" class="radio radio-primary radio-sm mt-1" {% if assembler.default %}checked{% endif %}>
+                  <div class="min-w-0">
+                    <span class="font-medium">{{ assembler.label }}</span>
+                    {% if assembler.default %}<span class="badge badge-sm badge-soft badge-primary ml-1">Default</span>{% endif %}
+                    <p class="text-sm opacity-70 mt-1">{{ assembler.description }}</p>
+                    {% include 'conversion/_software.html' with title='Uses' software=assembler.software %}
+                  </div>
+                </label>
+              {% endfor %}
             </div>
           </fieldset>
 

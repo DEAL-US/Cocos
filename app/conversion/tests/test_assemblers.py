@@ -56,6 +56,17 @@ class OntAssemblerTests(ConversionFlowMixin, TestCase):
         self.assertFalse(ProcessGroup.objects.filter(user=self.user).exists())
         self.assertEqual(bio.submissions, [])
 
+    def test_the_page_offers_both_with_what_each_one_uses(self):
+        with FakeBioService():
+            response = self.client.get(reverse('conversion:assembly_ui'))
+
+        assemblers = response.context['ont_assemblers']
+        self.assertEqual([assembler['name'] for assembler in assemblers], ['raven', 'flye'])
+        self.assertTrue(assemblers[0]['default'])
+        self.assertEqual(assemblers[1]['software'], ['Flye 2.9.6'])
+        self.assertContains(response, 'Raven 1.8.3')
+        self.assertContains(response, 'Flye 2.9.6')
+
     def test_a_failure_for_good_with_flye_does_not_block_raven(self):
         with FakeBioService(status_sequence=['failed'], error_kind='input'):
             self.start_ont('flye')
