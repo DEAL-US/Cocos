@@ -40,5 +40,12 @@ class PredictionConfig(AppConfig):
                     # Don't block startup for import errors in individual model modules, but say why
                     # the model is missing (e.g. no descriptor.ttl).
                     logger.exception('Could not load the model module %s', module_name)
+
+            # A folder with a descriptor and no code is a model that runs in a service.
+            from .adapters.registry import register_remote_model
+            for descriptor in base.glob('*/descriptor.ttl'):
+                folder = descriptor.parent
+                if not any(path.name != '__init__.py' for path in folder.glob('*.py')):
+                    register_remote_model(folder.name)
         except Exception:
-            pass
+            logger.exception('Could not load the models')

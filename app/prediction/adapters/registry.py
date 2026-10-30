@@ -44,6 +44,10 @@ MODEL_WEIGHTS = {
     # 'model_name': (('amikacin', 'weights/amikacin.pt'), ('', 'shared.pt'), ...): files the descriptor declares, by antibiotic
 }
 
+MODEL_ENDPOINTS = {
+    # 'model_name': 'predict/amrfinderplus': where the jobs of a model that runs in a service are sent
+}
+
 def _validate_adapter_init(cls) -> None:
     try:
         sig = inspect.signature(cls.__init__)
@@ -64,22 +68,42 @@ def register_model(name: str = None):
     def _decorator(cls):
         _validate_adapter_init(cls)
         key = (name or cls.__name__).lower()
-        try:
-            description = describe_model(key)
-            check_files(model_dir(key), description.files)
-        except DescriptorError as error:
-            reject_plugin('model', key, error)
-            return cls
-        accept_plugin('model', key)
-        MODEL_REGISTRY[key] = cls
-        MODEL_ANTIBIOTICS[key] = list(description.antibiotics)
-        MODEL_ORGANISMS[key] = ANY_ORGANISM if description.any_organism else description.organisms
-        MODEL_PORTS[key] = (description.inputs, description.outputs)
-        MODEL_VERSIONS[key] = description.version
-        MODEL_DATA_ORGANISMS[key] = description.data_organisms
-        MODEL_WEIGHTS[key] = description.weights
+        _register(key, cls)
         return cls
     return _decorator
+
+
+def register_remote_model(name: str):
+    """Register a model that runs in a service: its folder has only its descriptor, which says where
+    its jobs are sent (schema:potentialAction). Skipped and reported like any other model."""
+    _register(name.lower(), None)
+
+
+def _register(key, cls):
+    """Register the model `key` from its descriptor: with its adapter `cls`, or None if it runs in a service."""
+    try:
+        description = describe_model(key)
+        check_files(model_dir(key), description.files)
+        if cls is not None and description.endpoint:
+            raise DescriptorError('it has an adapter, so it runs in Cocos, but its descriptor says it runs in a service')
+        if cls is None and not description.endpoint:
+            raise DescriptorError('it has no adapter, so its descriptor must say where it runs (schema:potentialAction)')
+    except DescriptorError as error:
+        reject_plugin('model', key, error)
+        return
+    accept_plugin('model', key)
+    MODEL_REGISTRY[key] = cls
+    MODEL_ANTIBIOTICS[key] = list(description.antibiotics)
+    MODEL_ORGANISMS[key] = ANY_ORGANISM if description.any_organism else description.organisms
+    MODEL_PORTS[key] = (description.inputs, description.outputs)
+    MODEL_VERSIONS[key] = description.version
+    MODEL_DATA_ORGANISMS[key] = description.data_organisms
+    MODEL_WEIGHTS[key] = description.weights
+    MODEL_ENDPOINTS[key] = description.endpoint
+
+def get_model_endpoint(name: str):
+    """Where the jobs of a model that runs in a service are sent, or '' if it runs in Cocos."""
+    return MODEL_ENDPOINTS.get(name.lower(), '')
 
 def get_model_adapter_class(name: str):
     key = name.lower() if name else ''
