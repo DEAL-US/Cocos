@@ -65,6 +65,7 @@ def start_assembly_task(request):
             annotate=annotate,
             complete_version=complete_version,
             organism=request.POST.get('organism', ''),
+            assembler=request.POST.get('assembler', ''),
         )
     except ValueError as e:
         messages.error(request, str(e))

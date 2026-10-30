@@ -52,7 +52,7 @@ class PlanExecutionTests(OrchestrationTestCase):
         process.refresh_from_db()
         self.assertEqual(process.organism, 'NCBITaxon:562')
         self.assertEqual(process.plan, [
-            {'id': 'n1', 'step': 'assembly_ont_annotated', 'parameters': {}, 'after': [], 'batch': 1},
+            {'id': 'n1', 'step': 'assembly_ont_annotated', 'parameters': {'assembler': 'raven'}, 'after': [], 'batch': 1},
             {'id': 'n2', 'step': 'extract_bakta_json', 'parameters': {'complete_version': True}, 'after': ['n1'], 'batch': 1},
         ])
         self.assertEqual(self.statuses(process), {'n1': TaskStatus.COMPLETED, 'n2': TaskStatus.COMPLETED})

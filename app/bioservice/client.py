@@ -52,10 +52,14 @@ def sequence_illumina(fastq_content, fastq_2_content, annotate=False):
     resp.raise_for_status()
     return resp.json()
 
-def sequence_ont(fastq_content, annotate=False):
+def sequence_ont(fastq_content, annotate=False, assembler=None):
+    """Submit an ONT assembly; without `assembler` ('raven' or 'flye'), the service uses its default."""
+    url = f"{BASE}/assembly/ont?annotate=" + str(annotate).lower()
+    if assembler:
+        url += f"&assembler={assembler}"
     try:
         resp = requests.post(
-            f"{BASE}/assembly/ont?annotate=" + str(annotate).lower(),
+            url,
             files={"reads": ("reads", fastq_content, "application/gzip")},
             timeout=300,
         )

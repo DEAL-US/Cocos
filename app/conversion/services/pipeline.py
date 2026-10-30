@@ -1,6 +1,7 @@
 import os
 
 from ..models import ConversionTask
+from ..steps import ONT_ASSEMBLERS
 from core.models import File, TaskStatus
 from core.orchestration import create_process, extend_plan, latest_tasks, retry_node
 from .presentation import format_process_label
@@ -62,12 +63,16 @@ def get_assembly_tasks_can_be_annotated(user):
 
 
 # Assembly
-def start_assembly(user, assembly_type, fastq, fastq_2=None, annotate=False, complete_version=False, organism=''):
+def start_assembly(user, assembly_type, fastq, fastq_2=None, annotate=False, complete_version=False, organism='',
+                   assembler=''):
 
     organism = _check_organism(organism)
 
     if assembly_type not in ASSEMBLY_STEPS:
         raise ValueError("Invalid assembly type.")
+
+    if assembler and (assembly_type != 'ont' or assembler not in ONT_ASSEMBLERS):
+        raise ValueError("Invalid assembler.")
 
     if not fastq:
         raise ValueError("No FASTQ file uploaded.")
@@ -86,10 +91,12 @@ def start_assembly(user, assembly_type, fastq, fastq_2=None, annotate=False, com
         reads = {'reads': file_1}
 
     step = ASSEMBLY_STEPS[assembly_type]
+    parameters = {'assembler': assembler} if assembler else {}
     if annotate:
-        nodes = [{'id': 'n1', 'step': f'{step}_annotated'}, _extraction_node('n2', ['n1'], complete_version)]
+        nodes = [{'id': 'n1', 'step': f'{step}_annotated', 'parameters': parameters},
+                 _extraction_node('n2', ['n1'], complete_version)]
     else:
-        nodes = [{'id': 'n1', 'step': step}]
+        nodes = [{'id': 'n1', 'step': step, 'parameters': parameters}]
 
     return create_process(user, os.path.basename(fastq.name), nodes, {'n1': reads}, organism=organism)
 

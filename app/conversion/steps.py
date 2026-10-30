@@ -63,7 +63,19 @@ class AssemblyStep(ConversionBioServiceStep):
             self.save_annotation(task)
 
     def software_of(self, tools):
-        return tools['assembly'][self.technology] + (tools['annotation'] if self.annotate else [])
+        assembly = self.assembler_software(tools, self.default_parameters.get('assembler'))
+        return assembly + (tools['annotation'] if self.annotate else [])
+
+    def assembler_software(self, tools, assembler):
+        """What an assembly with `assembler` uses, out of GET /tools (KeyError if it is not installed).
+        Without an assembler, or from a service that does not list them, what its default uses."""
+        if assembler is None or 'assemblers' not in tools:
+            return tools['assembly'][self.technology]
+        return tools['assemblers'][self.technology]['available'][assembler]
+
+
+# The assemblers of ONT reads the user can choose; the first one is the default.
+ONT_ASSEMBLERS = ('raven', 'flye')
 
 
 @register_step
@@ -74,9 +86,13 @@ class AssemblyONT(AssemblyStep):
     technology = 'ont'
     consumes = (Port('reads', DataKind.READS, FASTQ),)
     produces = (ASSEMBLY_OUTPUT,)
+    default_parameters = {'assembler': ONT_ASSEMBLERS[0]}
 
     def process(self, task):
-        return submission_result(bio_api_client.sequence_ont(task.read_input('reads'), annotate=self.annotate))
+        # Plans made before the assembler could be chosen have none: the service uses its default.
+        response = bio_api_client.sequence_ont(task.read_input('reads'), annotate=self.annotate,
+                                               assembler=task.parameters.get('assembler'))
+        return submission_result(response)
 
 
 @register_step

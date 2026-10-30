@@ -24,11 +24,14 @@ FIXTURES_DIR = Path(__file__).resolve().parent.parent / 'conversion' / 'tests' /
 BAKTA_JSON = json.loads((FIXTURES_DIR / 'small.json').read_text(encoding='utf-8'))
 ASSEMBLY_FASTA = b'>contig_1\nATGCATGCATGC\n'
 
-# What the jobs of the fake service report they used, by technology, like GET /jobs/<id> of the real one
-ASSEMBLY_SOFTWARE = {
-    'ont': [{'name': 'Raven', 'version': '1.8.3', 'type': 'tool', 'biotools': 'raven'}],
-    'illumina': [{'name': 'SPAdes', 'version': '4.3.0', 'type': 'tool', 'biotools': 'spades'}],
+# What the jobs of the fake service report they used, by technology and assembler (the default
+# first), like GET /jobs/<id> of the real one
+ASSEMBLERS = {
+    'ont': {'raven': [{'name': 'Raven', 'version': '1.8.3', 'type': 'tool', 'biotools': 'raven'}],
+            'flye': [{'name': 'Flye', 'version': '2.9.6', 'type': 'tool', 'biotools': 'flye'}]},
+    'illumina': {'spades': [{'name': 'SPAdes', 'version': '4.3.0', 'type': 'tool', 'biotools': 'spades'}]},
 }
+ASSEMBLY_SOFTWARE = {technology: next(iter(assemblers.values())) for technology, assemblers in ASSEMBLERS.items()}
 ANNOTATION_SOFTWARE = [
     {'name': 'Bakta', 'version': '1.12.1', 'type': 'tool', 'biotools': 'bakta'},
     {'name': 'Bakta database', 'version': '6.0', 'type': 'database', 'variant': 'light', 'doi': '10.5281/zenodo.14916843'},
@@ -71,8 +74,10 @@ class FakeBioService:
         self._mock.add_callback(responses.POST, re.compile(rf'{base}/assembly/(ont|illumina).*'), self._submit_assembly)
         self._mock.add_callback(responses.POST, re.compile(rf'{base}/annotation/bakta/upload.*'), self._submit_annotation)
         self._mock.add_callback(responses.GET, re.compile(rf'{base}/jobs/[^/?]+$'), self._job_status)
+        assemblers = {technology: {'default': next(iter(available)), 'available': available}
+                      for technology, available in ASSEMBLERS.items()}
         self._mock.add(responses.GET, f'{bio_api_client.BASE.rstrip("/")}/tools',
-                       json={'assembly': ASSEMBLY_SOFTWARE, 'annotation': ANNOTATION_SOFTWARE})
+                       json={'assembly': ASSEMBLY_SOFTWARE, 'assemblers': assemblers, 'annotation': ANNOTATION_SOFTWARE})
         cache.delete(TOOLS_CACHE_KEY)  # what the service has installed is asked again, to this fake
         self._mock.add_callback(responses.GET, re.compile(rf'{base}/assembly/[^/]+/download.*'), self._download_assembly)
         self._mock.add_callback(responses.GET, re.compile(rf'{base}/annotation/[^/]+/download.*'), self._download_annotation)
@@ -106,15 +111,19 @@ class FakeBioService:
     def _submit_assembly(self, request):
         url = urlparse(request.url)
         endpoint = url.path.rsplit('/', 1)[-1]
-        annotate = parse_qs(url.query).get('annotate', ['false'])[0] == 'true'
+        query = parse_qs(url.query)
+        annotate = query.get('annotate', ['false'])[0] == 'true'
+        assembler = query.get('assembler', [None])[0]
         self.submissions.append({
             'endpoint': f'assembly/{endpoint}',
             'annotate': annotate,
+            'assembler': assembler,
             'files': _multipart_parts(request),
         })
         if self.start_behavior == 'busy':
             return self._busy()
-        job_id = self._new_job('assembly', annotate, ASSEMBLY_SOFTWARE[endpoint] + (ANNOTATION_SOFTWARE if annotate else []))
+        assembly = ASSEMBLERS[endpoint][assembler] if assembler else ASSEMBLY_SOFTWARE[endpoint]
+        job_id = self._new_job('assembly', annotate, assembly + (ANNOTATION_SOFTWARE if annotate else []))
         return (200, {}, json.dumps({'job_id': job_id, 'status': 'pending'}))
 
     def _submit_annotation(self, request):
