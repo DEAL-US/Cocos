@@ -7,6 +7,7 @@ from django.utils import timezone
 from ..models import ConversionTask
 from prediction.adapters.registry import list_all_organisms
 from prediction.models import PredictionRun, PredictionTask
+from prediction.results import CALLS
 from prediction.steps import PREDICTION_STEP_PREFIX
 from prediction.services import prediction_trust
 from core.models import Failure, File, ProcessGroup, TaskInput, TaskOutput, TaskStatus
@@ -343,6 +344,7 @@ def build_process_status_context(process, page=1, page_size=5):
                 'models': run.selected_models,
                 'antibiotics': run.selected_antibiotics,
                 'data': run.data,
+                'calls': CALLS,  # how each verdict reads
                 # How much each result can be trusted, in the same order as `data` (None: no result)
                 'trust': [[trust.get(run.id, {}).get(model, {}).get(antibiotic) for model in run.selected_models]
                           for antibiotic in run.selected_antibiotics],

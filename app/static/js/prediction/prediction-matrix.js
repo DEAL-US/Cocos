@@ -1,13 +1,13 @@
 const LOW_THRESHOLD = 0.35;
 const HIGH_THRESHOLD = 0.65;
 
-// How each verdict of a model is shown (see prediction/results.py)
-const CALLS = {
-  R: { label: 'Resistant', level: 'prediction-high' },
-  possible: { label: 'Possible resistance', level: 'prediction-medium' },
-  I: { label: 'Susceptible, increased exposure', level: 'prediction-medium' },
-  S: { label: 'Susceptible', level: 'prediction-low' },
-  not_detected: { label: 'Not detected', level: 'prediction-no-result' },
+// The colour of each verdict of a model; their names come with the matrix (`calls`, see prediction/results.py)
+const CALL_LEVELS = {
+  R: 'prediction-high',
+  possible: 'prediction-medium',
+  I: 'prediction-medium',
+  S: 'prediction-low',
+  not_detected: 'prediction-no-result',
 };
 
 // How each judgement of the trust of a prediction is shown (see trust_rules.toml)
@@ -88,7 +88,7 @@ function renderRows(body, matrix) {
 
     values.forEach((value, column) => {
       const trust = matrix.trust?.[index]?.[column];
-      row.appendChild(createPredictionCell(value, trust, matrix.models[column], antibiotic));
+      row.appendChild(createPredictionCell(value, trust, matrix.models[column], antibiotic, matrix.calls || {}));
     });
 
     row.appendChild(createAverageCell(values));
@@ -98,7 +98,7 @@ function renderRows(body, matrix) {
 }
 
 
-function createPredictionCell(result, trust, model, antibiotic) {
+function createPredictionCell(result, trust, model, antibiotic, callLabels) {
   const cell = document.createElement('td');
   cell.className = 'prediction-cell';
 
@@ -123,7 +123,7 @@ function createPredictionCell(result, trust, model, antibiotic) {
 
   // A probability is shown as a value and a bar; a verdict, as its label. With both, the colour is the
   // probability's.
-  const call = CALLS[result.call];
+  const call = result.call ? { label: callLabels[result.call] || result.call, level: CALL_LEVELS[result.call] } : null;
   const hasScore = result.score !== undefined && result.score !== null;
 
   if (hasScore) {
