@@ -1,4 +1,5 @@
 import os
+from types import SimpleNamespace
 from django.db.models import Max, Prefetch, Q
 from django.core.paginator import Paginator
 from django.urls import reverse
@@ -6,6 +7,7 @@ from django.utils import timezone
 
 from ..models import ConversionTask
 from prediction.adapters.registry import list_all_organisms
+from prediction.adapters.registry import get_antibiotic_label, get_model_label
 from prediction.models import PredictionRun, PredictionTask
 from prediction.results import CALLS
 from prediction.steps import PREDICTION_STEP_PREFIX
@@ -340,9 +342,12 @@ def build_process_status_context(process, page=1, page_size=5):
             'models_with_software': [model for model in models_of_runs.get(run.id, []) if model['software']],
             'models_with_errors': [model for model in models_of_runs.get(run.id, []) if model['error']],
             'antibiotics': run.selected_antibiotics,
+            'antibiotic_labels': [get_antibiotic_label(antibiotic) for antibiotic in run.selected_antibiotics],
             'matrix': {
                 'models': run.selected_models,
+                'labels': [get_model_label(model) for model in run.selected_models],  # their names for people
                 'antibiotics': run.selected_antibiotics,
+                'antibiotic_labels': [get_antibiotic_label(antibiotic) for antibiotic in run.selected_antibiotics],
                 'data': run.data,
                 'calls': CALLS,  # how each verdict reads
                 # How much each result can be trusted, in the same order as `data` (None: no result)
@@ -431,11 +436,19 @@ def _prediction_models(runs):
             entry = next((entry for entry in (task.software if task else []) if entry.get('type') == 'model'), {})
             details.setdefault(run.id, []).append({
                 'name': model,
+                'label': get_model_label(model),
                 'version': entry.get('version', ''),
-                'software': used_software_labels(task) if task else [],
+                'software': _software_labels(task) if task else [],
                 'error': task.error if task and task.status == TaskStatus.FAILED else '',
             })
     return details
+
+
+def _software_labels(task):
+    """What a prediction used, as in the timeline, with its model by its name for people."""
+    software = [{**entry, 'name': get_model_label(entry['name'])} if entry.get('type') == 'model' else entry
+                for entry in task.software]
+    return used_software_labels(SimpleNamespace(software=software))
 
 
 def _build_timeline_entry(view, task):

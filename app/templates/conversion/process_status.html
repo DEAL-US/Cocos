@@ -269,7 +269,7 @@
                     <p class="text-sm font-semibold mb-2">Models</p>
                     <div class="flex flex-wrap gap-1">
                       {% for model in prediction.model_details %}
-                        <span class="badge badge-soft badge-primary">{{ model.name }}{% if model.version %} {{ model.version }}{% endif %}</span>
+                        <span class="badge badge-soft badge-primary">{{ model.label }}{% if model.version %} {{ model.version }}{% endif %}</span>
                       {% endfor %}
                     </div>
 
@@ -282,7 +282,7 @@
                         <dl class="mt-2 space-y-1.5">
                           {% for model in prediction.models_with_software %}
                             <div>
-                              <dt class="text-xs text-base-content/70">{{ model.name }}</dt>
+                              <dt class="text-xs text-base-content/70">{{ model.label }}</dt>
                               <dd class="flex flex-wrap gap-1 mt-0.5">
                                 {% for label in model.software %}
                                   <span class="badge badge-sm badge-soft badge-neutral">{{ label }}</span>
@@ -303,7 +303,7 @@
                         </summary>
                         <ul class="mt-2 space-y-1">
                           {% for model in prediction.models_with_errors %}
-                            <li><span class="font-medium">{{ model.name }}:</span> {{ model.error }}</li>
+                            <li><span class="font-medium">{{ model.label }}:</span> {{ model.error }}</li>
                           {% endfor %}
                         </ul>
                       </details>
@@ -313,7 +313,7 @@
                   <div>
                     <p class="text-sm font-semibold mb-2">Antibiotics</p>
                     <div class="flex flex-wrap gap-1">
-                      {% for antibiotic in prediction.antibiotics %}
+                      {% for antibiotic in prediction.antibiotic_labels %}
                         <span class="badge badge-soft badge-primary">{{ antibiotic }}</span>
                       {% endfor %}
                     </div>

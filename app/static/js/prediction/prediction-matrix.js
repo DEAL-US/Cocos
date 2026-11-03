@@ -53,7 +53,7 @@ function renderMatrix(container, matrix) {
     return;
   }
 
-  renderHeaders(header, matrix.models);
+  renderHeaders(header, matrix.labels || matrix.models);
   renderRows(body, matrix);
 }
 
@@ -74,8 +74,9 @@ function renderHeaders(header, models) {
 function renderRows(body, matrix) {
   body.innerHTML = '';
 
-  matrix.antibiotics.forEach((antibiotic, index) => {
+  matrix.antibiotics.forEach((name, index) => {
     const values = matrix.data[index];
+    const antibiotic = matrix.antibiotic_labels?.[index] || name;  // its name for people
 
     const row = document.createElement('tr');
     row.className = 'prediction-row';
@@ -88,7 +89,7 @@ function renderRows(body, matrix) {
 
     values.forEach((value, column) => {
       const trust = matrix.trust?.[index]?.[column];
-      row.appendChild(createPredictionCell(value, trust, matrix.models[column], antibiotic, matrix.calls || {}));
+      row.appendChild(createPredictionCell(value, trust, (matrix.labels || matrix.models)[column], antibiotic, matrix.calls || {}));
     });
 
     row.appendChild(createAverageCell(values));

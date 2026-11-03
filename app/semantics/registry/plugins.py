@@ -64,6 +64,8 @@ class ModelDescription:
     data_organisms: dict = field(default_factory=dict)
     # Where to send its jobs, for a model that runs in a service (schema:potentialAction); '' if it runs in Cocos
     endpoint: str = ''
+    # Its name for people (schema:name), e.g. 'AMRFinderPlus'; Cocos knows it by its identifier (its folder)
+    name: str = ''
 
 
 @dataclass(frozen=True)
@@ -97,6 +99,7 @@ def describe_model(model_name):
                              if antibiotic is None or antibiotic in antibiotics)),
         data_organisms={_curie(taxon): _label(taxon) for taxon in _measured_taxa(graph, resource)},
         endpoint=_endpoint(graph, resource),
+        name=str(graph.value(resource, SCHEMA.name) or model_name),
     )
 
 

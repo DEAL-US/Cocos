@@ -10,6 +10,7 @@ from core.models import File, TaskStatus
 from core.orchestration import latest_tasks
 from notifications.services import notify_user_conversion_complete, notify_user_conversion_failed
 
+from .adapters.registry import get_antibiotic_label, get_model_label
 from .models import NO_RESULT, PredictionRun
 from .results import result_label
 
@@ -63,7 +64,7 @@ def finish_run_if_done(run_id, last_task):
         }
         try:
             models, rows = prepare_prediction_csv(matrix)
-            run.output_csv = create_prediction_csv(run, models, rows)
+            run.output_csv = create_prediction_csv(run, [get_model_label(model) for model in models], rows)
             run.data = matrix['data']
             run.status = TaskStatus.COMPLETED
         except Exception:
@@ -107,7 +108,7 @@ def prepare_prediction_csv(matrix):
                   if isinstance(result, dict) and result.get('score') is not None]
         average = round(sum(scores) / len(scores), 4) if scores else ''
 
-        rows.append([antibiotic] + [result_label(result) for result in results] + [average])
+        rows.append([get_antibiotic_label(antibiotic)] + [result_label(result) for result in results] + [average])
 
     return models, rows
 

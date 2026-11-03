@@ -1,10 +1,10 @@
 from contextlib import contextmanager
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from core.models import File
-from core.steps import DataKind, Port
+from core.steps import DataKind, Port, get_step
 from prediction.adapters.registry import (
     ANY_ORGANISM,
     MODEL_ANTIBIOTICS,
@@ -12,7 +12,9 @@ from prediction.adapters.registry import (
     MODEL_PORTS,
     MODEL_REGISTRY,
     MODEL_WEIGHTS,
+    get_antibiotic_label,
     get_model_adapter_class,
+    get_model_label,
     get_model_ports,
     get_model_supported_antibiotics,
     get_model_supported_organisms,
@@ -154,3 +156,16 @@ class ModelDescriptorTests(TestCase):
         for name in ('base_bakta_50', 'base_bakta_90'):
             with self.subTest(name):
                 self.assertIs(get_model_supported_organisms(name), ANY_ORGANISM)
+
+
+class ModelLabelTests(SimpleTestCase):
+    """People see a model by its name (schema:name of its descriptor), and an antibiotic with a capital."""
+
+    def test_a_model_is_shown_by_the_name_of_its_descriptor(self):
+        self.assertEqual(get_model_label('amrfinderplus'), 'AMRFinderPlus')
+        self.assertEqual(get_step('predict_amrfinderplus').label, 'AMRFinderPlus')
+        self.assertEqual(get_model_label('unknown_model'), 'unknown_model')  # not registered: its identifier
+
+    def test_an_antibiotic_is_shown_with_a_capital(self):
+        self.assertEqual(get_antibiotic_label('amikacin'), 'Amikacin')
+        self.assertEqual(get_antibiotic_label('G418'), 'G418')

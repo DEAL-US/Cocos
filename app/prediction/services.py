@@ -20,7 +20,7 @@ from semantics.registry.graph import registry_graph
 from semantics.sample import sample_graph
 from semantics.trust import RulesError, antibiotic_iri, assess, evidence, load_rules
 
-from .adapters.registry import get_model_supported_antibiotics, get_model_version, list_all_antibiotics
+from .adapters.registry import get_model_label, get_model_supported_antibiotics, get_model_version, list_all_antibiotics
 from .models import NO_RESULT, PredictionRun, PredictionTask
 from .steps import PREDICTION_STEP_PREFIX
 
@@ -71,6 +71,7 @@ def describe_compatibility(process):
     return [
         {
             'model': result.model,
+            'label': get_model_label(result.model),
             'version': get_model_version(result.model),
             'status': result.status.value,
             'steps': [describe_step(get_step(step.step)) for step in result.steps],

@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
       renderModels();
     });
 
-    row.querySelector('[data-model-name]').textContent = model.model;
+    row.querySelector('[data-model-name]').textContent = model.label || model.model;
     row.querySelector('[data-model-version]').textContent = model.version ? `v${model.version}` : '';
 
     const badge = row.querySelector('[data-model-status]');
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function renderChip(model) {
     const chip = chipTemplate.content.firstElementChild.cloneNode(true);
-    chip.querySelector('[data-chip-name]').textContent = model.model;
+    chip.querySelector('[data-chip-name]').textContent = model.label || model.model;
     chip.querySelector('[data-chip-remove]').addEventListener('click', () => {
       model.selected = false;
       renderModels();

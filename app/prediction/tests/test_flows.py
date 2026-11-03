@@ -129,14 +129,16 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         self.assertTrue(prediction['can_download'])
         self.assertEqual(prediction['matrix']['models'], ['fake_constant', 'fake_genes'])
         self.assertEqual(prediction['matrix']['antibiotics'], ['amikacin', 'ampicillin'])
+        self.assertEqual(prediction['matrix']['antibiotic_labels'], ['Amikacin', 'Ampicillin'])  # for people
+        self.assertEqual(prediction['matrix']['labels'], ['fake_constant', 'fake_genes'])  # no schema:name: their identifier
         n_genes = self.genes_file.genes.count()
         self.assertEqual(prediction['matrix']['data'][0], [{'score': 0.25}, {'score': n_genes / 10}])
         self.assertEqual(prediction['matrix']['data'][1][0], {'score': 0.75})
 
         rows = self.download_csv(prediction['id'])
         self.assertEqual(rows[0], ['Antibiotic', 'fake_constant', 'fake_genes', 'Average probability'])
-        self.assertEqual(rows[1], ['amikacin', '0.25', str(round(n_genes / 10, 4)), str(round((0.25 + n_genes / 10) / 2, 4))])
-        self.assertEqual(rows[2][0], 'ampicillin')
+        self.assertEqual(rows[1], ['Amikacin', '0.25', str(round(n_genes / 10, 4)), str(round((0.25 + n_genes / 10) / 2, 4))])
+        self.assertEqual(rows[2][0], 'Ampicillin')
         self.assertEqual(rows[2][1], '0.75')
 
     def test_each_model_shows_its_version_the_tools_it_used_and_why_it_failed(self):
@@ -168,7 +170,7 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         self.assertEqual(prediction['status'], TaskStatus.COMPLETED)
         self.assertEqual(prediction['matrix']['data'], [[{'score': 0.25}, 'NO_RESULT']])
         rows = self.download_csv(prediction['id'])
-        self.assertEqual(rows[1], ['amikacin', '0.25', '', '0.25'])
+        self.assertEqual(rows[1], ['Amikacin', '0.25', '', '0.25'])
 
     def test_antibiotics_no_chosen_model_predicts_have_no_result_and_unknown_ones_are_dropped(self):
         self.predict(['fake_genes'], ['amikacin', 'ampicillin', 'unknown'])

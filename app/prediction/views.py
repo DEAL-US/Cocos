@@ -9,7 +9,7 @@ from django.views.decorators.http import require_GET, require_POST
 from core.models import TaskStatus
 from .models import PredictionRun
 from .services import describe_compatibility, get_sample_options, get_user_sample, is_processing, start_prediction
-from .adapters.registry import list_all_antibiotics, list_all_organisms
+from .adapters.registry import get_antibiotic_label, list_all_antibiotics, list_all_organisms
 
 @login_required
 def prediction_ui(request):
@@ -23,7 +23,7 @@ def prediction_ui(request):
 def antibiotic_options(antibiotics):
     """(value, label) of each antibiotic for the selector, in alphabetical order of their labels: the
     value is its name in Cocos (its ARO label, e.g. 'amikacin'), the label that name with a capital."""
-    labels = [(name, name[:1].upper() + name[1:]) for name in antibiotics]
+    labels = [(name, get_antibiotic_label(name)) for name in antibiotics]
     return sorted(labels, key=lambda option: option[1].casefold())
 
 @login_required

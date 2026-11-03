@@ -70,8 +70,8 @@ class PredictionRunTests(FlowTestMixin, TestCase):
         with run.output_csv.file.open('rb') as f:
             rows = list(csv.reader(io.StringIO(f.read().decode())))
         self.assertEqual(rows, [['Antibiotic', 'fake_half', 'fake_broken', 'Average probability'],
-                                ['amikacin', '0.25', '', '0.25'],
-                                ['colistin', '', '', '']])
+                                ['Amikacin', '0.25', '', '0.25'],
+                                ['Colistin', '', '', '']])
 
         self.assertEqual(self.notifications()[before:], [
             (TaskNotification.EVENT_STARTED, 'The prediction task has started and is now running.'),
@@ -101,9 +101,9 @@ class PreparePredictionCsvTests(TestCase):
 
         self.assertEqual(models, ["a", "b"])
         self.assertEqual(rows, [
-            ["amikacin", 0.1235, 0.5, 0.3117],
-            ["ampicillin", 0.2, "", 0.2],
-            ["colistin", "", "", ""],
+            ["Amikacin", 0.1235, 0.5, 0.3117],
+            ["Ampicillin", 0.2, "", 0.2],
+            ["Colistin", "", "", ""],
         ])
 
     def test_shows_calls_and_averages_only_the_probabilities(self):
@@ -115,7 +115,7 @@ class PreparePredictionCsvTests(TestCase):
 
         _, rows = prepare_prediction_csv(matrix)
 
-        self.assertEqual(rows, [["amikacin", 0.8, "Resistant", 0.8], ["colistin", "", "Not detected", ""]])
+        self.assertEqual(rows, [["Amikacin", 0.8, "Resistant", 0.8], ["Colistin", "", "Not detected", ""]])
 
     def test_rejects_malformed_matrices(self):
         cases = [

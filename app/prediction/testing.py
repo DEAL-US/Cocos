@@ -16,15 +16,15 @@ from semantics.registry.descriptors import model_iri
 from semantics.registry.mappings import data_term, format_term
 
 from . import remote, services
-from .adapters.registry import (MODEL_ANTIBIOTICS, MODEL_DATA_ORGANISMS, MODEL_ENDPOINTS, MODEL_ORGANISMS, MODEL_PORTS,
-                                MODEL_REGISTRY, MODEL_VERSIONS, MODEL_WEIGHTS)
+from .adapters.registry import (MODEL_ANTIBIOTICS, MODEL_DATA_ORGANISMS, MODEL_ENDPOINTS, MODEL_LABELS, MODEL_ORGANISMS,
+                                MODEL_PORTS, MODEL_REGISTRY, MODEL_VERSIONS, MODEL_WEIGHTS)
 
 # What the descriptor of a fake model declares: the genes of an annotation in, a CSV out.
 FAKE_MODEL_PORTS = ((Port('genes', DataKind.GENE_SET, File.FileType.JSON),),
                     (Port('predictions', DataKind.RESISTANCE_PREDICTION, File.FileType.CSV),))
 
 _REGISTRIES = (MODEL_REGISTRY, MODEL_ANTIBIOTICS, MODEL_ORGANISMS, MODEL_PORTS, MODEL_VERSIONS, MODEL_DATA_ORGANISMS,
-               MODEL_WEIGHTS, MODEL_ENDPOINTS)
+               MODEL_WEIGHTS, MODEL_ENDPOINTS, MODEL_LABELS)
 FAKE_MODEL_VERSION = '0.1.0'
 
 

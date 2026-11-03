@@ -44,6 +44,10 @@ MODEL_WEIGHTS = {
     # 'model_name': (('amikacin', 'weights/amikacin.pt'), ('', 'shared.pt'), ...): files the descriptor declares, by antibiotic
 }
 
+MODEL_LABELS = {
+    # 'model_name': 'AMRFinderPlus': its name for people, from the descriptor (schema:name)
+}
+
 MODEL_ENDPOINTS = {
     # 'model_name': 'predict/amrfinderplus': where the jobs of a model that runs in a service are sent
 }
@@ -100,6 +104,15 @@ def _register(key, cls):
     MODEL_DATA_ORGANISMS[key] = description.data_organisms
     MODEL_WEIGHTS[key] = description.weights
     MODEL_ENDPOINTS[key] = description.endpoint
+    MODEL_LABELS[key] = description.name
+
+def get_antibiotic_label(name: str):
+    """The name of an antibiotic for people: its name in Cocos (its ARO label) with a capital, e.g. 'Amikacin'."""
+    return name[:1].upper() + name[1:]
+
+def get_model_label(name: str):
+    """The name of a model for people (schema:name of its descriptor), or its identifier if it has none."""
+    return MODEL_LABELS.get(name.lower(), name)
 
 def get_model_endpoint(name: str):
     """Where the jobs of a model that runs in a service are sent, or '' if it runs in Cocos."""
