@@ -1,0 +1,43 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dqv:     <http://www.w3.org/ns/dqv#> .
+@prefix obo:     <http://purl.obolibrary.org/obo/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+# How well AMRFinderPlus works (W3C Data Quality Vocabulary), as published in its validation:
+# Feldgarden et al. (2019), Antimicrob Agents Chemother 63(11):e00483-19, doi:10.1128/AAC.00483-19.
+# Only the overall figures of its abstract and text: the agreement of the predicted and the observed
+# susceptibility of every test, and how many isolates. They were computed with the database of
+# 2017 and without AMRrules, on foodborne bacteria, so they are not comparable with the measurements
+# of other models, which were computed on other data.
+
+<https://w3id.org/cocos/model/amrfinderplus>
+    dqv:hasQualityMeasurement
+        <https://w3id.org/cocos/model/amrfinderplus#accuracy> ,
+        <https://w3id.org/cocos/model/amrfinderplus#npv> ,
+        <https://w3id.org/cocos/model/amrfinderplus#isolates> .
+
+<https://w3id.org/cocos/model/amrfinderplus#validation-data>
+    a prov:Entity ;
+    rdfs:label "NARMS isolates of the validation of AMRFinder"@en ;
+    dcterms:description "6,242 isolates of the US National Antimicrobial Resistance Monitoring System (5,425 Salmonella enterica, 476 Campylobacter jejuni, 294 Campylobacter coli and 47 Escherichia coli), with 87,679 susceptibility tests (broth microdilution, CLSI breakpoints, or NARMS ones where CLSI has none), compared with what AMRFinder predicted with its database of 2 February 2017."@en ;
+    dcterms:source <https://doi.org/10.1128/AAC.00483-19> .
+
+<https://w3id.org/cocos/model/amrfinderplus#accuracy>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000415 ;   # accuracy: 98.4% of the tests consistent with the prediction
+    dqv:value "0.984"^^xsd:decimal ;
+    dqv:computedOn <https://w3id.org/cocos/model/amrfinderplus#validation-data> .
+
+<https://w3id.org/cocos/model/amrfinderplus#npv>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:STATO_0000619 ;   # negative predictive value: of the tests predicted susceptible
+    dqv:value "0.992"^^xsd:decimal ;
+    dqv:computedOn <https://w3id.org/cocos/model/amrfinderplus#validation-data> .
+
+<https://w3id.org/cocos/model/amrfinderplus#isolates>
+    a dqv:QualityMeasurement ;
+    dqv:isMeasurementOf obo:NCIT_C53190 ;   # sample size: isolates
+    dqv:value 6242 ;
+    dqv:computedOn <https://w3id.org/cocos/model/amrfinderplus#validation-data> .

@@ -11,7 +11,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <http://edamontology.org> a owl:Ontology ;
-    dcterms:date "2026-11-02"^^xsd:date ;
+    dcterms:date "2026-11-03"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
     owl:versionInfo "1.25-20260626T1230Z" .
 
@@ -437,8 +437,11 @@ obo:NCIT_C146818 rdfs:label "Nanopore Sequencing" ;
 obo:NCIT_C53190 rdfs:label "Sample Size" ;
     rdfs:subClassOf obo:NCIT_C71559 .
 
-obo:STATO_0000607 rdfs:label "proportion" ;
-    rdfs:subClassOf obo:STATO_0000184 .
+obo:STATO_0000415 rdfs:label "accuracy" ;
+    rdfs:subClassOf obo:STATO_0000639 .
+
+obo:STATO_0000619 rdfs:label "negative predictive value" ;
+    rdfs:subClassOf obo:STATO_0000607 .
 
 obo:STATO_0000628 rdfs:label "F1 score" ;
     rdfs:subClassOf obo:STATO_0000663 .
@@ -451,22 +454,22 @@ obo:aro.owl a owl:Ontology ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
 
 obo:iao.owl a owl:Ontology ;
-    dcterms:date "2026-11-02"^^xsd:date ;
+    dcterms:date "2026-11-03"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     owl:versionInfo "2026-03-30" .
 
 obo:ncbitaxon.owl a owl:Ontology ;
-    dcterms:date "2026-11-02"^^xsd:date ;
+    dcterms:date "2026-11-03"^^xsd:date ;
     dcterms:license <https://creativecommons.org/publicdomain/zero/1.0/> ;
     owl:versionInfo "2026-07-12" .
 
 obo:ncit.owl a owl:Ontology ;
-    dcterms:date "2026-11-02"^^xsd:date ;
+    dcterms:date "2026-11-03"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     owl:versionInfo "26.02d" .
 
 obo:stato.owl a owl:Ontology ;
-    dcterms:date "2026-11-02"^^xsd:date ;
+    dcterms:date "2026-11-03"^^xsd:date ;
     dcterms:license <http://creativecommons.org/licenses/by/3.0/> ;
     owl:versionInfo "2026-04-20" .
 
@@ -788,17 +791,20 @@ obo:NCIT_C71559 rdfs:label "Sample Statistic" ;
 obo:NCIT_C83503 rdfs:label "Statistic" ;
     rdfs:subClassOf obo:NCIT_C25474 .
 
-obo:STATO_0000184 rdfs:label "ratio" ;
-    rdfs:subClassOf obo:STATO_0000039 .
-
 obo:STATO_0000209 rdfs:label "area under curve" ;
     rdfs:subClassOf obo:STATO_0000039 .
+
+obo:STATO_0000607 rdfs:label "proportion" ;
+    rdfs:subClassOf obo:STATO_0000184 .
 
 obo:STATO_0000610 rdfs:label "measure of association" ;
     rdfs:subClassOf obo:STATO_0000039 .
 
 obo:STATO_0000623 rdfs:label "measure of agreement" ;
     rdfs:subClassOf obo:STATO_0000610 .
+
+obo:STATO_0000639 rdfs:label "percentage" ;
+    rdfs:subClassOf obo:STATO_0000184 .
 
 obo:STATO_0000663 rdfs:label "F-beta score" ;
     rdfs:subClassOf obo:STATO_0000623 .
@@ -895,6 +901,9 @@ obo:NCIT_C18881 rdfs:label "Nucleic Acid Sequencing" ;
 
 obo:NCIT_C19770 rdfs:label "Molecular Analysis" ;
     rdfs:subClassOf obo:NCIT_C25294 .
+
+obo:STATO_0000184 rdfs:label "ratio" ;
+    rdfs:subClassOf obo:STATO_0000039 .
 
 edam:format_2330 rdfs:label "Textual format" ;
     rdfs:subClassOf edam:format_1915 .
