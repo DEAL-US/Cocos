@@ -3,8 +3,8 @@ built (PROV-O), how well it works and how much data it had (DQV), and the files 
 
 Every part is optional, so that the page works for any model, whatever its descriptor declares.
 """
-from .namespaces import DQV, OBO, PREFIXES
-from .registry.terms import terms_graph
+from .namespaces import DQV, IS_ABOUT, OBO, PREFIXES
+from .registry.terms import is_aro, terms_graph
 
 SAMPLE_SIZE = OBO.NCIT_C53190
 PROPORTION = OBO.STATO_0000607
@@ -70,8 +70,8 @@ def measurements(graph, model):
     antibiotic, with a row for each species."""
     metrics, antibiotics = [], {}
     for row in graph.query(MEASUREMENTS, initNs=PREFIXES, initBindings={'model': model}):
-        about = set(graph.objects(row.measurement, OBO.IAO_0000136))
-        drugs = {term for term in about if str(term).startswith(str(OBO) + 'ARO_')}
+        about = set(graph.objects(row.measurement, IS_ABOUT))
+        drugs = {term for term in about if is_aro(term)}
         taxa = sorted(about - drugs, key=str)
         if not about:
             metrics.append({'metric': _label(row.metric), 'value': row.value.toPython(),

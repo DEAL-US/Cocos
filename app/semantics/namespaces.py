@@ -18,6 +18,9 @@ BIOSCHEMAS = Namespace('https://bioschemas.org/')
 BSC = Namespace('https://bioschemas.org/properties/')
 # OBO Foundry ontologies: ARO (antibiotics), NCBITaxon (organisms), IAO, NCIT...
 OBO = Namespace('http://purl.obolibrary.org/obo/')
+
+# What something is about (IAO 'is about'): e.g. the antibiotic of a measurement, a file or a result
+IS_ABOUT = OBO.IAO_0000136
 VANN = Namespace('http://purl.org/vocab/vann/')
 # Provenance: PROV-O (W3C) and P-Plan, its extension for the plans that activities follow.
 PPLAN = Namespace('http://purl.org/net/p-plan#')

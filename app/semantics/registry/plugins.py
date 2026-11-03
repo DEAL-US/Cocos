@@ -21,7 +21,7 @@ from core.utils import sha256_of
 
 from .descriptors import load_descriptor, model_descriptor_path, model_iri, parser_descriptor_path
 from .mappings import file_type_of, kind_of
-from ..namespaces import AMRF, BSC, COCOS, DQV, OBO, SCHEMA
+from ..namespaces import AMRF, BSC, COCOS, DQV, IS_ABOUT, OBO, SCHEMA
 from .terms import terms_graph
 from ..validation import validate, violations
 
@@ -93,7 +93,7 @@ def describe_model(model_name):
                            for part in graph.objects(resource, SCHEMA.hasPart))),
         weights=tuple(sorted((_label(antibiotic) if antibiotic else '', str(graph.value(part, SCHEMA.name)))
                              for part in graph.objects(resource, SCHEMA.hasPart)
-                             for antibiotic in set(graph.objects(part, OBO.IAO_0000136)) or {None}
+                             for antibiotic in set(graph.objects(part, IS_ABOUT)) or {None}
                              if antibiotic is None or antibiotic in antibiotics)),
         data_organisms={_curie(taxon): _label(taxon) for taxon in _measured_taxa(graph, resource)},
         endpoint=_endpoint(graph, resource),
@@ -114,7 +114,7 @@ def _measured_taxa(graph, resource):
     """The organisms (NCBITaxon, but Bacteria) the measurements of `resource` are about."""
     taxa = set()
     for measurement in graph.objects(resource, DQV.hasQualityMeasurement):
-        taxa |= {term for term in graph.objects(measurement, OBO.IAO_0000136)
+        taxa |= {term for term in graph.objects(measurement, IS_ABOUT)
                  if str(term).startswith(str(OBO) + 'NCBITaxon_') and term != ANY_BACTERIA}
     return taxa
 

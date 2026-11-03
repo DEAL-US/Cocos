@@ -16,7 +16,7 @@ from core.models import File
 from core.utils import sha256_of
 from core.steps import Busy, ExternalStep, LocalStep, Started, Step, StepError, register_step_provider
 from semantics.namespaces import OBO
-from semantics.registry.terms import terms_graph
+from semantics.registry.terms import aro_terms, terms_graph
 
 from . import remote
 from .adapters.registry import (
@@ -204,7 +204,7 @@ def _results_by_antibiotic(service_results, antibiotics):
     about = [(OBO[result.get('about', '').replace(':', '_')], result) for result in service_results]
     results = {}
     for antibiotic in antibiotics:
-        term = _aro_terms().get(antibiotic)
+        term = aro_terms().get(antibiotic)
         above = set(terms_graph().transitive_objects(term, RDFS.subClassOf)) if term is not None else set()
         try:
             results[antibiotic] = _combine(term, [(subject, result) for subject, result in about if subject in above])
@@ -231,12 +231,6 @@ def _combine(term, matching):
         'inferred_from': ['ARO:' + str(subject).rsplit('_', 1)[1] for subject in classes],
     })
 
-
-@lru_cache(maxsize=1)
-def _aro_terms():
-    """{name in Cocos (its ARO label, e.g. 'amikacin'): ARO term} of the ARO terms of terms.ttl."""
-    return {str(name): subject for subject, name in terms_graph().subject_objects(RDFS.label)
-            if str(subject).startswith(str(OBO) + 'ARO_')}
 
 
 def _save_results(task, model_name, results, with_csv=True):

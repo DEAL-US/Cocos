@@ -20,12 +20,11 @@ from rdflib import BNode, Literal, URIRef
 from rdflib.namespace import DCTERMS, RDF, RDFS
 
 from .discovery.graphs import is_a, label
-from .namespaces import DQV, OA, OBO, PREFIXES
+from .namespaces import DQV, IS_ABOUT, OA, OBO, PREFIXES
 
 F1 = OBO.STATO_0000628
 SAMPLE_SIZE = OBO.NCIT_C53190
 PROPORTION = OBO.STATO_0000607
-IS_ABOUT = OBO.IAO_0000136
 
 RULES_FILE = settings.BASE_DIR / 'trust_rules.toml'
 

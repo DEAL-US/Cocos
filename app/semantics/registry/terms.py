@@ -48,6 +48,18 @@ def terms_graph():
     return Graph().parse(TERMS_FILE, format='turtle') if TERMS_FILE.exists() else Graph()
 
 
+def is_aro(term):
+    """Whether `term` is a term of ARO (an antibiotic, a class of antibiotics...)."""
+    return str(term).startswith(str(OBO) + 'ARO_')
+
+
+@lru_cache(maxsize=1)
+def aro_terms():
+    """{label: term} of the ARO terms of terms.ttl: e.g. {'amikacin': obo:ARO_0000013}. The name of
+    an antibiotic in Cocos is its ARO label."""
+    return {str(label): subject for subject, label in terms_graph().subject_objects(RDFS.label) if is_aro(subject)}
+
+
 def ontology_of(iri):
     """Return the OLS id of the ontology that defines `iri`, or None if it is not a reused term."""
     iri = str(iri)
