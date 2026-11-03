@@ -1,0 +1,45 @@
+/* The text fields and selects of the app, and its info alerts: one place for every page (base.html) */
+
+.source-job-select,
+.process-name-input,
+.multiselect {
+  background-color: var(--color-base-100);
+  border-color: color-mix(in oklab, var(--color-base-content) 16%, white);
+  border-radius: 1rem;
+  outline: none !important;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.source-job-select:hover,
+.process-name-input:hover,
+.multiselect:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 48%, white);
+  box-shadow: 0 6px 14px color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+.source-job-select:focus,
+.source-job-select:focus-visible,
+.process-name-input:focus,
+.process-name-input:focus-visible,
+.multiselect:focus,
+.multiselect:focus-visible {
+  border-color: color-mix(in oklab, var(--color-primary) 64%, white);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 22%, transparent);
+  outline: none !important;
+}
+
+.alert.alert-soft.alert-info {
+  border-color: var(--color-info);
+}
+
+.alert.alert-soft.alert-info .btn {
+  transition: all 160ms ease;
+}
+
+.alert.alert-soft.alert-info .btn:hover {
+  background-color: var(--color-info);
+  border-color: var(--color-info);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--color-info) 28%, transparent);
+}

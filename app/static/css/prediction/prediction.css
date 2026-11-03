@@ -1,49 +1,6 @@
-.alert.alert-soft.alert-info {
-	border-color: var(--color-info);
-}
-
-.alert.alert-soft.alert-info .btn {
-	transition: all 160ms ease;
-}
-
+/* The fields and the info alert look as everywhere (shared/form-controls.css); here, the button of the alert also moves on hover */
 .alert.alert-soft.alert-info .btn:hover {
-	background-color: var(--color-info);
-	border-color: var(--color-info);
-	color: white;
-	transform: translateY(-1px);
-	box-shadow: 0 4px 12px color-mix(in oklab, var(--color-info) 28%, transparent);
 	margin: 20px auto 0 auto;
-}
-
-.source-job-select, .multiselect {
-	background-color: var(--color-base-100);
-	border-color: color-mix(in oklab, var(--color-base-content) 16%, white);
-	border-radius: 1rem;
-	transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
-}
-
-.source-job-select:hover, .multiselect:hover {
-	border-color: color-mix(in oklab, var(--color-primary) 48%, white);
-	box-shadow: 0 6px 14px color-mix(in oklab, var(--color-primary) 12%, transparent);
-}
-
-.source-job-select:focus,
-.source-job-select:focus-visible,
-.multiselect:focus,
-.multiselect:focus-visible {
-	border-color: color-mix(in oklab, var(--color-primary) 64%, white);
-	box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 22%, transparent);
-	outline: none !important;
-}
-
-.source-job-select,
-.multiselect {
-	outline: none !important;
-}
-
-.prediction-legend {
-	margin-bottom: 0.5rem;
-	font-weight: 600;
 }
 
 .prediction-actions .btn {
