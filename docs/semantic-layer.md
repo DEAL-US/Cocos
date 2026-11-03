@@ -80,6 +80,7 @@ The description also says how the data of the sample was obtained, with [PROV-O]
 - **Software**: the tools and models it used, with their versions (`Task.software`), are `prov:SoftwareAgent`s associated with the activity and specializations (`prov:specializationOf`) of their [bio.tools](https://bio.tools) entry or of the model of the registry; the databases (identified by their DOI, when they have one) and the weights of the models (by their SHA-256) are `prov:Entity`s the activity used.
 - **User**: an anonymous `prov:Person` per sample, which uploaded the files (`prov:wasAttributedTo`) and asked for the activities. Who the user is never appears.
 - **Plan**: what the orchestrator and the discovery decided to run is a `p-plan:Plan` whose `p-plan:Step`s say which step of the registry they run (`dcterms:type`) and which steps come before them (`p-plan:isPrecededBy`); each activity says which step it carried out (`p-plan:correspondsToStep`). A step with no activity was cancelled because a step before it failed.
+- **Results**: each result of a completed prediction is a `prov:Entity` it generated, about (`obo:IAO_0000136`) its antibiotic in ARO. Its verdict is its type, an [NCIT](https://obofoundry.org/ontology/ncit.html) result: _Antimicrobial Resistance Result_ (`NCIT:C85562`), _Antimicrobial Intermediate Susceptibility Result_ (`NCIT:C85560`), _Antimicrobial Susceptibility Result_ (`NCIT:C85563`), _Presumptive Positive_ (`NCIT:C206382`, a possible resistance) or _Not Detected_ (`NCIT:C191300`); its probability, if it has one, is its `schema:value`. What a tool found is the evidence the result is derived from (`prov:wasDerivedFrom`): a determinant with its gene (`schema:name`), its NCBI protein (`rdfs:seeAlso`) and the rules that interpreted it (`dcterms:identifier`). A verdict a tool gave about a class of antibiotics, which Cocos applies to an antibiotic under it, is a result about that class, from which the result about the antibiotic is derived. No term of the AMRF vocabulary is needed for them.
 
 For example, with SPARQL over the description of a sample: which software produced its genes, through which steps, starting from which uploaded files.
 
@@ -88,6 +89,16 @@ SELECT ?step ?software ?version WHERE {
   ?genes schema:name "genes" ; prov:wasGeneratedBy/(prov:used/prov:wasGeneratedBy)* ?activity .
   ?activity schema:name ?step ; prov:wasAssociatedWith ?agent .
   ?agent a prov:SoftwareAgent ; schema:name ?software ; schema:softwareVersion ?version .
+}
+```
+
+Or the antibiotics (or classes) a sample is resistant to, by which model of the registry, and the genes behind each verdict:
+
+```sparql
+SELECT ?antibiotic ?model ?gene WHERE {
+  ?result a obo:NCIT_C85562 ; obo:IAO_0000136 ?antibiotic ; prov:wasGeneratedBy/prov:wasAssociatedWith ?model .
+  FILTER STRSTARTS(STR(?model), "https://w3id.org/cocos/model/")
+  OPTIONAL { ?result prov:wasDerivedFrom+ ?evidence . ?evidence schema:name ?gene }
 }
 ```
 
@@ -113,5 +124,7 @@ Cocos does not store how much a prediction can be trusted: it computes it each t
 | `same_annotation`     | The input was annotated with the same software and database as the training data                       |
 | `weights`             | The weights used for the antibiotic are the ones the model declares                                    |
 | `annotation_origin`   | Cocos knows which software annotated the input (not if the annotation was uploaded)                    |
+| `inferred_from_class` | The verdict is about the antibiotic itself, not inferred from what the tool found for a class of it    |
+| `not_detected`        | The tool found a known determinant; finding none is a caution, since it is not the same as susceptible |
 
-**The rules, their thresholds, judgements and texts are in `app/trust_rules.toml`**, to change them without touching the code; a change applies at once, and `python manage.py check` reports any mistake in the file (`semantics.E001`). A rule that cannot be checked (e.g. a model with no `quality.ttl`) gives no evidence. In the prediction matrix of a process, each result has a badge with its level; clicking it lists the evidence for and against. The RDF of the sample includes it too: each result is a `dqv:QualityAnnotation` of its prediction (`oa:hasTarget` the activity, `obo:IAO_0000136` the antibiotic) with the level as `oa:bodyValue` and each piece of evidence as an `oa:TextualBody`, with its rule (`dcterms:identifier`) and judgement (`dcterms:type`).
+**The rules, their thresholds, judgements and texts are in `app/trust_rules.toml`**, to change them without touching the code; a change applies at once, and `python manage.py check` reports any mistake in the file (`semantics.E001`). A rule that cannot be checked (e.g. a model with no `quality.ttl`, or a rule about verdicts for a model that gives a probability) gives no evidence. To add a rule, see [Add Trust Rules](extending.md#add-trust-rules). In the prediction matrix of a process, each result has a badge with its level; clicking it lists the evidence for and against. The RDF of the sample includes it too: the trust of each result is a `dqv:QualityAnnotation` of it (`oa:hasTarget` the result, `obo:IAO_0000136` the antibiotic) with the level as `oa:bodyValue` and each piece of evidence as an `oa:TextualBody`, with its rule (`dcterms:identifier`) and judgement (`dcterms:type`).
