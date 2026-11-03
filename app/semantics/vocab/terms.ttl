@@ -11,7 +11,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <http://edamontology.org> a owl:Ontology ;
-    dcterms:date "2026-10-25"^^xsd:date ;
+    dcterms:date "2026-11-02"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by-sa/4.0/> ;
     owl:versionInfo "1.25-20260626T1230Z" .
 
@@ -38,6 +38,9 @@ edam:format_3464 rdfs:label "JSON" ;
     rdfs:subClassOf edam:format_1915,
         edam:format_3750 .
 
+edam:format_3475 rdfs:label "TSV" ;
+    rdfs:subClassOf edam:format_3751 .
+
 edam:format_3752 rdfs:label "CSV" ;
     rdfs:subClassOf edam:format_3751 .
 
@@ -56,18 +59,299 @@ edam:operation_3482 rdfs:label "Antimicrobial resistance prediction" ;
     rdfs:subClassOf edam:operation_2403,
         edam:operation_2423 .
 
+obo:ARO_0000005 rdfs:label "neomycin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_0000006 rdfs:label "erythromycin" ;
+    rdfs:subClassOf obo:ARO_0000000 .
+
+obo:ARO_0000008 rdfs:label "cefoxitin" ;
+    rdfs:subClassOf obo:ARO_3009106 .
+
+obo:ARO_0000012 rdfs:label "streptothricin" ;
+    rdfs:subClassOf obo:ARO_3000034 .
+
 obo:ARO_0000013 rdfs:label "amikacin" ;
     rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_0000014 rdfs:label "gentamicin C" ;
+    rdfs:subClassOf obo:ARO_3000707,
+        obo:ARO_3007382 .
+
+obo:ARO_0000015 rdfs:label "methicillin" ;
+    rdfs:subClassOf obo:ARO_3009125 .
+
+obo:ARO_0000018 rdfs:label "viomycin" ;
+    rdfs:subClassOf obo:ARO_3000053 .
+
+obo:ARO_0000021 rdfs:label "ribostamycin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_0000025 rdfs:label "fosfomycin" ;
+    rdfs:subClassOf obo:ARO_3007149 .
+
+obo:ARO_0000028 rdfs:label "vancomycin" ;
+    rdfs:subClassOf obo:ARO_3000081 .
+
+obo:ARO_0000030 rdfs:label "tigecycline" ;
+    rdfs:subClassOf obo:ARO_0000042 .
+
+obo:ARO_0000035 rdfs:label "sisomicin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_0000036 rdfs:label "ciprofloxacin" ;
+    rdfs:subClassOf obo:ARO_0000001 .
+
+obo:ARO_0000037 rdfs:label "apramycin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_0000039 rdfs:label "spectinomycin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_0000040 rdfs:label "streptomycin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_0000041 rdfs:label "bacitracin" ;
+    rdfs:subClassOf obo:ARO_3000053,
+        obo:ARO_3000707 .
+
+obo:ARO_0000046 rdfs:label "lincomycin" ;
+    rdfs:subClassOf obo:ARO_0000017 .
+
+obo:ARO_0000049 rdfs:label "kanamycin A" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_0000051 rdfs:label "tetracycline" ;
+    rdfs:subClassOf obo:ARO_3000050 .
+
+obo:ARO_0000052 rdfs:label "tobramycin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_0000053 rdfs:label "bleomycin" ;
+    rdfs:subClassOf obo:ARO_3000081,
+        obo:ARO_3000707 .
+
+obo:ARO_0000057 rdfs:label "telithromycin" ;
+    rdfs:subClassOf obo:ARO_0000000 .
+
+obo:ARO_0000059 rdfs:label "cefepime" ;
+    rdfs:subClassOf obo:ARO_3009108 .
+
+obo:ARO_0000060 rdfs:label "ceftazidime" ;
+    rdfs:subClassOf obo:ARO_3009107 .
+
+obo:ARO_0000062 rdfs:label "ceftriaxone" ;
+    rdfs:subClassOf obo:ARO_3009107 .
+
+obo:ARO_0000064 rdfs:label "amoxicillin" ;
+    rdfs:subClassOf obo:ARO_3009123 .
+
+obo:ARO_0000065 rdfs:label "clarithromycin" ;
+    rdfs:subClassOf obo:ARO_0000000 .
+
+obo:ARO_0000066 rdfs:label "clindamycin" ;
+    rdfs:subClassOf obo:ARO_0000017 .
+
+obo:ARO_0000067 rdfs:label "colistin" ;
+    rdfs:subClassOf obo:ARO_0000022 .
+
+obo:ARO_0000068 rdfs:label "daptomycin" ;
+    rdfs:subClassOf obo:ARO_3000035 .
+
+obo:ARO_0000069 rdfs:label "doxycycline" ;
+    rdfs:subClassOf obo:ARO_3000050 .
+
+obo:ARO_0000070 rdfs:label "ertapenem" ;
+    rdfs:subClassOf obo:ARO_0000020 .
+
+obo:ARO_0000071 rdfs:label "levofloxacin" ;
+    rdfs:subClassOf obo:ARO_0000001 .
+
+obo:ARO_0000072 rdfs:label "linezolid" ;
+    rdfs:subClassOf obo:ARO_3000079 .
 
 obo:ARO_0000073 rdfs:label "meropenem" ;
     rdfs:subClassOf obo:ARO_0000020 .
 
+obo:ARO_0000075 rdfs:label "nitrofurantoin" ;
+    rdfs:subClassOf obo:ARO_3004116 .
+
+obo:ARO_0000078 rdfs:label "piperacillin" ;
+    rdfs:subClassOf obo:ARO_3009123 .
+
+obo:ARO_3000119 rdfs:label "edeine" ;
+    rdfs:subClassOf obo:ARO_3000053 .
+
+obo:ARO_3000145 rdfs:label "tylosin" ;
+    rdfs:subClassOf obo:ARO_0000000 .
+
+obo:ARO_3000152 rdfs:label "minocycline" ;
+    rdfs:subClassOf obo:ARO_3000050 .
+
+obo:ARO_3000156 rdfs:label "spiramycin" ;
+    rdfs:subClassOf obo:ARO_0000000 .
+
+obo:ARO_3000158 rdfs:label "azithromycin" ;
+    rdfs:subClassOf obo:ARO_0000000 .
+
+obo:ARO_3000169 rdfs:label "rifampin" ;
+    rdfs:subClassOf obo:ARO_3000157 .
+
+obo:ARO_3000170 rdfs:label "imipenem" ;
+    rdfs:subClassOf obo:ARO_0000020 .
+
+obo:ARO_3000188 rdfs:label "trimethoprim" ;
+    rdfs:subClassOf obo:ARO_3000171 .
+
+obo:ARO_3000214 rdfs:label "hygromycin B" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_3000385 rdfs:label "chloramphenicol" ;
+    rdfs:subClassOf obo:ARO_3000387 .
+
+obo:ARO_3000456 rdfs:label "thiamphenicol" ;
+    rdfs:subClassOf obo:ARO_3000387 .
+
+obo:ARO_3000461 rdfs:label "florfenicol" ;
+    rdfs:subClassOf obo:ARO_3000387 .
+
+obo:ARO_3000517 rdfs:label "rifaximin" ;
+    rdfs:subClassOf obo:ARO_3000157 .
+
+obo:ARO_3000520 rdfs:label "isoniazid" ;
+    rdfs:subClassOf obo:ARO_3007152 .
+
+obo:ARO_3000550 rdfs:label "aztreonam" ;
+    rdfs:subClassOf obo:ARO_0000004 .
+
+obo:ARO_3000554 rdfs:label "mupirocin" ;
+    rdfs:subClassOf obo:ARO_3007151 .
+
+obo:ARO_3000586 rdfs:label "pulvomycin" ;
+    rdfs:subClassOf obo:ARO_3001219 .
+
+obo:ARO_3000637 rdfs:label "ampicillin" ;
+    rdfs:subClassOf obo:ARO_3009123 .
+
 obo:ARO_3000645 rdfs:label "cefotaxime" ;
     rdfs:subClassOf obo:ARO_3009107 .
 
-obo:ARO_3007382 rdfs:label "gentamicin" ;
-    rdfs:subClassOf obo:ARO_0000016,
-        obo:ARO_3000707 .
+obo:ARO_3000648 rdfs:label "ceftibuten" ;
+    rdfs:subClassOf obo:ARO_3009107 .
+
+obo:ARO_3000651 rdfs:label "ceftaroline" ;
+    rdfs:subClassOf obo:ARO_3009109 .
+
+obo:ARO_3000653 rdfs:label "G418" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_3000657 rdfs:label "paromomycin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_3000661 rdfs:label "nalidixic acid" ;
+    rdfs:subClassOf obo:ARO_0000001 .
+
+obo:ARO_3000669 rdfs:label "virginiamycin M1" ;
+    rdfs:subClassOf obo:ARO_0000034 .
+
+obo:ARO_3000671 rdfs:label "tiamulin" ;
+    rdfs:subClassOf obo:ARO_3000670 .
+
+obo:ARO_3000678 rdfs:label "pristinamycin IC" ;
+    rdfs:subClassOf obo:ARO_0000050 .
+
+obo:ARO_3000682 rdfs:label "ostreogrycin B3" ;
+    rdfs:subClassOf obo:ARO_0000050 .
+
+obo:ARO_3000686 rdfs:label "thiostrepton" ;
+    rdfs:subClassOf obo:ARO_3000053 .
+
+obo:ARO_3000689 rdfs:label "metronidazole" ;
+    rdfs:subClassOf obo:ARO_3004115 .
+
+obo:ARO_3000704 rdfs:label "cefalotin" ;
+    rdfs:subClassOf obo:ARO_3009105 .
+
+obo:ARO_3000758 rdfs:label "fosmidomycin" ;
+    rdfs:subClassOf obo:ARO_3007149 .
+
+obo:ARO_3000759 rdfs:label "fusidic acid" ;
+    rdfs:subClassOf obo:ARO_3007153 .
+
+obo:ARO_3000867 rdfs:label "oleandomycin" ;
+    rdfs:subClassOf obo:ARO_0000000 .
+
+obo:ARO_3000870 rdfs:label "triclosan" ;
+    rdfs:subClassOf obo:ARO_3005386 .
+
+obo:ARO_3001234 rdfs:label "kirromycin" ;
+    rdfs:subClassOf obo:ARO_3001310 .
+
+obo:ARO_3001296 rdfs:label "kasugamycin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_3001314 rdfs:label "retapamulin" ;
+    rdfs:subClassOf obo:ARO_3000670 .
+
+obo:ARO_3001317 rdfs:label "pleuromutilin" ;
+    rdfs:subClassOf obo:ARO_3000670 .
+
+obo:ARO_3001319 rdfs:label "fidaxomicin" ;
+    rdfs:subClassOf obo:ARO_3001318 .
+
+obo:ARO_3003675 rdfs:label "plazomicin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_3003831 rdfs:label "temocillin" ;
+    rdfs:subClassOf obo:ARO_3009123 .
+
+obo:ARO_3003832 rdfs:label "ticarcillin" ;
+    rdfs:subClassOf obo:ARO_3009123 .
+
+obo:ARO_3003897 rdfs:label "tedizolid" ;
+    rdfs:subClassOf obo:ARO_3000079 .
+
+obo:ARO_3003993 rdfs:label "capreomycin" ;
+    rdfs:subClassOf obo:ARO_0000016 .
+
+obo:ARO_3003997 rdfs:label "amoxicillin-clavulanic acid" ;
+    rdfs:subClassOf obo:ARO_3000707 .
+
+obo:ARO_3004021 rdfs:label "piperacillin-tazobactam" ;
+    rdfs:subClassOf obo:ARO_3000707 .
+
+obo:ARO_3004023 rdfs:label "ticarcillin-clavulanic acid" ;
+    rdfs:subClassOf obo:ARO_3000707 .
+
+obo:ARO_3004024 rdfs:label "trimethoprim-sulfamethoxazole" ;
+    rdfs:subClassOf obo:ARO_3000707 .
+
+obo:ARO_3004474 rdfs:label "cefiderocol" ;
+    rdfs:subClassOf obo:ARO_3009109 .
+
+obo:ARO_3004858 rdfs:label "Zoliflodacin" ;
+    rdfs:subClassOf obo:ARO_3007160 .
+
+obo:ARO_3007072 rdfs:label "ceftazidime-avibactam" ;
+    rdfs:subClassOf obo:ARO_3000707 .
+
+obo:ARO_3007148 rdfs:label "cefepime-taniborbactam" ;
+    rdfs:subClassOf obo:ARO_3000707 .
+
+obo:ARO_3007168 rdfs:label "avalimycin" ;
+    rdfs:subClassOf obo:ARO_3007166 .
+
+obo:ARO_3007366 rdfs:label "aztreonam-avibactam" ;
+    rdfs:subClassOf obo:ARO_3000707 .
+
+obo:ARO_3007467 rdfs:label "sulbactam-durlobactam" ;
+    rdfs:subClassOf obo:ARO_3000707 .
+
+obo:ARO_3007471 rdfs:label "narasin" ;
+    rdfs:subClassOf obo:ARO_3005163 .
+
+obo:ARO_3007547 rdfs:label "salinomycin" ;
+    rdfs:subClassOf obo:ARO_3005163 .
 
 obo:IAO_0000136 rdfs:label "is about" .
 
@@ -167,22 +451,22 @@ obo:aro.owl a owl:Ontology ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
 
 obo:iao.owl a owl:Ontology ;
-    dcterms:date "2026-10-25"^^xsd:date ;
+    dcterms:date "2026-11-02"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     owl:versionInfo "2026-03-30" .
 
 obo:ncbitaxon.owl a owl:Ontology ;
-    dcterms:date "2026-10-25"^^xsd:date ;
+    dcterms:date "2026-11-02"^^xsd:date ;
     dcterms:license <https://creativecommons.org/publicdomain/zero/1.0/> ;
     owl:versionInfo "2026-07-12" .
 
 obo:ncit.owl a owl:Ontology ;
-    dcterms:date "2026-10-25"^^xsd:date ;
+    dcterms:date "2026-11-02"^^xsd:date ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     owl:versionInfo "26.02d" .
 
 obo:stato.owl a owl:Ontology ;
-    dcterms:date "2026-10-25"^^xsd:date ;
+    dcterms:date "2026-11-02"^^xsd:date ;
     dcterms:license <http://creativecommons.org/licenses/by/3.0/> ;
     owl:versionInfo "2026-04-20" .
 
@@ -233,9 +517,6 @@ edam:format_2554 rdfs:label "Alignment format (text)" ;
 edam:format_3750 rdfs:label "YAML" ;
     rdfs:subClassOf edam:format_1915 .
 
-edam:format_3751 rdfs:label "DSV" ;
-    rdfs:subClassOf edam:format_2330 .
-
 edam:operation_0226 rdfs:label "Annotation" ;
     rdfs:subClassOf edam:operation_0004 .
 
@@ -254,19 +535,71 @@ edam:operation_2423 rdfs:label "Prediction and recognition" ;
 edam:operation_2945 rdfs:label "Data analysis" ;
     rdfs:subClassOf edam:operation_0004 .
 
-obo:ARO_0000020 rdfs:label "carbapenem" ;
+obo:ARO_0000004 rdfs:label "monobactam" ;
     rdfs:subClassOf obo:ARO_3000007 .
 
-obo:ARO_0000032 rdfs:label "cephalosporin" ;
-    rdfs:subClassOf obo:ARO_3000007 .
+obo:ARO_0000022 rdfs:label "polymyxin antibiotic" ;
+    rdfs:subClassOf obo:ARO_3000035 .
+
+obo:ARO_0000034 rdfs:label "streptogramin A antibiotic" ;
+    rdfs:subClassOf obo:ARO_0000026 .
+
+obo:ARO_0000042 rdfs:label "glycylcycline" ;
+    rdfs:subClassOf obo:ARO_3000050 .
 
 obo:ARO_1000001 rdfs:label "process or component of antibiotic biology or chemistry" .
 
-obo:ARO_3000707 rdfs:label "antibiotic mixture" ;
+obo:ARO_3000034 rdfs:label "nucleoside antibiotic" ;
     rdfs:subClassOf obo:ARO_1000003 .
 
-obo:ARO_3009107 rdfs:label "third-generation cephalosporin" ;
+obo:ARO_3000171 rdfs:label "diaminopyrimidine antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3001310 rdfs:label "kirromycin-like antibiotics" ;
+    rdfs:subClassOf obo:ARO_3001219 .
+
+obo:ARO_3001318 rdfs:label "macrocyclic antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3004115 rdfs:label "nitroimidazole antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3004116 rdfs:label "nitrofuran antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3005386 rdfs:label "disinfecting agents and antiseptics" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3007151 rdfs:label "mupirocin-like antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3007152 rdfs:label "isoniazid-like antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3007153 rdfs:label "fusidane antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3007160 rdfs:label "zoliflodacin-like antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3007166 rdfs:label "orthosomycin antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3007382 rdfs:label "gentamicin" ;
+    rdfs:subClassOf obo:ARO_0000016,
+        obo:ARO_3000707 .
+
+obo:ARO_3009105 rdfs:label "first-generation cephalosporin" ;
     rdfs:subClassOf obo:ARO_0000032 .
+
+obo:ARO_3009106 rdfs:label "second-generation cephalosporin" ;
+    rdfs:subClassOf obo:ARO_0000032 .
+
+obo:ARO_3009108 rdfs:label "fourth-generation cephalosporin" ;
+    rdfs:subClassOf obo:ARO_0000032 .
+
+obo:ARO_3009125 rdfs:label "beta-lactamase resistant penicillin" ;
+    rdfs:subClassOf obo:ARO_3000008 .
 
 obo:NCBITaxon_1 rdfs:label "root" .
 
@@ -476,6 +809,9 @@ edam:format_1919 rdfs:label "Sequence record format" ;
 edam:format_2350 rdfs:label "Format (by type of data)" ;
     rdfs:subClassOf edam:format_1915 .
 
+edam:format_3751 rdfs:label "DSV" ;
+    rdfs:subClassOf edam:format_2330 .
+
 edam:operation_2403 rdfs:label "Sequence analysis" ;
     rdfs:subClassOf edam:operation_2945 .
 
@@ -485,11 +821,41 @@ edam:operation_2478 rdfs:label "Nucleic acid sequence analysis" ;
 edam:operation_3918 rdfs:label "Genome analysis" ;
     rdfs:subClassOf edam:operation_2478 .
 
-obo:ARO_0000016 rdfs:label "aminoglycoside antibiotic" ;
+obo:ARO_0000017 rdfs:label "lincosamide antibiotic" ;
     rdfs:subClassOf obo:ARO_1000003 .
 
-obo:ARO_3000007 rdfs:label "beta-lactam antibiotic" ;
+obo:ARO_0000026 rdfs:label "streptogramin antibiotic" ;
     rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_0000050 rdfs:label "streptogramin B antibiotic" ;
+    rdfs:subClassOf obo:ARO_0000026 .
+
+obo:ARO_3000008 rdfs:label "penicillin beta-lactam" ;
+    rdfs:subClassOf obo:ARO_3000007 .
+
+obo:ARO_3000035 rdfs:label "lipopeptide antibiotic" ;
+    rdfs:subClassOf obo:ARO_3000053 .
+
+obo:ARO_3000079 rdfs:label "oxazolidinone antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3000081 rdfs:label "glycopeptide antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3000157 rdfs:label "rifamycin antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3001219 rdfs:label "elfamycin antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3005163 rdfs:label "ionophore with antibiotic activity" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3007149 rdfs:label "phosphonic acid antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3009109 rdfs:label "other cephalosporins and penems" ;
+    rdfs:subClassOf obo:ARO_0000032 .
 
 obo:NCBITaxon_1224 rdfs:label "Pseudomonadota" ;
     rdfs:subClassOf obo:NCBITaxon_3379134 .
@@ -533,8 +899,17 @@ obo:NCIT_C19770 rdfs:label "Molecular Analysis" ;
 edam:format_2330 rdfs:label "Textual format" ;
     rdfs:subClassOf edam:format_1915 .
 
-obo:ARO_1000003 rdfs:label "antibiotic molecule" ;
-    rdfs:subClassOf obo:ARO_1000001 .
+obo:ARO_0000001 rdfs:label "fluoroquinolone antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_0000020 rdfs:label "carbapenem" ;
+    rdfs:subClassOf obo:ARO_3000007 .
+
+obo:ARO_3000387 rdfs:label "phenicol antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3000670 rdfs:label "pleuromutilin antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
 
 obo:NCBITaxon_91347 rdfs:label "Enterobacterales" ;
     rdfs:subClassOf obo:NCBITaxon_1236 .
@@ -547,9 +922,39 @@ edam:format_1915 rdfs:label "Format" .
 
 edam:operation_0004 rdfs:label "Operation" .
 
+obo:ARO_3000007 rdfs:label "beta-lactam antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3000050 rdfs:label "tetracycline antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3009107 rdfs:label "third-generation cephalosporin" ;
+    rdfs:subClassOf obo:ARO_0000032 .
+
+obo:ARO_0000032 rdfs:label "cephalosporin" ;
+    rdfs:subClassOf obo:ARO_3000007 .
+
+obo:ARO_3000053 rdfs:label "peptide antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_3009123 rdfs:label "penicillin with extended spectrum" ;
+    rdfs:subClassOf obo:ARO_3000008 .
+
 obo:NCBITaxon_1236 rdfs:label "Gammaproteobacteria" ;
     rdfs:subClassOf obo:NCBITaxon_1224 .
 
+obo:ARO_0000000 rdfs:label "macrolide antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
 obo:NCBITaxon_543 rdfs:label "Enterobacteriaceae" ;
     rdfs:subClassOf obo:NCBITaxon_91347 .
+
+obo:ARO_3000707 rdfs:label "antibiotic mixture" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_0000016 rdfs:label "aminoglycoside antibiotic" ;
+    rdfs:subClassOf obo:ARO_1000003 .
+
+obo:ARO_1000003 rdfs:label "antibiotic molecule" ;
+    rdfs:subClassOf obo:ARO_1000001 .
 

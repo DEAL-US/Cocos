@@ -1,0 +1,167 @@
+@prefix amrf:       <https://w3id.org/amrf/> .
+@prefix bioschemas: <https://bioschemas.org/> .
+@prefix bsc:        <https://bioschemas.org/properties/> .
+@prefix dcterms:    <http://purl.org/dc/terms/> .
+@prefix edam:       <http://edamontology.org/> .
+@prefix obo:        <http://purl.obolibrary.org/obo/> .
+@prefix schema:     <https://schema.org/> .
+
+# AMRFinderPlus (NCBI) with its hits interpreted by AMRrules (AMRverse), run in the model service of
+# Cocos (tools/amrfinderplus of Cocos-deployment). It has no code here: it runs where its
+# schema:potentialAction says.
+#
+# The antibiotics are those AMRFinderPlus names in its subclasses (through the table of AMRrules of
+# subclasses to ARO) and some common ones of its classes (cefotaxime, ceftriaxone, ceftazidime,
+# cefepime, cefoxitin, ertapenem, piperacillin, amoxicillin, ciprofloxacin, levofloxacin), whose
+# verdicts come from what it says about their class. The beta-lactamase inhibitors it names alone
+# (tazobactam, avibactam, vaborbactam, xeruborbactam, taniborbactam) are not antibiotics in ARO, so
+# only their combinations are here.
+
+<https://w3id.org/cocos/model/amrfinderplus>
+    a schema:SoftwareApplication ;
+    dcterms:conformsTo <https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE> ;
+    schema:identifier "amrfinderplus" ;
+    schema:name "AMRFinderPlus" ;
+    schema:description "Finds known antimicrobial resistance genes and point mutations in an assembly with NCBI AMRFinderPlus, and interprets them for each antibiotic with the expert rules of AMRrules for the organisms it has rules for; elsewhere, a gene of a class of antibiotics is a possible resistance to them."@en ;
+    schema:url <https://github.com/ncbi/amr> ;
+    schema:softwareVersion "4.2.7" ;
+    schema:author <https://ror.org/02meqm098> ;
+    schema:license <https://www.ncbi.nlm.nih.gov/home/about/policies/#copyright> ;
+    schema:citation <https://doi.org/10.1038/s41598-021-91456-0> ;
+    schema:featureList edam:operation_3482 ;
+    bsc:input <https://w3id.org/cocos/model/amrfinderplus#assembly> ;
+    bsc:output <https://w3id.org/cocos/model/amrfinderplus#predictions> , <https://w3id.org/cocos/model/amrfinderplus#tool_output> ;
+    schema:taxonomicRange obo:NCBITaxon_2 ;
+    schema:potentialAction [
+        a schema:Action ;
+        schema:target [ a schema:EntryPoint ;
+                        schema:urlTemplate "predict/amrfinderplus" ;
+                        schema:httpMethod "POST" ;
+                        schema:contentType "multipart/form-data" ] ] ;
+    amrf:predictsResistanceTo
+        obo:ARO_0000013 ,   # amikacin
+        obo:ARO_0000064 ,   # amoxicillin
+        obo:ARO_3003997 ,   # amoxicillin-clavulanic acid
+        obo:ARO_3000637 ,   # ampicillin
+        obo:ARO_0000037 ,   # apramycin
+        obo:ARO_3007168 ,   # avalimycin
+        obo:ARO_3000158 ,   # azithromycin
+        obo:ARO_3000550 ,   # aztreonam
+        obo:ARO_3007366 ,   # aztreonam-avibactam
+        obo:ARO_0000041 ,   # bacitracin
+        obo:ARO_0000053 ,   # bleomycin
+        obo:ARO_3003993 ,   # capreomycin
+        obo:ARO_3000704 ,   # cefalotin
+        obo:ARO_0000059 ,   # cefepime
+        obo:ARO_3007148 ,   # cefepime-taniborbactam
+        obo:ARO_3004474 ,   # cefiderocol
+        obo:ARO_3000645 ,   # cefotaxime
+        obo:ARO_0000008 ,   # cefoxitin
+        obo:ARO_3000651 ,   # ceftaroline
+        obo:ARO_0000060 ,   # ceftazidime
+        obo:ARO_3007072 ,   # ceftazidime-avibactam
+        obo:ARO_3000648 ,   # ceftibuten
+        obo:ARO_0000062 ,   # ceftriaxone
+        obo:ARO_3000385 ,   # chloramphenicol
+        obo:ARO_0000036 ,   # ciprofloxacin
+        obo:ARO_0000065 ,   # clarithromycin
+        obo:ARO_0000066 ,   # clindamycin
+        obo:ARO_0000067 ,   # colistin
+        obo:ARO_0000068 ,   # daptomycin
+        obo:ARO_0000069 ,   # doxycycline
+        obo:ARO_3000119 ,   # edeine
+        obo:ARO_0000070 ,   # ertapenem
+        obo:ARO_0000006 ,   # erythromycin
+        obo:ARO_3001319 ,   # fidaxomicin
+        obo:ARO_3000461 ,   # florfenicol
+        obo:ARO_0000025 ,   # fosfomycin
+        obo:ARO_3000758 ,   # fosmidomycin
+        obo:ARO_3000759 ,   # fusidic acid
+        obo:ARO_3000653 ,   # G418
+        obo:ARO_3007382 ,   # gentamicin
+        obo:ARO_0000014 ,   # gentamicin C
+        obo:ARO_3000214 ,   # hygromycin B
+        obo:ARO_3000170 ,   # imipenem
+        obo:ARO_3000520 ,   # isoniazid
+        obo:ARO_0000049 ,   # kanamycin A
+        obo:ARO_3001296 ,   # kasugamycin
+        obo:ARO_3001234 ,   # kirromycin
+        obo:ARO_0000071 ,   # levofloxacin
+        obo:ARO_0000046 ,   # lincomycin
+        obo:ARO_0000072 ,   # linezolid
+        obo:ARO_0000073 ,   # meropenem
+        obo:ARO_0000015 ,   # methicillin
+        obo:ARO_3000689 ,   # metronidazole
+        obo:ARO_3000152 ,   # minocycline
+        obo:ARO_3000554 ,   # mupirocin
+        obo:ARO_3000661 ,   # nalidixic acid
+        obo:ARO_3007471 ,   # narasin
+        obo:ARO_0000005 ,   # neomycin
+        obo:ARO_0000075 ,   # nitrofurantoin
+        obo:ARO_3000867 ,   # oleandomycin
+        obo:ARO_3000682 ,   # ostreogrycin B3
+        obo:ARO_3000657 ,   # paromomycin
+        obo:ARO_0000078 ,   # piperacillin
+        obo:ARO_3004021 ,   # piperacillin-tazobactam
+        obo:ARO_3003675 ,   # plazomicin
+        obo:ARO_3001317 ,   # pleuromutilin
+        obo:ARO_3000678 ,   # pristinamycin IC
+        obo:ARO_3000586 ,   # pulvomycin
+        obo:ARO_3001314 ,   # retapamulin
+        obo:ARO_0000021 ,   # ribostamycin
+        obo:ARO_3000169 ,   # rifampin
+        obo:ARO_3000517 ,   # rifaximin
+        obo:ARO_3007547 ,   # salinomycin
+        obo:ARO_0000035 ,   # sisomicin
+        obo:ARO_0000039 ,   # spectinomycin
+        obo:ARO_3000156 ,   # spiramycin
+        obo:ARO_0000034 ,   # streptogramin a antibiotic
+        obo:ARO_0000050 ,   # streptogramin b antibiotic
+        obo:ARO_0000040 ,   # streptomycin
+        obo:ARO_0000012 ,   # streptothricin
+        obo:ARO_3007467 ,   # sulbactam-durlobactam
+        obo:ARO_3003897 ,   # tedizolid
+        obo:ARO_0000057 ,   # telithromycin
+        obo:ARO_3003831 ,   # temocillin
+        obo:ARO_0000051 ,   # tetracycline
+        obo:ARO_3000456 ,   # thiamphenicol
+        obo:ARO_3000686 ,   # thiostrepton
+        obo:ARO_3000671 ,   # tiamulin
+        obo:ARO_3003832 ,   # ticarcillin
+        obo:ARO_3004023 ,   # ticarcillin-clavulanic acid
+        obo:ARO_0000030 ,   # tigecycline
+        obo:ARO_0000052 ,   # tobramycin
+        obo:ARO_3000870 ,   # triclosan
+        obo:ARO_3000188 ,   # trimethoprim
+        obo:ARO_3004024 ,   # trimethoprim-sulfamethoxazole
+        obo:ARO_3000145 ,   # tylosin
+        obo:ARO_0000028 ,   # vancomycin
+        obo:ARO_0000018 ,   # viomycin
+        obo:ARO_3000669 ,   # virginiamycin m1
+        obo:ARO_3004858 .   # Zoliflodacin
+
+<https://w3id.org/cocos/model/amrfinderplus#assembly>
+    a bioschemas:FormalParameter ;
+    dcterms:conformsTo <https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE> ;
+    schema:name "assembly" ;
+    schema:additionalType edam:data_0925 ;
+    schema:encodingFormat edam:format_1929 .
+
+<https://w3id.org/cocos/model/amrfinderplus#predictions>
+    a bioschemas:FormalParameter ;
+    dcterms:conformsTo <https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE> ;
+    schema:name "predictions" ;
+    schema:additionalType edam:data_2048 ;
+    schema:encodingFormat edam:format_3752 .
+
+# The hits of AMRFinderPlus, as it writes them
+<https://w3id.org/cocos/model/amrfinderplus#tool_output>
+    a bioschemas:FormalParameter ;
+    dcterms:conformsTo <https://bioschemas.org/profiles/FormalParameter/1.0-RELEASE> ;
+    schema:name "tool_output" ;
+    schema:additionalType edam:data_2048 ;
+    schema:encodingFormat edam:format_3475 .
+
+<https://ror.org/02meqm098>
+    a schema:Organization ;
+    schema:name "National Center for Biotechnology Information" .

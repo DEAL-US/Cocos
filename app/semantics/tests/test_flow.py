@@ -82,8 +82,11 @@ class SampleFlowTests(SimpleTestCase):
         self.assertEqual(nodes['step-assembly_ont_annotated']['state'], 'planned')
         self.assertEqual(nodes['step-assembly_ont_annotated']['for_models'], ['base_bakta_50', 'base_bakta_90'])
         self.assertEqual(nodes['step-extract_bakta_json']['state'], 'planned')
-        self.assertEqual(nodes['step-assembly_ont']['state'], 'unused')  # the shortest path annotates in the same job
+        # The models of the genes annotate in the same job; AMRFinderPlus only needs the assembly
+        self.assertEqual(nodes['step-assembly_ont']['state'], 'planned')
+        self.assertEqual(nodes['step-assembly_ont']['for_models'], ['amrfinderplus'])
         self.assertEqual(nodes['model-base_bakta_50']['compatibility'], 'reachable')
+        self.assertEqual(nodes['model-amrfinderplus']['compatibility'], 'reachable')
 
     def test_the_latest_task_of_a_step_or_model(self):
         runs = {'step-assembly_ont_annotated': 'completed', 'step-extract_bakta_json': 'failed', 'model-base_bakta_50': 'pending'}
