@@ -7,7 +7,7 @@ Cocos provides a web interface that allows users to process genomic data and obt
 ## Features
 
 - **From reads to predictions**: users upload sequencing reads (Illumina or ONT), an assembly or a Bakta annotation, and Cocos runs the assembly, annotation and gene extraction each model needs before predicting.
-- **Models as plug-ins**: a prediction model or an annotation parser is a folder with its code and an RDF descriptor of what it consumes and produces, validated with SHACL. Adding one does not require changing the rest of the code.
+- **Models as plug-ins**: a prediction model or an annotation parser is a folder with its code and an RDF descriptor of what it consumes and produces, validated with SHACL. Adding one does not require changing the rest of the code. A model can also run outside Cocos, in any language or tool (e.g. AMRFinderPlus): its folder then has only its descriptor, which says where it runs. Models give a probability, a verdict (resistant, susceptible, possible resistance, not detected...) or both, with the evidence behind it.
 - **Discovery of models**: Cocos decides from the descriptors which models can run on a sample, and which preparation steps they need, with SPARQL over the registry.
 - **Public registry**: every step, model and term of the AMRF vocabulary has an IRI with an HTML and RDF page, and the registry has a SPARQL endpoint.
 - **Provenance**: each sample can be downloaded as RDF with how its data was obtained (PROV-O and P-Plan), and each prediction as an RO-Crate.
@@ -15,7 +15,7 @@ Cocos provides a web interface that allows users to process genomic data and obt
 
 ## Getting Started
 
-Cocos needs a bio service for the assembly and annotation jobs. The [Cocos-deployment](https://github.com/DEAL-US/Cocos-deployment) repository has it, a mock of it, and this repository as a submodule. To try Cocos with the mock, with Docker installed:
+Cocos needs a bio service for the assembly and annotation jobs, and a model service for the models that run outside it. The [Cocos-deployment](https://github.com/DEAL-US/Cocos-deployment) repository has them, a mock of the bio service, and this repository as a submodule. To try Cocos with the mock, with Docker installed:
 
 ```bash
 git clone --recurse-submodules https://github.com/DEAL-US/Cocos-deployment.git
@@ -33,7 +33,7 @@ The documentation is also published at [deal-us.github.io/Cocos](https://deal-us
 | ------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | [Development](docs/development.md)          | Development environment, configuration and tests                                         |
 | [Production](docs/production.md)            | Production stack and its configuration                                                    |
-| [Extending Cocos](docs/extending.md)        | Adding prediction models and annotation parsers                                           |
+| [Extending Cocos](docs/extending.md)        | Adding prediction models (in Cocos or in the model service), annotation parsers and trust rules |
 | [Semantic Layer](docs/semantic-layer.md)    | Registry and SPARQL endpoint, discovery, RDF of the samples, provenance, RO-Crates and trust |
 
 ## Repository Layout

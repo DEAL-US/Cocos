@@ -31,6 +31,8 @@ Nginx is the public entry point, on ports 80 and 443, and acts as a reverse prox
 
 Cocos reaches the bio service (assembly and annotation) at `ANNOTATION_BASE`, `http://bio-assembly-api:8000` by default, through the `cocos-network` Docker network. The bio service has no authentication and publishes no ports, so users only reach it through Cocos. It lives in the [Cocos-deployment](https://github.com/DEAL-US/Cocos-deployment) repository, whose README explains how to start it. It annotates with a Bakta database, light or full, which has to be downloaded before the first deployment (see [Bakta database](https://github.com/DEAL-US/Cocos-deployment#bakta-database)).
 
+The models that run outside Cocos (such as AMRFinderPlus) run in the model service, at `MODEL_SERVICE_BASE`, `http://model-api:8000` by default, also through `cocos-network` and also without authentication or published ports. It lives in Cocos-deployment too, and `deploy.py --prod` starts it.
+
 ## Configuration
 
 The configuration is in `.env.prod`, which is not committed. The setup script prepares it. From the `cocos` folder run:
@@ -52,6 +54,8 @@ To do it by hand instead, copy `.env.prod.example` to `.env.prod` and replace it
 | `DB_NAME`, `DB_USER`, `DB_PASSWORD`                           | The same values as `POSTGRES_*`: Django connects to that database           |
 | `DB_HOST`                                                     | `cocos-postgres`, the PostgreSQL container                                  |
 | `SENDGRID_API_KEY`, `DEFAULT_FROM_EMAIL`                      | For email notifications                                                     |
+
+`ANNOTATION_BASE` and `MODEL_SERVICE_BASE` already point to the bio service and the model service of Cocos-deployment. A `.env.prod` made before the model service existed lacks `MODEL_SERVICE_BASE`: the setup script reports it as missing, and its value is the one of `.env.prod.example`.
 
 Generate a Django secret key with:
 

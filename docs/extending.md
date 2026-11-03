@@ -5,7 +5,7 @@ nav_order: 4
 
 # Extending Cocos
 
-Prediction models and annotation parsers are plug-ins: each one is a folder that Cocos discovers when it starts, so adding one does not require changing the rest of the code.
+Prediction models and annotation parsers are plug-ins: each one is a folder that Cocos discovers when it starts, so adding one does not require changing the rest of the code. A model either runs in Cocos, with an adapter in Python, or in the model service of [Cocos-deployment](https://github.com/DEAL-US/Cocos-deployment), in any language or tool: then its folder in Cocos has only its descriptor. The rules that judge how much a prediction can be trusted can be changed and extended too (see [Add Trust Rules](#add-trust-rules)).
 
 Each plug-in has a **`descriptor.ttl`**: an RDF description (Turtle) of what it consumes and produces and, for models, which organisms and antibiotics it supports. The descriptor is the source of truth: Cocos reads it to decide what a plug-in can be used for. It reuses existing ontologies: [EDAM](https://edamontology.org) for data, formats and operations, [ARO](https://obofoundry.org/ontology/aro.html) for antibiotics, [NCBITaxon](https://obofoundry.org/ontology/ncbitaxon.html) for organisms and [Bioschemas](https://bioschemas.org/profiles/ComputationalTool) for the overall structure, plus the AMRF vocabulary of Cocos (`app/semantics/vocab/amrf.ttl`) for what they do not cover. Copy the descriptor of an existing plug-in and adapt it.
 
@@ -20,10 +20,11 @@ Every descriptor is validated with the [SHACL](https://www.w3.org/TR/shacl/) sha
 
 If you forget step 2, the plug-in does not appear: without the hierarchy of its terms its descriptor cannot be validated, so `python manage.py check` reports it as not registered and suggests running `fetch_terms`. The test suite fails for the same reason.
 
-| To add               | Create                        | Becomes the step        |
-| -------------------- | ----------------------------- | ----------------------- |
-| A prediction model   | `app/ai_models/<model_name>/` | `predict_<model_name>`  |
-| An annotation parser | `app/parsers/<parser_name>/`  | `extract_<parser_name>` |
+| To add                                     | Create                                                        | Becomes the step        |
+| ------------------------------------------ | ------------------------------------------------------------- | ----------------------- |
+| A prediction model that runs in Cocos      | `app/ai_models/<model_name>/`                                 | `predict_<model_name>`  |
+| A prediction model that runs in a service  | `app/ai_models/<model_name>/descriptor.ttl`, and its tool in the model service | `predict_<model_name>`  |
+| An annotation parser                       | `app/parsers/<parser_name>/`                                  | `extract_<parser_name>` |
 
 ## Add New Prediction Models
 
@@ -50,7 +51,7 @@ Three optional parts of the description make the predictions of a model easier t
 - **How it was built** (in `descriptor.ttl`, [PROV-O](https://www.w3.org/TR/prov-o/)): the data it was derived from (`prov:wasDerivedFrom`), with the dataset it is part of and its license, and how that data was prepared: an activity (`prov:wasGeneratedBy`) associated with the tools it used, as versioned `prov:SoftwareAgent`s that are `prov:specializationOf` their [bio.tools](https://bio.tools) entry, and the databases it used. This is the pattern of the provenance of a sample, so both can be compared (e.g. the version of Bakta that prepared the training data and the one that annotated a sample). For a rule-based tool, the data is its reference database.
 - **How well it works** (in `quality.ttl`, [DQV](https://www.w3.org/TR/vocab-dqv/)): `dqv:QualityMeasurement`s of a metric (a term such as STATO _F1 score_ or NCIT _Sample Size_) with a `dqv:value`, what they are about (`obo:IAO_0000136`: an antibiotic of ARO and, optionally, organisms of NCBITaxon) and the data they were computed on (`dqv:computedOn`), so that a training set and a validation set are never confused. The measurements of different models are not comparable unless they were computed on the same data.
 - **The files it depends on** (in `descriptor.ttl`): `schema:hasPart` `schema:MediaObject`s with their path in the folder of the model (`schema:name`) and `schema:sha256` and, if a file is for one antibiotic (e.g. its weights), that antibiotic (`obo:IAO_0000136`); a file about no antibiotic is for all of them. Cocos does not register the model if one is missing or has changed. The files of an antibiotic, and those for all of them, are the weights its predictions used, in their provenance (by their SHA-256), which the `weights` trust rule compares with the declared ones.
-- The adapter must accept an `antibiotic` argument in `__init__` and implement `load()` and `predict(file)`, where `file` is the input the descriptor declares (today, a Bakta JSON `File` whose genes have been extracted). `predict` returns the probability of resistance or, for a model that gives a verdict instead (e.g. a rule-based one), a dict with a `call` (`'R'`, `'S'` or `'not_detected'`), optionally a `score` and the `evidence` behind it.
+- The adapter must accept an `antibiotic` argument in `__init__` and implement `load()` and `predict(file)`, where `file` is the input the descriptor declares (today, a Bakta JSON `File` whose genes have been extracted). `predict` returns the probability of resistance or, for a model that gives a verdict instead (e.g. a rule-based one), a result as [Results of a Model](#results-of-a-model) describes.
 
 ```python
 from prediction.adapters import ModelInterface, get_model_weights_path, presence_from_list, register_model
@@ -72,6 +73,38 @@ class MyAdapter(ModelInterface):
 ```
 
 Each registered model becomes a prediction step (`predict_<model_name>`) that consumes what its descriptor declares. See `app/ai_models/base_bakta_50/` for a complete example.
+
+### Results of a Model
+
+The result of a model for an antibiotic is a probability of resistance, a verdict or both (`app/prediction/results.py`): a dict with a `score` (from 0 to 1), a `call`, or both, and optionally the `evidence` behind it, a list of dicts (e.g. `{"gene": "blaKPC-2", "identity": 100.0}`), which the trust dialog of the prediction matrix shows under _Why this verdict_. A trained model usually gives a score and a rule-based tool a call. The calls are:
+
+| `call`         | Shown as                        | Meaning                                                                                          |
+| -------------- | ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `R`            | Resistant                       | Resistant (clinical category)                                                                    |
+| `I`            | Susceptible, increased exposure | Susceptible if the dose is increased (clinical category I of EUCAST)                             |
+| `S`            | Susceptible                     | Susceptible (clinical category)                                                                  |
+| `possible`     | Possible resistance             | A determinant of a class of antibiotics was found, which does not always make a strain resistant to all of it |
+| `not_detected` | Not detected                    | No known determinant was found, which is not the same as susceptible                             |
+
+## Add Models That Run in the Model Service
+
+A model can run outside Cocos, in the model service of Cocos-deployment, whose README explains how to add its tool there: a folder with its conda environment and a `tool.py`. In Cocos, the folder of the model has **only its descriptor**, with no Python code, and the descriptor says where its jobs are sent with a [schema.org](https://schema.org/Action) action whose target is an entry point:
+
+```turtle
+<https://w3id.org/cocos/model/my_tool>
+    schema:potentialAction [
+        a schema:Action ;
+        schema:target [ a schema:EntryPoint ;
+                        schema:urlTemplate "predict/my_tool" ;   # relative to MODEL_SERVICE_BASE
+                        schema:httpMethod "POST" ;
+                        schema:contentType "multipart/form-data" ] ] .
+```
+
+The URL is relative to the model service Cocos is configured with (`MODEL_SERVICE_BASE`), or absolute for a model with a service of its own. Cocos registers a folder with a descriptor and no code as a model that runs in a service, and rejects a model with an adapter whose descriptor says it runs in a service, or one with no adapter whose descriptor does not. Everything else is as for any model: the same checklist, the same rules for the descriptor, and the same discovery, so a model that consumes an assembly is offered on a sample with reads after assembling them.
+
+Its prediction step sends the service the files of its inputs, each named after the `schema:name` of the input in the descriptor (e.g. `assembly`), and the organism of the sample, if known; follows the job as it follows the jobs of the bio service; and keeps what the job gives: its results, the versions of the software it used (in the provenance of the prediction) and, if the descriptor declares an output named `tool_output`, the output of the tool itself (e.g. a TSV, `edam:format_3475`), which goes into the RO-Crate of the prediction.
+
+The service says what each result is about with an ARO term: an antibiotic, or a **class of antibiotics**. A result about a class applies to the antibiotics under it in ARO (with the hierarchy of `terms.ttl`): a carbapenemase found by a tool is a result about carbapenems, so about meropenem. When several results are about an antibiotic, its verdict is the worst one (from `R` to `not_detected`), with the evidence of the results that gave it; a verdict that comes from a class says so, and the `inferred_from_class` trust rule takes it into account. See `app/ai_models/amrfinderplus/` for a complete example.
 
 ## Add New Annotation Parsers
 
@@ -106,3 +139,24 @@ class MyFormatParser(BaseParser):
 ```
 
 See `app/parsers/bakta_json/` for a complete example.
+
+## Add Trust Rules
+
+Cocos judges how much each prediction can be trusted with rules (see [Trust of the Predictions](semantic-layer.md#trust-of-the-predictions)). Their thresholds, judgements and texts are in `app/trust_rules.toml`, so changing a threshold, turning a rule off (`enabled = false`) or rewording what it says needs no code. To add a rule:
+
+1. In `app/semantics/trust.py`, declare it in `RULES`: its numeric thresholds, the outcomes it can have besides `for` (an outcome named `caution` or `serious` is that judgement; any other is set in the file) and the values its texts can use.
+2. Write its check, `check_<rule>(registry, facts, rule)`, and add it to `CHECKS`. It returns `None` when it cannot judge the prediction (it then gives no evidence), or `(outcome, values)`: `'for'` or one of its outcomes, and the values for its text. `facts` are what Cocos knows about the prediction (see `evidence()`): the organism of the sample and the organisms of the model, the measurements of the model for the antibiotic (from its `quality.ttl`), how its training data and the input were annotated, the SHA-256 of the weights declared and used, and the result itself (`facts['result']`, with its `call`, `score`, `evidence` and the classes it was `inferred_from`). `rule` is its section of the file, with its thresholds. To judge something new about a prediction, add it to the facts with a SPARQL query over the registry or the description of the sample, as the other facts are read.
+3. Add its section to `app/trust_rules.toml`, with `enabled`, its thresholds, the judgement of each outcome that is not already one and a text for `for` and for each outcome:
+
+```toml
+[rules.my_rule]
+enabled = true
+caution_below = 0.8
+low = "caution"
+
+[rules.my_rule.text]
+for = "The model scores {value} on its validation data, for {antibiotic}."
+low = "The model scores only {value} on its validation data, for {antibiotic}."
+```
+
+`python manage.py check` reports any mistake in the file (a missing rule, threshold, judgement or text, or a text that uses a value the rule does not give) as `semantics.E001`, and the predictions are shown without their trust until it is fixed. The tests of `app/semantics/tests/test_trust.py` show how a rule is checked with its facts.

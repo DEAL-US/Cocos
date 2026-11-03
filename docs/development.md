@@ -42,7 +42,7 @@ This sets up:
 | `cocos-dev-redis`    | Redis, the Celery broker                                                                 |
 | `cocos-dev-frontend` | Compiles the CSS and copies the JavaScript libraries, and compiles the CSS again on changes |
 
-`deploy.py` starts it, but it can also be started on its own. It joins the Docker network `cocos-network`, which it shares with the bio service, so that network has to exist first:
+`deploy.py` starts it, but it can also be started on its own. It joins the Docker network `cocos-network`, which it shares with the bio service and the model service, so that network has to exist first:
 
 ```bash
 docker network create cocos-network
@@ -50,7 +50,7 @@ cd docker
 docker compose up
 ```
 
-Without the bio service (or its mock) the web interface works, but assembly and annotation jobs fail.
+Without the bio service (or its mock) the web interface works, but assembly and annotation jobs fail; without the model service, the predictions of the models that run in it (e.g. AMRFinderPlus) fail. `deploy.py` always starts the model service, also with `--mock`: its tools are light, so it has no mock.
 
 The stack mounts the application source code into the containers, so changes to the code, the templates and the Tailwind classes are reflected without rebuilding the image. The frontend container installs the npm dependencies, copies the JavaScript libraries to `app/static/vendor/` and compiles `app/static/css/tailwind.css`, then compiles the CSS again whenever a template, Python or JavaScript file changes (it checks every 2 seconds, since Docker on Windows does not report changes in mounted folders).
 
@@ -64,6 +64,7 @@ The first build can take a while, because of the large machine learning dependen
 
 - `DB_HOST=localhost` is for Django running on the host (tests, `runserver`); the containers get `cocos-dev-postgres` from the compose file.
 - `MOCK=true` sends the jobs to the mock of the bio service (`MOCK_ANNOTATION_BASE`) instead of the real one (`ANNOTATION_BASE`).
+- `MODEL_SERVICE_BASE` is where the jobs of the models that run in the model service go (`http://model-api:8000`, inside `cocos-network`); the descriptor of each model gives its path there.
 - With `DJANGO_DEBUG=1`, emails are printed to the console, and `DJANGO_SECRET_KEY` and `DB_PASSWORD` have development defaults.
 
 ## Testing
