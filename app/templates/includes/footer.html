@@ -7,7 +7,7 @@
           <img src="{% static 'images/logo.svg' %}" alt="" class="footer-logo">
           Cocos
         </a>
-        <p class="text-sm opacity-80">Parse and convert genomic data to predict antibiotic resistance.</p>
+        <p class="text-sm opacity-80">Assemble, annotate and predict antibiotic resistance with several models at once, with how much to trust each result.</p>
         <p class="text-sm opacity-80">Developed by María Quirós Quiroga</p>
       </div>
 
@@ -26,9 +26,10 @@
       <nav class="lg:col-span-2" aria-label="Resources">
         <h2 class="footer-heading">Resources</h2>
         <ul class="footer-links">
+          <li><a href="https://deal-us.github.io/Cocos/" target="_blank" rel="noopener"><i class="bi bi-book mr-1" aria-hidden="true"></i>Documentation</a></li>
           <li><a href="https://github.com/DEAL-US/Cocos" target="_blank" rel="noopener"><i class="bi bi-github mr-1" aria-hidden="true"></i>GitHub</a></li>
           <li><a href="{% url 'semantics:vocabulary' %}">AMRF vocabulary</a></li>
-          <li><a href="{% url 'semantics:sparql' %}">SPARQL endpoint</a></li>
+          <li><a href="{% url 'semantics:registry' %}#sparql">SPARQL endpoint</a></li>
         </ul>
       </nav>
 
@@ -49,7 +50,7 @@
     </div>
 
     <div class="flex flex-col sm:flex-row sm:justify-between gap-2 py-5 border-t border-neutral-content/15 text-xs opacity-70">
-      <span>Copyright &copy; <span id="footer-year"></span> <a href="https://deal.us.es/" target="_blank" rel="noopener" class="link link-hover">DEAL</a> · Universidad de Sevilla</span>
+      <span>Copyright &copy; <span id="footer-year"></span> <a href="https://deal.us.es/" target="_blank" rel="noopener" class="link link-hover">DEAL</a> · Universidad de Sevilla · <i class="bi bi-shield-exclamation" aria-hidden="true"></i> For research use only, not for clinical diagnosis</span>
       <span>
         Code under the <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener" class="link link-hover">GNU GPL v3</a>
         · Vocabulary under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="link link-hover">CC BY 4.0</a>
