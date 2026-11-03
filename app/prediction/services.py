@@ -130,7 +130,7 @@ def assess_predictions(process, graph, sample, runs=None):
             if value == NO_RESULT:
                 continue
             term = antibiotic_iri(registry, model, antibiotic)
-            facts = evidence(registry, graph, sample, task_iri(sample, task), model, term)
+            facts = {**evidence(registry, graph, sample, task_iri(sample, task), model, term), 'result': value}
             assessed.append((task, model_name, antibiotic, term, assess(registry, facts, antibiotic, rules)))
     return assessed
 

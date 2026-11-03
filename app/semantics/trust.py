@@ -5,6 +5,7 @@ The evidence is read with SPARQL: from the registry graph, the organisms of the 
 measurements (DQV), how its training data was annotated and the SHA-256 of its weights; from the
 RDF of the sample with its provenance (PROV-O), its organism, the weights the prediction used and
 the annotation its input comes from, followed back through the activities that generated it.
+The result itself (its call, and the classes it was inferred from) comes with the facts.
 
 The rules, their thresholds, judgements and texts are in trust_rules.toml, so that they can be
 changed without touching the code. The file is read each time, so a change applies at once.
@@ -45,6 +46,8 @@ RULES = {
     'same_annotation': {'thresholds': (), 'outcomes': ('different',), 'values': ('used', 'trained')},
     'weights': {'thresholds': (), 'outcomes': ('different',), 'values': ('antibiotic',)},
     'annotation_origin': {'thresholds': (), 'outcomes': ('unknown',), 'values': ()},
+    'inferred_from_class': {'thresholds': (), 'outcomes': ('inferred',), 'values': ('antibiotic', 'classes')},
+    'not_detected': {'thresholds': (), 'outcomes': ('not_detected',), 'values': ('antibiotic',)},
 }
 
 
@@ -299,6 +302,24 @@ def check_annotation_origin(registry, facts, rule):
     return ('for' if facts['used'] else 'unknown'), {}
 
 
+def check_inferred_from_class(registry, facts, rule):
+    result = facts.get('result')
+    if not isinstance(result, dict) or result.get('call') in (None, 'not_detected'):
+        return None  # a probability, or nothing found: see not_detected
+    classes = result.get('inferred_from') or []
+    if not classes:
+        return 'for', {'classes': ''}
+    names = ', '.join(label(registry, OBO[curie.replace(':', '_')]) for curie in classes)
+    return 'inferred', {'classes': names}
+
+
+def check_not_detected(registry, facts, rule):
+    result = facts.get('result')
+    if not isinstance(result, dict) or result.get('call') != 'not_detected':
+        return None
+    return 'not_detected', {}
+
+
 CHECKS = {
     'species': check_species,
     'antibiotic_isolates': check_antibiotic_isolates,
@@ -308,6 +329,8 @@ CHECKS = {
     'same_annotation': check_same_annotation,
     'weights': check_weights,
     'annotation_origin': check_annotation_origin,
+    'inferred_from_class': check_inferred_from_class,
+    'not_detected': check_not_detected,
 }
 
 

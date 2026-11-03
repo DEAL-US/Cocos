@@ -208,3 +208,32 @@ class TrustTests(ConversionFlowMixin, TestCase):
         self.assertEqual(len(bodies), 8)
         self.assertEqual(graph.value(bodies['class_balance'], DCTERMS.type), Literal('caution'))
         self.assertIn('8%', str(graph.value(bodies['class_balance'], RDF.value)))
+
+
+class VerdictRulesTests(SimpleTestCase):
+    """The rules about the verdict of a tool: inferred from a class, or nothing found."""
+
+    def trust(self, result):
+        facts = {'organism': None, 'range': [], 'f1': None, 'antibiotic': {}, 'species': {}, 'trained': {},
+                 'used': {}, 'declared_weights': set(), 'used_weights': set(), 'result': result}
+        return {item['rule']: item for item in assess(registry_graph(), facts, 'meropenem')['evidence']}
+
+    def test_a_verdict_inferred_from_a_class_is_with_reservations(self):
+        by_rule = self.trust({'call': 'possible', 'inferred_from': ['ARO:0000020']})
+
+        self.assertEqual(by_rule['inferred_from_class']['judgement'], 'caution')
+        self.assertEqual(by_rule['inferred_from_class']['text'],
+                         'The verdict comes from what the tool found for carbapenem, not for meropenem itself.')
+        self.assertNotIn('not_detected', by_rule)
+
+    def test_a_verdict_about_the_antibiotic_itself_is_for(self):
+        self.assertEqual(self.trust({'call': 'R'})['inferred_from_class']['judgement'], 'for')
+
+    def test_nothing_found_is_not_susceptible(self):
+        by_rule = self.trust({'call': 'not_detected', 'inferred_from': ['ARO:0000020']})
+
+        self.assertEqual(by_rule['not_detected']['judgement'], 'caution')
+        self.assertNotIn('inferred_from_class', by_rule)
+
+    def test_a_probability_has_neither(self):
+        self.assertEqual(self.trust({'score': 0.8}), {})

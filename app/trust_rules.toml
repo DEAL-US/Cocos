@@ -118,3 +118,28 @@ unknown = "caution"
 [rules.annotation_origin.text]
 for = "Cocos annotated the input itself, so it knows which software it used."
 unknown = "Cocos does not know which software annotated the input, so it cannot compare it with the data of the model."
+
+
+# 9. Whether the verdict is about the antibiotic itself, or was inferred from a class of antibiotics
+#    the tool gave it for (e.g. a gene of carbapenemases, for meropenem). A gene of a class does not
+#    always make a strain resistant to every antibiotic of it. Only for verdicts, not probabilities.
+#    Values: {antibiotic}, {classes}.
+[rules.inferred_from_class]
+enabled = true
+inferred = "caution"
+
+[rules.inferred_from_class.text]
+for = "The tool gave this verdict for {antibiotic} itself."
+inferred = "The verdict comes from what the tool found for {classes}, not for {antibiotic} itself."
+
+
+# 10. Whether the tool found nothing: no known determinant of resistance to the antibiotic is not
+#     the same as susceptible, since the strain may resist it in a way the tool does not know.
+#     Values: {antibiotic}.
+[rules.not_detected]
+enabled = true
+not_detected = "caution"
+
+[rules.not_detected.text]
+for = "The tool found a known determinant for {antibiotic}."
+not_detected = "The tool found no known determinant of resistance to {antibiotic}, which does not mean that it is susceptible."
