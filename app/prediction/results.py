@@ -2,19 +2,26 @@
 
 A result is a dict with a `score` (the probability of resistance, from 0 to 1), a `call` (a verdict:
 one of CALLS) or both, and optionally the `evidence` behind it (e.g. the genes a tool found). A
-trained model usually gives a score; a rule-based tool, a call and its evidence. An antibiotic that
-could not be predicted has NO_RESULT instead of a result.
+trained model usually gives a score; a rule-based tool, a call and its evidence. A call that a tool
+gave about a class of antibiotics, not about the antibiotic itself, says so in `inferred_from` (the
+ARO terms of those classes). An antibiotic that could not be predicted has NO_RESULT instead of a result.
 """
 from .models import NO_RESULT
 
 CALLS = {
     'R': 'Resistant',
+    'I': 'Susceptible, increased exposure',  # the clinical category I (EUCAST)
     'S': 'Susceptible',
-    'not_detected': 'Not detected',   # no known determinant found, which is not the same as susceptible
+    'possible': 'Possible resistance',       # a determinant of a class was found, which may not be enough
+    'not_detected': 'Not detected',          # no known determinant found, which is not the same as susceptible
 }
 
+# From the worst verdict to the best: when a tool says several things about an antibiotic (e.g. about
+# it and about its class), the worst one is its verdict.
+SEVERITY = ('R', 'possible', 'I', 'S', 'not_detected')
 
-def make_result(call=None, score=None, evidence=None):
+
+def make_result(call=None, score=None, evidence=None, inferred_from=None):
     """A result with a call, a score or both. Raise ValueError if it has neither or one is invalid."""
     if call is None and score is None:
         raise ValueError('A result needs a call or a score.')
@@ -30,13 +37,15 @@ def make_result(call=None, score=None, evidence=None):
         result['score'] = score
     if evidence:
         result['evidence'] = list(evidence)
+    if inferred_from:
+        result['inferred_from'] = list(inferred_from)
     return result
 
 
 def as_result(value):
     """The result of what a model returned: a number is its score; a dict, its call, score and evidence."""
     if isinstance(value, dict):
-        unknown = set(value) - {'call', 'score', 'evidence'}
+        unknown = set(value) - {'call', 'score', 'evidence', 'inferred_from'}
         if unknown:
             raise ValueError(f'Unknown keys in a result: {", ".join(sorted(unknown))}.')
         return make_result(**value)

@@ -15,6 +15,12 @@ class ResultTests(SimpleTestCase):
                          {'call': 'R', 'score': 0.9, 'evidence': [{'gene': 'blaKPC-2'}]})
         self.assertEqual(as_result({'call': 'not_detected', 'evidence': []}), {'call': 'not_detected'})
 
+    def test_a_verdict_can_say_the_classes_it_was_inferred_from(self):
+        self.assertEqual(as_result({'call': 'possible', 'inferred_from': ['ARO:0000020']}),
+                         {'call': 'possible', 'inferred_from': ['ARO:0000020']})
+        self.assertEqual(result_label({'call': 'possible'}), 'Possible resistance')
+        self.assertEqual(result_label({'call': 'I'}), 'Susceptible, increased exposure')
+
     def test_rejects_invalid_results(self):
         cases = [
             ('neither a call nor a score', {}),
