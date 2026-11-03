@@ -269,7 +269,7 @@
                     <p class="text-sm font-semibold mb-2">Models</p>
                     <div class="flex flex-wrap gap-1">
                       {% for model in prediction.model_details %}
-                        <span class="badge badge-soft badge-primary">{{ model.label }}{% if model.version %} {{ model.version }}{% endif %}</span>
+                        <a href="{% url 'semantics:model' name=model.name %}" class="badge badge-soft badge-primary prediction-model-link" title="How {{ model.label }} was built and how well it works">{{ model.label }}{% if model.version %} {{ model.version }}{% endif %}</a>
                       {% endfor %}
                     </div>
 

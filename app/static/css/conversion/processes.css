@@ -152,3 +152,10 @@
   line-height: 1;
   display: block;
 }
+
+/* The models of a prediction link to their page in the registry */
+.prediction-model-link:hover,
+.prediction-model-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
