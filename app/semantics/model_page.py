@@ -3,7 +3,7 @@ built (PROV-O), how well it works and how much data it had (DQV), and the files 
 
 Every part is optional, so that the page works for any model, whatever its descriptor declares.
 """
-from .namespaces import DQV, IS_ABOUT, OBO, PREFIXES
+from .namespaces import IS_ABOUT, OBO, PREFIXES
 from .registry.terms import is_aro, terms_graph
 
 SAMPLE_SIZE = OBO.NCIT_C53190

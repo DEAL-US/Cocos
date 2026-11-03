@@ -7,7 +7,7 @@ class ConversionConfig(AppConfig):
     name = 'conversion'
 
     def ready(self):
-        from . import steps
+        from . import steps  # noqa: F401 (steps registers the gene extraction steps)
         from .parsers import load_parser_packages
 
         load_parser_packages()
