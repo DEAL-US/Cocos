@@ -8,7 +8,7 @@
 {% block title %}Cocos{% endblock %}
 
 {% block content %}
-<main class="home-shell container mx-auto px-4 py-8 md:py-10">
+<main class="home-shell container mx-auto px-4 py-8 md:py-10 space-y-6">
 	<section class="home-hero card border border-base-300 bg-base-100 shadow-sm">
 		<div class="card-body gap-5">
 			<div class="grid gap-6 md:grid-cols-2 items-center">
@@ -56,6 +56,45 @@
 				</a>
 			</div>
 			{% endif %}
+
+			<p class="home-notice">
+				<i class="bi bi-shield-exclamation" aria-hidden="true"></i>
+				<span><strong>A research tool.</strong> Its predictions are not a clinical diagnosis: confirm them with an antimicrobial susceptibility test before any treatment decision.</span>
+			</p>
+		</div>
+	</section>
+
+	{# What a user gets, at a glance #}
+	<section class="home-features card border border-base-300 bg-base-100 shadow-sm" aria-label="What Cocos offers">
+		<div class="grid sm:grid-cols-2 lg:grid-cols-4">
+			<div class="home-feature">
+				<div class="home-cap-icon"><i class="bi bi-grid-3x3-gap"></i></div>
+				<div>
+					<h2 class="home-feature-title">Several models at once</h2>
+					<p>One matrix with the resistance to each antibiotic, by every model you choose.</p>
+				</div>
+			</div>
+			<div class="home-feature">
+				<div class="home-cap-icon"><i class="bi bi-patch-check"></i></div>
+				<div>
+					<h2 class="home-feature-title">Every result explained</h2>
+					<p>How much to trust each prediction, and why: the genes found and how the model was built.</p>
+				</div>
+			</div>
+			<div class="home-feature">
+				<div class="home-cap-icon"><i class="bi bi-lock"></i></div>
+				<div>
+					<h2 class="home-feature-title">Your samples, private</h2>
+					<p>Your samples and results are only visible from your account.</p>
+				</div>
+			</div>
+			<div class="home-feature">
+				<div class="home-cap-icon"><i class="bi bi-bell"></i></div>
+				<div>
+					<h2 class="home-feature-title">Notified when ready</h2>
+					<p>Assembling and annotating take from minutes to a few hours: Cocos tells you when they finish.</p>
+				</div>
+			</div>
 		</div>
 	</section>
 
@@ -63,20 +102,19 @@
 		<article class="card border border-base-300 bg-base-100 shadow-sm">
 			<div class="card-body">
 				<h2 class="card-title text-xl">Pipeline</h2>
-				<p class="text-base-content/70 mb-2">From raw sequencing reads to resistance interpretation.</p>
+				<p class="text-base-content/70 mb-2">From raw sequencing reads to resistance interpretation. Start from what you have: each model asks for what it needs, and Cocos runs the steps before it.</p>
 
 				<ul class="timeline timeline-vertical">
 					<li>
 						<div class="timeline-middle">
-							<i class="bi bi-1-circle-fill f"></i>
+							<i class="bi bi-1-circle-fill"></i>
 						</div>
 						<div class="timeline-end timeline-box">
 							<div class="home-cap-icon"><i class="bi bi-diagram-3"></i></div>
 							<div class="home-pipeline-content">
 								<h3>Assembly</h3>
-								<p>Use the raw sequencing reads to assemble the genome and get clean sequences from the data provided by Illumina or ONT platforms using SPAdes or Raven.</p>
-								<p><strong>Input:</strong> FASTQ</p>
-								<p><strong>Output:</strong> FASTA assembled genome</p>
+								<p>Assemble the genome from the raw sequencing reads of Illumina (SPAdes) or Nanopore (Raven or Flye).</p>
+								<p class="home-io"><span>In</span><span class="badge badge-sm badge-soft badge-primary">FASTQ</span><span>Out</span><span class="badge badge-sm badge-soft badge-primary">FASTA</span></p>
 							</div>
 						</div>
 						<hr class="bg-primary" />
@@ -87,9 +125,8 @@
 							<div class="home-cap-icon"><i class="bi bi-tags-fill"></i></div>
 							<div class="home-pipeline-content">
 							<h3>Annotation</h3>
-							<p>Use the assembled genome to get an annotation of the genome using Bakta.</p>
-							<p><strong>Input:</strong> FASTA assembled genome</p>
-							<p><strong>Output:</strong> Annotated genome</p>
+							<p>Annotate the genes of the assembled genome with Bakta.</p>
+							<p class="home-io"><span>In</span><span class="badge badge-sm badge-soft badge-primary">FASTA</span><span>Out</span><span class="badge badge-sm badge-soft badge-primary">Bakta JSON</span></p>
 							</div>
 						</div>
 						<div class="timeline-middle">
@@ -103,15 +140,11 @@
 							<i class="bi bi-3-circle-fill"></i>
 						</div>
 						<div class="timeline-end timeline-box">
-							<div class="home-cap-icon"><i class="bi bi-funnel"></i></div>
-						</div>
-						<div class="timeline-end timeline-box">
 							<div class="home-cap-icon"><i class="bi bi-activity"></i></div>
 							<div class="home-pipeline-content">
 								<h3>Prediction</h3>
-								<p>Use the annotated genome to get a prediction of antibiotic resistance.</p>
-								<p><strong>Input:</strong> Annotated genome</p>
-								<p><strong>Output:</strong> Model predictions and interpretation</p>
+								<p>Predict the resistance to each antibiotic with the models you choose, trained or based on expert rules.</p>
+								<p class="home-io"><span>In</span><span class="badge badge-sm badge-soft badge-primary">FASTA</span><span class="badge badge-sm badge-soft badge-primary">Bakta JSON</span><span>Out</span><span class="badge badge-sm badge-soft badge-primary">Matrix · CSV</span></p>
 							</div>
 						</div>
 					</li>
@@ -120,5 +153,37 @@
 		</article>
 	</section>
 
+	{# For those who build models or reuse what Cocos publishes: public, also without an account #}
+	<section class="home-research card border border-base-300 shadow-sm" aria-labelledby="home-research-title">
+		<div class="card-body gap-4">
+			<div>
+				<span class="badge badge-secondary badge-outline">Open and semantic</span>
+				<h2 id="home-research-title" class="card-title text-xl mt-2">For researchers and developers</h2>
+				<p class="text-base-content/70">Models are plug-ins described in RDF: Cocos finds which ones can run on each sample, and records how every result was obtained.</p>
+			</div>
+			<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+				<a class="home-link" href="{% url 'semantics:registry' %}">
+					<i class="bi bi-diagram-2" aria-hidden="true"></i>
+					<span class="home-link-title">Registry</span>
+					<span class="home-link-text">The models and steps, what each needs, and their data flow</span>
+				</a>
+				<a class="home-link" href="{% url 'semantics:registry' %}#sparql">
+					<i class="bi bi-search" aria-hidden="true"></i>
+					<span class="home-link-title">SPARQL endpoint</span>
+					<span class="home-link-text">Query the registry and the AMRF vocabulary</span>
+				</a>
+				<a class="home-link" href="https://deal-us.github.io/Cocos/" target="_blank" rel="noopener">
+					<i class="bi bi-book" aria-hidden="true"></i>
+					<span class="home-link-title">Documentation</span>
+					<span class="home-link-text">Add your own model as a plug-in, or deploy Cocos</span>
+				</a>
+				<a class="home-link" href="https://github.com/DEAL-US/Cocos" target="_blank" rel="noopener">
+					<i class="bi bi-github" aria-hidden="true"></i>
+					<span class="home-link-title">Source code</span>
+					<span class="home-link-text">Free software under the GNU GPL v3</span>
+				</a>
+			</div>
+		</div>
+	</section>
 </main>
 {% endblock %}
