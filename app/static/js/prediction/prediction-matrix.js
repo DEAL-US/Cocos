@@ -89,7 +89,8 @@ function renderRows(body, matrix) {
 
     values.forEach((value, column) => {
       const trust = matrix.trust?.[index]?.[column];
-      row.appendChild(createPredictionCell(value, trust, (matrix.labels || matrix.models)[column], antibiotic, matrix.calls || {}));
+      const links = { flow: matrix.flow_url && `${matrix.flow_url}?focus=model-${matrix.models[column]}`, model: matrix.model_urls?.[column] };
+      row.appendChild(createPredictionCell(value, trust, (matrix.labels || matrix.models)[column], antibiotic, matrix.calls || {}, links));
     });
 
     row.appendChild(createAverageCell(values));
@@ -99,7 +100,7 @@ function renderRows(body, matrix) {
 }
 
 
-function createPredictionCell(result, trust, model, antibiotic, callLabels) {
+function createPredictionCell(result, trust, model, antibiotic, callLabels, links) {
   const cell = document.createElement('td');
   cell.className = 'prediction-cell';
 
@@ -158,7 +159,7 @@ function createPredictionCell(result, trust, model, antibiotic, callLabels) {
   }
 
   if (trust) {
-    content.appendChild(createTrustBadge(trust, model, antibiotic, result));
+    content.appendChild(createTrustBadge(trust, model, antibiotic, result, links));
   }
   cell.appendChild(content);
 
@@ -166,7 +167,7 @@ function createPredictionCell(result, trust, model, antibiotic, callLabels) {
 }
 
 
-function createTrustBadge(trust, model, antibiotic, result) {
+function createTrustBadge(trust, model, antibiotic, result, links) {
   const badge = document.createElement('button');
   badge.type = 'button';
   const style = TRUST_STYLES[trust.judgement];
@@ -184,12 +185,12 @@ function createTrustBadge(trust, model, antibiotic, result) {
   more.className = 'bi bi-chevron-right prediction-trust-more';
 
   badge.append(icon, label, more);
-  badge.addEventListener('click', () => openTrustDialog(trust, model, antibiotic, result));
+  badge.addEventListener('click', () => openTrustDialog(trust, model, antibiotic, result, links));
   return badge;
 }
 
 
-function openTrustDialog(trust, model, antibiotic, result) {
+function openTrustDialog(trust, model, antibiotic, result, links = {}) {
   const dialog = document.getElementById('trust-dialog');
 
   if (!dialog) {
@@ -220,6 +221,15 @@ function openTrustDialog(trust, model, antibiotic, result) {
 
   if (inFavour.length) {
     groups.appendChild(createEvidenceGroup('In favour', inFavour));
+  }
+
+  // How the result was obtained (the data flow of the sample, focused on its model), and the model itself
+  for (const [selector, url] of [['.trust-dialog-provenance', links.flow], ['.trust-dialog-model', links.model]]) {
+    const link = dialog.querySelector(selector);
+    if (link) {
+      link.hidden = !url;
+      link.href = url || '#';
+    }
   }
 
   dialog.showModal();

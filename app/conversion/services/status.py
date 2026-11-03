@@ -350,6 +350,9 @@ def build_process_status_context(process, page=1, page_size=5):
                 'antibiotic_labels': [get_antibiotic_label(antibiotic) for antibiotic in run.selected_antibiotics],
                 'data': run.data,
                 'calls': CALLS,  # how each verdict reads
+                # Where the trust dialog of a result leads: the data flow of the sample, and the page of the model
+                'flow_url': reverse('semantics:process_flow', kwargs={'process_id': process.id}),
+                'model_urls': [reverse('semantics:model', kwargs={'name': model}) for model in run.selected_models],
                 # How much each result can be trusted, in the same order as `data` (None: no result)
                 'trust': [[trust.get(run.id, {}).get(model, {}).get(antibiotic) for model in run.selected_models]
                           for antibiotic in run.selected_antibiotics],
