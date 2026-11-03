@@ -14,7 +14,7 @@
     a schema:SoftwareApplication ;
     dcterms:conformsTo <https://bioschemas.org/profiles/ComputationalTool/1.0-RELEASE> ;
     schema:identifier "base_bakta_90" ;
-    schema:name "base_bakta_90" ;
+    schema:name "Base Bakta 90" ;
     schema:description "Predicts antibiotic resistance from the presence or absence, in the isolate genome, of genes belonging to UniRef90 clusters."@en ;
     schema:url <https://github.com/DEAL-US/Cocos/tree/main/app/ai_models/base_bakta_90> ;
     schema:softwareVersion "1.0.0" ;
