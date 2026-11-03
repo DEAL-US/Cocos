@@ -2,10 +2,6 @@
 .alert.alert-soft.alert-info .btn:hover {
 	margin: 20px auto 0 auto;
 }
-
-.prediction-actions .btn {
-	min-width: 10rem;
-}
 /* Status of each model for the selected sample: same look as the status badges of the processes. */
 .model-status-badge {
 	border-width: 1px;

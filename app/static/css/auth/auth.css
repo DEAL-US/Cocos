@@ -139,10 +139,6 @@
   box-shadow: 0 0 0 0.22rem color-mix(in oklab, var(--auth-accent-2) 14%, transparent);
 }
 
-.auth-card .form-text {
-  color: color-mix(in oklab, var(--auth-ink) 52%, white);
-}
-
 .auth-actions {
   margin-top: 1.3rem;
   display: flex;
@@ -234,12 +230,6 @@
   display: flex;
   align-items: center;
   padding: 0.65rem 1rem;
-}
-
-.auth-footer-note {
-  text-align: center;
-  margin-top: 1.1rem;
-  color: color-mix(in oklab, var(--auth-ink) 60%, white);
 }
 
 @keyframes auth-enter {

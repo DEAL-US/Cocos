@@ -63,25 +63,6 @@
   background: transparent;
 }
 
-.assembly-annotate-row .checkbox {
-  background-image: none;
-  --tw-shadow: 0 1px 2px 0 color-mix(in oklab, var(--color-primary) 14%, transparent);
-  --tw-shadow-colored: 0 1px 2px 0 color-mix(in oklab, var(--color-primary) 14%, transparent);
-  box-shadow: var(--tw-shadow) !important;
-  transition: transform 160ms ease, border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
-}
-
-.assembly-annotate-row:hover .checkbox {
-  transform: translateY(-1px) scale(1.03);
-  box-shadow: 0 6px 14px color-mix(in oklab, var(--color-primary) 12%, transparent) !important;
-}
-
-.assembly-annotate-row:focus-within .checkbox {
-  transform: scale(1.03);
-  border-color: color-mix(in oklab, var(--color-primary) 64%, white);
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 22%, transparent) !important;
-}
-
 .fasta-clear-btn {
   width: fit-content;
   min-width: 0;
@@ -111,7 +92,6 @@
   box-shadow: 0 3px 8px color-mix(in oklab, var(--color-error) 20%, transparent);
 }
 
-
 .assembly-input-shell .file-input:focus,
 .assembly-input-shell .file-input:focus-visible,
 .assembly-input-shell .file-input,
@@ -120,10 +100,7 @@
 .source-job-select,
 .fasta-clear-btn:focus,
 .fasta-clear-btn:focus-visible,
-.fasta-clear-btn,
-.assembly-annotate-row .checkbox:focus,
-.assembly-annotate-row .checkbox:focus-visible,
-.assembly-annotate-row .checkbox {
+.fasta-clear-btn {
   outline: none !important;
 }
 

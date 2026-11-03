@@ -14,8 +14,6 @@
 	min-width: 11.5rem;
 }
 
-
-
 .home-cap-icon {
 	width: 2.5rem;
 	height: 2.5rem;
@@ -38,8 +36,6 @@
 .home-cap-icon i {
 	font-size: 1.25rem !important;
 }
-
-
 
 .home-pipeline-content h3 {
 	margin: 0;
@@ -70,14 +66,6 @@
 .timeline .timeline-middle svg {
 	width: 1.5rem !important;
 	height: 1.5rem !important;
-}
-
-.timeline .timeline-dot {
-	display: inline-grid;
-	place-items: center;
-	width: 2.5rem;
-	height: 2.5rem;
-	border-radius: 9999px;
 }
 
 .timeline .bi,
