@@ -15,13 +15,18 @@
 
   <div class="card bg-base-100 border border-base-300 shadow-sm">
     <div class="card-body gap-4">
-      <div>
-        <h1 class="text-3xl font-bold mb-1">{{ process.name }}</h1>
-        <p class="text-base-content/70">
-          What this sample has, what was done with it and what each model would need, on the
-          <a class="link link-primary" href="{% url 'semantics:registry' %}#data-flow">data flow of Cocos</a>.
-          Select a box to see its details.
-        </p>
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 class="text-3xl font-bold mb-1">{{ process.name }}</h1>
+          <p class="text-base-content/70">
+            What this sample has, what was done with it and what each model would need, on the
+            <a class="link link-primary" href="{% url 'semantics:registry' %}#data-flow">data flow of Cocos</a>.
+            Select a box to see its details.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          {% include 'semantics/_provenance_downloads.html' with process_id=process.id %}
+        </div>
       </div>
 
       {% include 'semantics/_flow_graph.html' with mode='sample' description='Data flow of this sample. The page of the sample lists the same steps and files.' %}
@@ -32,13 +37,14 @@
     <div class="card-body gap-4">
       <div>
         <h2 class="card-title text-xl mb-1"><i class="bi bi-file-earmark-code text-primary"></i>Provenance data</h2>
-        <p class="text-base-content/70">For researchers and other programs: this sample, how its data was obtained and how much its predictions can be trusted, in RDF.</p>
+        <p class="text-base-content/70">For researchers and other programs: this sample, how its data was obtained, the results of its predictions and how much they can be trusted, in RDF.</p>
       </div>
       <p class="text-sm text-base-content/80">
         It describes the data of the sample and its files (with their SHA-256), each step that was run, when, with which
         software, versions and databases (<a class="link link-primary" href="https://www.w3.org/TR/prov-o/">PROV-O</a>
         and <a class="link link-primary" href="https://www.opmw.org/model/p-plan/">P-Plan</a>), and the trust of each
-        prediction with its evidence (<a class="link link-primary" href="https://www.w3.org/TR/vocab-dqv/">DQV</a>).
+        prediction with its evidence (<a class="link link-primary" href="https://www.w3.org/TR/vocab-dqv/">DQV</a>), and the
+        result of each prediction: its verdict or probability and what it was derived from, such as the genes a tool found.
         It can be queried with SPARQL. Who you are never appears in it.
       </p>
       <div class="flex flex-wrap gap-2">

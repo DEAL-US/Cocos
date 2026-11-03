@@ -85,7 +85,7 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <a href="{% url 'semantics:process_flow' process_id=process_id %}" class="btn btn-sm btn-outline btn-primary"><i class="bi bi-share"></i>View data flow</a>
+          <a href="{% url 'semantics:process_flow' process_id=process_id %}" class="btn btn-sm btn-outline btn-primary"><i class="bi bi-share"></i>Data flow &amp; provenance</a>
           {% if can_retry_assembly %}
             <form method="post" action="{% url 'conversion:retry_step' process_id=process_id %}">
               {% csrf_token %}
