@@ -11,16 +11,18 @@ The rules, their thresholds, judgements and texts are in trust_rules.toml, so th
 changed without touching the code. The file is read each time, so a change applies at once.
 
 The trust of each prediction can be added to the RDF of its sample (add_trust) as a DQV quality
-annotation of the prediction, with the level and each piece of evidence as text.
+annotation of its result (or of the prediction, if it has no result in the RDF), with the level and
+each piece of evidence as text.
 """
 import tomllib
 
 from django.conf import settings
 from rdflib import BNode, Literal, URIRef
-from rdflib.namespace import DCTERMS, RDF, RDFS
+from rdflib.namespace import DCTERMS, PROV, RDF, RDFS
 
 from .discovery.graphs import is_a, label
 from .namespaces import DQV, IS_ABOUT, OA, OBO, PREFIXES
+from .provenance import result_iri
 
 F1 = OBO.STATO_0000628
 SAMPLE_SIZE = OBO.NCIT_C53190
@@ -337,13 +339,15 @@ CHECKS = {
 
 def add_trust(graph, activity, model_name, antibiotic, term, trust):
     """Add to `graph` the trust of the prediction of `antibiotic` (ARO `term`, or None) by
-    `model_name` in `activity`: a dqv:QualityAnnotation of the activity whose bodies are the level
-    (oa:bodyValue) and each piece of evidence (an oa:TextualBody with its rule and judgement)."""
+    `model_name` in `activity`: a dqv:QualityAnnotation of its result (or of the activity, if the
+    graph has no result of it) whose bodies are the level (oa:bodyValue) and each piece of evidence
+    (an oa:TextualBody with its rule and judgement)."""
     annotation = URIRef(f'{activity}-trust-{_slug(antibiotic)}')
     graph.add((annotation, RDF.type, DQV.QualityAnnotation))
     graph.add((annotation, RDFS.label, Literal(f'Trust of the prediction of {antibiotic} by {model_name}', lang='en')))
     graph.add((annotation, OA.motivatedBy, DQV.qualityAssessment))
-    graph.add((annotation, OA.hasTarget, activity))
+    result = result_iri(activity, antibiotic)
+    graph.add((annotation, OA.hasTarget, result if (result, RDF.type, PROV.Entity) in graph else activity))
     if term is not None:
         graph.add((annotation, IS_ABOUT, term))
     graph.add((annotation, OA.bodyValue, Literal(trust['level'], lang='en')))

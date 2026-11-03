@@ -15,8 +15,18 @@ The plan of the process (what the orchestrator and the discovery decided to run,
 is a p-plan:Plan whose p-plan:Steps say which step of the registry they run and which steps come
 before them; each activity says which step of the plan it carried out (p-plan:correspondsToStep).
 A step of the plan with no activity was not run: it was cancelled because a step before it failed.
+
+The results of a completed prediction are prov:Entities it generated, one per antibiotic, about
+(obo:IAO_0000136) its ARO term: their verdict is their type (an NCIT result: resistance,
+susceptibility, intermediate susceptibility, presumptive positive or not detected) and their
+probability their schema:value. What a tool found is the evidence they are derived from
+(prov:wasDerivedFrom): a determinant (schema:name, the gene; its NCBI protein, rdfs:seeAlso; the
+rules that interpreted it, dcterms:identifier). A verdict a tool gave about a class of antibiotics,
+which Cocos applies to an antibiotic of it, is a result about that class, from which the result
+about the antibiotic is derived.
 """
 import re
+from decimal import Decimal
 
 from rdflib import Literal, URIRef
 from rdflib.namespace import DCTERMS, PROV, RDF, RDFS, XSD
@@ -24,9 +34,20 @@ from rdflib.namespace import DCTERMS, PROV, RDF, RDFS, XSD
 from core.models import TaskStatus
 from core.steps import UnknownStepError, get_step, software_label
 
-from .namespaces import PPLAN, SCHEMA
+from .namespaces import IS_ABOUT, OBO, PPLAN, SCHEMA
 from .registry.descriptors import model_iri
 from .registry.steps import step_iri
+from .registry.terms import aro_terms
+
+# The verdicts of the results of predictions (see prediction.results), as NCIT results
+VERDICTS = {
+    'R': OBO.NCIT_C85562,              # Antimicrobial Resistance Result
+    'I': OBO.NCIT_C85560,              # Antimicrobial Intermediate Susceptibility Result
+    'S': OBO.NCIT_C85563,              # Antimicrobial Susceptibility Result
+    'possible': OBO.NCIT_C206382,      # Presumptive Positive
+    'not_detected': OBO.NCIT_C191300,  # Not Detected
+}
+NCBI_PROTEIN = 'https://www.ncbi.nlm.nih.gov/protein/'
 
 ACTION_STATUSES = {
     TaskStatus.PENDING: SCHEMA.PotentialActionStatus,
@@ -68,6 +89,8 @@ def add_provenance(graph, process, sample, entries):
             graph.add((activity, PPLAN.correspondsToStep, plan_step_iri(sample, task.plan_node)))
         for entry in task.software:
             add_software(graph, sample, activity, entry)
+        if step.category == 'prediction' and task.status == TaskStatus.COMPLETED:
+            add_results(graph, task.concrete, activity)
 
         for link in task.task_inputs.all():
             entry = _entry(entries, link)
@@ -149,6 +172,55 @@ def add_software(graph, sample, activity, entry):
 
 def task_iri(sample, task):
     return URIRef(f'{sample}#task-{task.pk}')
+
+
+def result_iri(activity, about):
+    """The IRI of the result of the prediction `activity` about an antibiotic (its name) or a class (its CURIE)."""
+    return URIRef(f'{activity}-result-{_slug(about)}')
+
+
+def add_results(graph, task, activity):
+    """Add to `graph` the results of the completed prediction `task` (its `activity`), see above."""
+    for antibiotic, result in task.results.items():
+        term = aro_terms().get(antibiotic)
+        if not isinstance(result, dict) or term is None:
+            continue  # no result, or an antibiotic that is not in terms.ttl
+        node = result_iri(activity, antibiotic)
+        classes = result.get('inferred_from', [])
+        # A verdict inferred from classes is derived from the results about them, which have the evidence
+        _add_result(graph, node, activity, term, {key: value for key, value in result.items()
+                                                  if not (classes and key == 'evidence')}, antibiotic)
+        for curie in classes:
+            source = result_iri(activity, curie)
+            _add_result(graph, source, activity, OBO[curie.replace(':', '_')],
+                        {'call': result.get('call'), 'evidence': result.get('evidence', [])}, curie)
+            graph.add((node, PROV.wasDerivedFrom, source))
+
+
+def _add_result(graph, node, activity, term, result, label):
+    """Add the result `result` about `term`, with its evidence."""
+    graph.add((node, RDF.type, PROV.Entity))
+    graph.add((node, RDFS.label, Literal(f'Result about {label}', lang='en')))
+    graph.add((node, PROV.wasGeneratedBy, activity))
+    graph.add((node, IS_ABOUT, term))
+    if result.get('call') in VERDICTS:
+        graph.add((node, RDF.type, VERDICTS[result['call']]))
+    if result.get('score') is not None:
+        graph.add((node, SCHEMA.value, Literal(Decimal(str(round(result['score'], 4))), datatype=XSD.decimal)))
+    for index, item in enumerate(result.get('evidence', []), start=1):
+        graph.add((node, PROV.wasDerivedFrom, _add_evidence(graph, URIRef(f'{node}-evidence-{index}'), item)))
+
+
+def _add_evidence(graph, node, item):
+    graph.add((node, RDF.type, PROV.Entity))
+    if item.get('gene'):
+        graph.add((node, SCHEMA.name, Literal(item['gene'])))
+    if item.get('accession'):
+        graph.add((node, RDFS.seeAlso, URIRef(NCBI_PROTEIN + item['accession'])))
+    for rule in item.get('rules', []):
+        graph.add((node, DCTERMS.identifier, Literal(rule)))
+    return node
+
 
 
 def registry_iri(step):

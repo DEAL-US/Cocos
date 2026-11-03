@@ -1,13 +1,21 @@
 from django.conf import settings
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from rdflib import Literal, URIRef
 from rdflib.namespace import DCTERMS, PROV, RDF, RDFS
 
 from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
+from django.utils import timezone
+
+from core.models import TaskStatus
+from core.steps import cocos_software
 from core.testing import FakeBioService
-from semantics.namespaces import COCOS, PPLAN, SCHEMA
+from prediction.models import PredictionRun, PredictionTask
+from semantics.namespaces import COCOS, OA, OBO, PPLAN, SCHEMA
+from prediction.results import CALLS
+from semantics.provenance import VERDICTS, result_iri
 from semantics.sample import sample_graph
+from semantics.trust import add_trust
 from semantics.validation import validate, violations
 
 SAMPLE = URIRef('https://cocos.example/processes/1')
@@ -107,6 +115,73 @@ class ProvenanceTests(ConversionFlowMixin, TestCase):
         self.assertIn((self.activity(0), PROV.used, shared), graph)
         self.assertEqual(graph.value(shared, RDFS.label), Literal('base_bakta_50 weights'))
 
+    def predict(self, results):
+        """A completed prediction by base_bakta_50, with `results`, on the latest sample."""
+        process = self.latest_process()
+        run = PredictionRun.objects.create(process=process, selected_models=['base_bakta_50'],
+                                           selected_antibiotics=list(results))
+        now = timezone.now()
+        return PredictionTask.objects.create(process=process, run=run, step='predict_base_bakta_50',
+                                             status=TaskStatus.COMPLETED, parameters={'antibiotics': list(results)},
+                                             results=results, started_at=now, finished_at=now,
+                                             software=[cocos_software()])
+
+    def test_the_results_of_a_prediction_with_their_verdict_probability_and_evidence(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+        task = self.predict({
+            'amikacin': {'score': 0.83},
+            'cefotaxime': {'call': 'S', 'evidence': [{'gene': 'blaEC-5', 'accession': 'WP_000976514.1',
+                                                       'rules': ['ECO0011', 'ECO0012']}]},
+            'meropenem': 'NO_RESULT',
+        })
+        graph = self.provenance()
+        activity = URIRef(f'{SAMPLE}#task-{task.pk}')
+
+        amikacin = result_iri(activity, 'amikacin')
+        self.assertIn((amikacin, PROV.wasGeneratedBy, activity), graph)
+        self.assertEqual(graph.value(amikacin, OBO.IAO_0000136), OBO.ARO_0000013)
+        self.assertEqual(str(graph.value(amikacin, SCHEMA.value)), '0.83')
+        self.assertNotIn((amikacin, RDF.type, OBO.NCIT_C85563), graph)  # a probability, no verdict
+
+        cefotaxime = result_iri(activity, 'cefotaxime')
+        self.assertIn((cefotaxime, RDF.type, OBO.NCIT_C85563), graph)  # Antimicrobial Susceptibility Result
+        evidence = graph.value(cefotaxime, PROV.wasDerivedFrom)
+        self.assertEqual(graph.value(evidence, SCHEMA.name), Literal('blaEC-5'))
+        self.assertEqual(graph.value(evidence, RDFS.seeAlso), URIRef('https://www.ncbi.nlm.nih.gov/protein/WP_000976514.1'))
+        self.assertEqual(set(graph.objects(evidence, DCTERMS.identifier)), {Literal('ECO0011'), Literal('ECO0012')})
+
+        self.assertNotIn((result_iri(activity, 'meropenem'), None, None), graph)  # no result
+        self.assertEqual([str(problem) for problem in violations(validate(graph))], [])
+
+    def test_a_verdict_inferred_from_a_class_is_derived_from_the_result_about_it(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+        task = self.predict({'meropenem': {'call': 'possible', 'evidence': [{'gene': 'blaKPC-2'}],
+                                           'inferred_from': ['ARO:0000020']}})
+        graph = self.provenance()
+        activity = URIRef(f'{SAMPLE}#task-{task.pk}')
+
+        meropenem, carbapenem = result_iri(activity, 'meropenem'), result_iri(activity, 'ARO:0000020')
+        self.assertIn((meropenem, RDF.type, OBO.NCIT_C206382), graph)  # Presumptive Positive
+        self.assertEqual(list(graph.objects(meropenem, PROV.wasDerivedFrom)), [carbapenem])
+        self.assertEqual(graph.value(carbapenem, OBO.IAO_0000136), OBO.ARO_0000020)
+        self.assertIn((carbapenem, RDF.type, OBO.NCIT_C206382), graph)
+        self.assertEqual(graph.value(graph.value(carbapenem, PROV.wasDerivedFrom), SCHEMA.name), Literal('blaKPC-2'))
+        self.assertEqual([str(problem) for problem in violations(validate(graph))], [])
+
+    def test_the_trust_of_a_prediction_is_about_its_result(self):
+        with FakeBioService():
+            self.client.post(reverse('conversion:annotation_from_json'), data={'feature_file': bakta_json()})
+        task = self.predict({'amikacin': {'call': 'not_detected'}})
+        graph = self.provenance()
+        activity = URIRef(f'{SAMPLE}#task-{task.pk}')
+
+        annotation = add_trust(graph, activity, 'base_bakta_50', 'amikacin', OBO.ARO_0000013,
+                               {'level': 'With reservations', 'evidence': []})
+        self.assertEqual(graph.value(annotation, OA.hasTarget), result_iri(activity, 'amikacin'))
+        self.assertIn((result_iri(activity, 'amikacin'), RDF.type, OBO.NCIT_C191300), graph)  # Not Detected
+
     def test_the_plan_its_order_and_the_activity_that_carried_out_each_step(self):
         with FakeBioService():
             self.run_assembly('ont', annotate=True)
@@ -164,3 +239,15 @@ class ProvenanceShapesTests(ConversionFlowMixin, TestCase):
         reads = next(part for part in self.graph.objects(SAMPLE, SCHEMA.hasPart) if self.graph.value(part, SCHEMA.sha256))
         self.graph.set((reads, SCHEMA.sha256, Literal('not a sha256')))
         self.assertViolation(reads, 'schema:sha256')
+
+
+class VerdictTermsTests(SimpleTestCase):
+    """The verdicts of Cocos, their NCIT terms in the RDF and the shape that checks them, in step."""
+
+    def test_every_verdict_has_a_term_and_the_shape_knows_every_term(self):
+        self.assertEqual(set(VERDICTS), set(CALLS))
+        shapes = (settings.BASE_DIR / 'semantics' / 'vocab' / 'shapes.ttl').read_text(encoding='utf-8')
+        shape = shapes[shapes.index('amrfsh:PredictionResultShape'):]
+        for term in VERDICTS.values():
+            # in the list of verdicts that may be its type, and in the one of "a verdict or a probability"
+            self.assertEqual(shape.count('obo:' + str(term).rsplit('/', 1)[1] + ' '), 2, term)
