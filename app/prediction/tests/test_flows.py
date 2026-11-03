@@ -85,7 +85,10 @@ class PredictionFlowTests(FlowTestMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(str(self.process.id), [option['id'] for option in response.context['sample_options']])
         self.assertContains(response, 'id="models-list"')
-        self.assertTrue({'amikacin', 'ampicillin'} <= set(response.context['available_antibiotics']))
+        options = response.context['available_antibiotics']
+        self.assertTrue({('amikacin', 'Amikacin'), ('ampicillin', 'Ampicillin')} <= set(options))
+        labels = [label for _, label in options]
+        self.assertEqual(labels, sorted(labels, key=str.casefold))  # alphabetical, whatever the case of the name
 
     def broken_sample(self):
         """A sample whose annotation cannot be read: its gene extraction fails for good."""

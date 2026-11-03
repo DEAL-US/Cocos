@@ -120,8 +120,8 @@
         <p class="text-sm opacity-70 mb-3">Select the antibiotics for which you want predictions.</p>
 
         <multi-select placeholder="Select antibiotics…" id="antibiotics-select" class="multiselect w-full">
-          {% for antibiotic in available_antibiotics %}
-            <ms-option value="{{ antibiotic }}">{{ antibiotic }}</ms-option>
+          {% for value, label in available_antibiotics %}
+            <ms-option value="{{ value }}">{{ label }}</ms-option>
           {% empty %}
             <option value="" disabled>No available antibiotics</option>
           {% endfor %}

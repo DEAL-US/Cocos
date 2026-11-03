@@ -16,8 +16,15 @@ def prediction_ui(request):
     return render(request, 'prediction/prediction.html', {
         'sample_options': get_sample_options(request.user),
         'organisms_in_use': bool(list_all_organisms()),
-        'available_antibiotics': list_all_antibiotics(),
+        'available_antibiotics': antibiotic_options(list_all_antibiotics()),
     })
+
+
+def antibiotic_options(antibiotics):
+    """(value, label) of each antibiotic for the selector, in alphabetical order of their labels: the
+    value is its name in Cocos (its ARO label, e.g. 'amikacin'), the label that name with a capital."""
+    labels = [(name, name[:1].upper() + name[1:]) for name in antibiotics]
+    return sorted(labels, key=lambda option: option[1].casefold())
 
 @login_required
 @require_POST
