@@ -19,12 +19,12 @@ The production stack of Cocos (`docker/docker-compose.prod.yml`) is:
               ▼            ▼            ▼
           PostgreSQL      Redis       Celery
 
-| Container        | What                    |
-| ---------------- | ----------------------- |
-| `cocos-nginx`    | Nginx reverse proxy     |
-| `cocos-web`      | Django + Gunicorn       |
-| `cocos-worker`   | Celery worker           |
-| `cocos-postgres` | PostgreSQL              |
+| Container        | What                     |
+| ---------------- | ------------------------ |
+| `cocos-nginx`    | Nginx reverse proxy      |
+| `cocos-web`      | Django + Gunicorn        |
+| `cocos-worker`   | Celery worker            |
+| `cocos-postgres` | PostgreSQL               |
 | `cocos-redis`    | Redis, the Celery broker |
 
 Nginx is the public entry point, on ports 80 and 443, and acts as a reverse proxy for the Django application; the Django/Gunicorn container is not exposed to the host. The application data and uploaded files are stored in Docker volumes. The web and worker containers run as the unprivileged user `app`, not as root. The image compiles the CSS and copies the JavaScript libraries when it is built.
@@ -45,17 +45,17 @@ It creates `.env.prod` from `.env.prod.example` if needed, generates the Django 
 
 To do it by hand instead, copy `.env.prod.example` to `.env.prod` and replace its example values:
 
-| Variable                                                      | Value                                                                       |
-| ------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `DJANGO_SECRET_KEY`                                           | A long random key (see below)                                               |
-| `DJANGO_ALLOWED_HOSTS`                                        | The domain of the deployment, e.g. `cocos.example.com`                      |
-| `DJANGO_CSRF_TRUSTED_ORIGINS`                                 | Its HTTPS origin, e.g. `https://cocos.example.com`                          |
-| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`           | The database the PostgreSQL container creates, with a strong password       |
-| `DB_NAME`, `DB_USER`, `DB_PASSWORD`                           | The same values as `POSTGRES_*`: Django connects to that database           |
-| `DB_HOST`                                                     | `cocos-postgres`, the PostgreSQL container                                  |
-| `SENDGRID_API_KEY`, `DEFAULT_FROM_EMAIL`                      | For email notifications                                                     |
+| Variable                                            | Value                                                                 |
+| --------------------------------------------------- | --------------------------------------------------------------------- |
+| `DJANGO_SECRET_KEY`                                 | A long random key (see below)                                         |
+| `DJANGO_ALLOWED_HOSTS`                              | The domain of the deployment, e.g. `cocos.example.com`                |
+| `DJANGO_CSRF_TRUSTED_ORIGINS`                       | Its HTTPS origin, e.g. `https://cocos.example.com`                    |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | The database the PostgreSQL container creates, with a strong password |
+| `DB_NAME`, `DB_USER`, `DB_PASSWORD`                 | The same values as `POSTGRES_*`: Django connects to that database     |
+| `DB_HOST`                                           | `cocos-postgres`, the PostgreSQL container                            |
+| `SENDGRID_API_KEY`, `DEFAULT_FROM_EMAIL`            | For email notifications                                               |
 
-`ANNOTATION_BASE` and `MODEL_SERVICE_BASE` already point to the bio service and the model service of Cocos-deployment. A `.env.prod` made before the model service existed lacks `MODEL_SERVICE_BASE`: the setup script reports it as missing, and its value is the one of `.env.prod.example`.
+`ANNOTATION_BASE` and `MODEL_SERVICE_BASE` already point to the bio service and the model service of Cocos-deployment.
 
 Generate a Django secret key with:
 
