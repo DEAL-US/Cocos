@@ -126,7 +126,9 @@ def add_software(graph, sample, activity, entry):
         graph.add((activity, PROV.used, database))
         return
 
-    agent = URIRef(f"{sample}#software-{_slug(entry['name'])}-{entry.get('version', '')}")
+    # A model and a tool may share a name and version (the model amrfinderplus runs the tool AMRFinderPlus)
+    kind = 'model' if entry.get('type') == 'model' else 'software'
+    agent = URIRef(f"{sample}#{kind}-{_slug(entry['name'])}-{entry.get('version', '')}")
     graph.add((agent, RDF.type, PROV.SoftwareAgent))
     graph.add((agent, RDFS.label, label))
     graph.add((agent, SCHEMA.name, Literal(entry['name'])))
