@@ -4,6 +4,8 @@ const HIGH_THRESHOLD = 0.65;
 // How each verdict of a model is shown (see prediction/results.py)
 const CALLS = {
   R: { label: 'Resistant', level: 'prediction-high' },
+  possible: { label: 'Possible resistance', level: 'prediction-medium' },
+  I: { label: 'Susceptible, increased exposure', level: 'prediction-medium' },
   S: { label: 'Susceptible', level: 'prediction-low' },
   not_detected: { label: 'Not detected', level: 'prediction-no-result' },
 };
@@ -155,7 +157,7 @@ function createPredictionCell(result, trust, model, antibiotic) {
   }
 
   if (trust) {
-    content.appendChild(createTrustBadge(trust, model, antibiotic));
+    content.appendChild(createTrustBadge(trust, model, antibiotic, result));
   }
   cell.appendChild(content);
 
@@ -163,7 +165,7 @@ function createPredictionCell(result, trust, model, antibiotic) {
 }
 
 
-function createTrustBadge(trust, model, antibiotic) {
+function createTrustBadge(trust, model, antibiotic, result) {
   const badge = document.createElement('button');
   badge.type = 'button';
   const style = TRUST_STYLES[trust.judgement];
@@ -181,12 +183,12 @@ function createTrustBadge(trust, model, antibiotic) {
   more.className = 'bi bi-chevron-right prediction-trust-more';
 
   badge.append(icon, label, more);
-  badge.addEventListener('click', () => openTrustDialog(trust, model, antibiotic));
+  badge.addEventListener('click', () => openTrustDialog(trust, model, antibiotic, result));
   return badge;
 }
 
 
-function openTrustDialog(trust, model, antibiotic) {
+function openTrustDialog(trust, model, antibiotic, result) {
   const dialog = document.getElementById('trust-dialog');
 
   if (!dialog) {
@@ -203,6 +205,11 @@ function openTrustDialog(trust, model, antibiotic) {
   const groups = dialog.querySelector('.trust-dialog-groups');
   groups.innerHTML = '';
 
+  // Why the verdict is what it is: what the tool found (a model that gives a probability has nothing here)
+  if (result?.evidence?.length) {
+    groups.appendChild(createVerdictEvidence(result.evidence));
+  }
+
   const against = trust.evidence.filter(item => item.judgement !== 'for');
   const inFavour = trust.evidence.filter(item => item.judgement === 'for');
 
@@ -215,6 +222,59 @@ function openTrustDialog(trust, model, antibiotic) {
   }
 
   dialog.showModal();
+}
+
+
+function createVerdictEvidence(items) {
+  const group = document.createElement('section');
+
+  const heading = document.createElement('h4');
+  heading.className = 'text-sm font-semibold mb-2';
+  heading.textContent = 'Why this verdict';
+
+  const list = document.createElement('ul');
+  list.className = 'space-y-2';
+
+  items.forEach(item => {
+    const entry = document.createElement('li');
+    entry.className = 'rounded-box px-3 py-2.5 text-sm bg-base-200/60';
+
+    const gene = document.createElement('p');
+    const symbol = document.createElement('span');
+    symbol.className = 'font-semibold font-mono';
+    symbol.textContent = item.gene || item.node || 'Determinant';
+    gene.appendChild(symbol);
+    if (item.name) {
+      const name = document.createElement('span');
+      name.className = 'text-base-content/70';
+      name.textContent = ` · ${item.name}`;
+      gene.appendChild(name);
+    }
+    if (item.effect) {
+      const effect = document.createElement('span');
+      effect.className = `badge badge-sm badge-soft ml-2 ${item.effect === 'S' ? 'badge-success' : 'badge-error'}`;
+      effect.textContent = item.effect === 'S' ? 'No resistance' : 'Resistance';
+      gene.appendChild(effect);
+    }
+
+    const details = [
+      item.identity !== undefined ? `${item.identity}% identity` : '',
+      item.coverage !== undefined ? `${item.coverage}% coverage` : '',
+      item.subclass ? `for ${item.subclass.toLowerCase()}` : '',
+      item.rules?.length ? `rules ${item.rules.join(', ')}` : '',
+      item.evidence_grade && item.evidence_grade !== '-' ? `evidence grade: ${item.evidence_grade}` : '',
+      item.source ? `from ${item.source}` : '',
+    ].filter(Boolean);
+    const meta = document.createElement('p');
+    meta.className = 'text-xs text-base-content/70 mt-0.5';
+    meta.textContent = details.join(' · ');
+
+    entry.append(gene, meta);
+    list.appendChild(entry);
+  });
+
+  group.append(heading, list);
+  return group;
 }
 
 
