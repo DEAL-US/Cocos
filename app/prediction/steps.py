@@ -30,7 +30,7 @@ from .adapters.registry import (
     list_registered_models,
 )
 from .models import NO_RESULT, PredictionTask
-from .results import CALLS, as_result
+from .results import CALLS, SEVERITY, as_result, make_result
 from .runs import finish_run_if_done, mark_run_started
 
 logger = logging.getLogger(__name__)
@@ -132,8 +132,8 @@ class ModelPredictionStep(BaseModelStep, LocalStep):
 class RemoteModelPredictionStep(BaseModelStep, ExternalStep):
     """A model that runs in a service (see prediction.remote): its input files are sent there as a job.
 
-    The service says what each result is about with an ARO term, which becomes the name of the
-    antibiotic in Cocos; results about other terms (e.g. a class of antibiotics) are left out. The
+    The service says what each result is about with an ARO term: an antibiotic, or a class of
+    antibiotics, which applies to the antibiotics under it in ARO (see _results_by_antibiotic). The
     output of the tool itself is kept as the output `tool_output`, if the descriptor declares it.
     """
     RAW_OUTPUT = 'tool_output'
@@ -165,15 +165,8 @@ class RemoteModelPredictionStep(BaseModelStep, ExternalStep):
         return job.get('message') or 'External job failed', job.get('error_kind') == 'input'
 
     def collect(self, task):
-        by_antibiotic = {_antibiotic_label(result['about']): result
-                         for result in remote.get_result(self.endpoint, task.external_job_id)}
-        results = {}
-        for antibiotic in task.parameters['antibiotics']:
-            result = by_antibiotic.get(antibiotic)
-            try:
-                results[antibiotic] = as_result({key: value for key, value in result.items() if key != 'about'})
-            except (AttributeError, ValueError):
-                results[antibiotic] = NO_RESULT  # nothing about it, or not a valid result
+        results = _results_by_antibiotic(remote.get_result(self.endpoint, task.external_job_id),
+                                         task.parameters['antibiotics'])
         _save_results(task, self.model_name, results)
 
         if any(port.role == self.RAW_OUTPUT for port in self.produces) and not self.already_saved(task, self.RAW_OUTPUT):
@@ -199,10 +192,51 @@ class RemoteModelPredictionStep(BaseModelStep, ExternalStep):
         return [self.model_software()] + models[self.service_name].get('software', [])
 
 
-def _antibiotic_label(curie):
-    """The name in Cocos (its ARO label, e.g. 'amikacin') of an ARO term given as 'ARO:0000013'."""
-    label = terms_graph().value(OBO[curie.replace(':', '_')], RDFS.label)
-    return str(label) if label is not None else None
+def _results_by_antibiotic(service_results, antibiotics):
+    """{antibiotic: result} of the results of a service ([{about: ARO term, call, score, evidence}]).
+
+    An antibiotic gets the results about it and about the classes above it in ARO (terms.ttl): a
+    result about carbapenems applies to meropenem. With several calls, its verdict is the worst one
+    (SEVERITY), with the evidence of the results that gave it (only of those about the antibiotic
+    itself, if any is) or else `inferred_from` the classes they are about. A score is only taken from a result about the
+    antibiotic. NO_RESULT if nothing is about it, or what is about it is not a valid result.
+    """
+    about = [(OBO[result.get('about', '').replace(':', '_')], result) for result in service_results]
+    results = {}
+    for antibiotic in antibiotics:
+        term = _aro_terms().get(antibiotic)
+        above = set(terms_graph().transitive_objects(term, RDFS.subClassOf)) if term is not None else set()
+        try:
+            results[antibiotic] = _combine(term, [(subject, result) for subject, result in about if subject in above])
+        except ValueError:
+            results[antibiotic] = NO_RESULT
+    return results
+
+
+def _combine(term, matching):
+    """The result for the antibiotic `term` of the (term, result) of the service about it or its classes."""
+    score = next((result['score'] for subject, result in matching
+                  if subject == term and result.get('score') is not None), None)
+    called = [(subject, result) for subject, result in matching if result.get('call') in SEVERITY]
+    if not called:
+        return make_result(score=score)  # ValueError if there is no score either
+    worst = min(SEVERITY.index(result['call']) for _, result in called)
+    winners = [(subject, result) for subject, result in called if SEVERITY.index(result['call']) == worst]
+    exact = [(subject, result) for subject, result in winners if subject == term]
+    classes = [] if exact else sorted({subject for subject, _ in winners})
+    return as_result({
+        'call': SEVERITY[worst],
+        'score': score,
+        'evidence': [item for _, result in exact or winners for item in result.get('evidence', [])],
+        'inferred_from': ['ARO:' + str(subject).rsplit('_', 1)[1] for subject in classes],
+    })
+
+
+@lru_cache(maxsize=1)
+def _aro_terms():
+    """{name in Cocos (its ARO label, e.g. 'amikacin'): ARO term} of the ARO terms of terms.ttl."""
+    return {str(name): subject for subject, name in terms_graph().subject_objects(RDFS.label)
+            if str(subject).startswith(str(OBO) + 'ARO_')}
 
 
 def _save_results(task, model_name, results, with_csv=True):

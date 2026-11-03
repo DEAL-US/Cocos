@@ -13,6 +13,7 @@ from core.testing import ASSEMBLY_FASTA, FlowTestMixin
 from prediction import remote
 from prediction.adapters import registry
 from prediction.models import NO_RESULT, PredictionRun, PredictionTask
+from prediction.steps import _results_by_antibiotic
 from prediction.testing import FakeModelService, register_fake_models, register_fake_remote_models
 from semantics.namespaces import SCHEMA
 from semantics.registry.descriptors import load_descriptor, model_descriptor_path, model_iri
@@ -92,8 +93,46 @@ class ServiceUrlTests(SimpleTestCase):
 RESULTS = [
     {'about': 'ARO:0000013', 'call': 'R', 'evidence': [{'gene': "aac(6')-Ib", 'identity': 99.1}]},  # amikacin
     {'about': 'ARO:3000645', 'score': 0.3},                                                    # cefotaxime
-    {'about': 'ARO:0000020', 'call': 'R'},                   # a class of antibiotics: left out until phase 4
+    {'about': 'ARO:0000020', 'call': 'R'},                   # carbapenems: applies to meropenem
 ]
+
+
+MEROPENEM, CARBAPENEM, CEFOTAXIME = 'ARO:0000073', 'ARO:0000020', 'ARO:3000645'
+GENE = {'gene': 'blaKPC-2'}
+
+
+class ResultsByAntibioticTests(SimpleTestCase):
+    """What the results of a service about antibiotics and classes say about each antibiotic."""
+
+    def results(self, service_results, antibiotic='meropenem'):
+        return _results_by_antibiotic(service_results, [antibiotic])[antibiotic]
+
+    def test_a_result_about_a_class_applies_to_its_antibiotics_and_says_so(self):
+        self.assertEqual(self.results([{'about': CARBAPENEM, 'call': 'possible', 'evidence': [GENE]}]),
+                         {'call': 'possible', 'evidence': [GENE], 'inferred_from': [CARBAPENEM]})
+
+    def test_a_class_does_not_apply_to_antibiotics_outside_it(self):
+        self.assertEqual(self.results([{'about': CARBAPENEM, 'call': 'R'}], 'cefotaxime'), NO_RESULT)
+
+    def test_the_worst_verdict_wins_with_its_evidence(self):
+        result = self.results([{'about': MEROPENEM, 'call': 'S', 'evidence': [{'gene': 'blaEC-5'}]},
+                               {'about': CARBAPENEM, 'call': 'possible', 'evidence': [GENE]},
+                               {'about': CARBAPENEM, 'call': 'not_detected'}])
+        self.assertEqual(result, {'call': 'possible', 'evidence': [GENE], 'inferred_from': [CARBAPENEM]})
+
+    def test_a_verdict_about_the_antibiotic_itself_is_not_inferred_and_has_only_its_evidence(self):
+        result = self.results([{'about': MEROPENEM, 'call': 'S', 'evidence': [{'gene': 'blaEC-5'}]},
+                               {'about': CARBAPENEM, 'call': 'S', 'evidence': [{'gene': 'blaEC-5', 'rules': ['x']}]},
+                               {'about': CARBAPENEM, 'call': 'not_detected'}])
+        self.assertEqual(result, {'call': 'S', 'evidence': [{'gene': 'blaEC-5'}]})
+
+    def test_a_score_is_only_taken_from_a_result_about_the_antibiotic(self):
+        self.assertEqual(self.results([{'about': CARBAPENEM, 'score': 0.9}]), NO_RESULT)
+        self.assertEqual(self.results([{'about': MEROPENEM, 'score': 0.9}]), {'score': 0.9})
+
+    def test_nothing_about_it_or_an_invalid_result_is_no_result(self):
+        self.assertEqual(self.results([]), NO_RESULT)
+        self.assertEqual(self.results([{'about': MEROPENEM, 'score': 2}]), NO_RESULT)
 
 
 class RemotePredictionFlowTests(FlowTestMixin, TestCase):
@@ -127,9 +166,9 @@ class RemotePredictionFlowTests(FlowTestMixin, TestCase):
         self.assertEqual(task.status, TaskStatus.COMPLETED)
         self.assertEqual(task.results, {'amikacin': {'call': 'R', 'evidence': [{'gene': "aac(6')-Ib", 'identity': 99.1}]},
                                         'cefotaxime': {'score': 0.3},
-                                        'meropenem': NO_RESULT})
+                                        'meropenem': {'call': 'R', 'inferred_from': ['ARO:0000020']}})
         self.assertEqual(run.status, TaskStatus.COMPLETED)
-        self.assertEqual(run.data, [[task.results['amikacin']], [{'score': 0.3}], [NO_RESULT]])
+        self.assertEqual(run.data, [[task.results['amikacin']], [{'score': 0.3}], [task.results['meropenem']]])
 
     def test_keeps_the_output_of_the_tool_and_the_software_its_job_used(self):
         with FakeModelService(results={'fake_remote': RESULTS}):
