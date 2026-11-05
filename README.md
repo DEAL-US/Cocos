@@ -55,4 +55,4 @@ Cocos is developed by María Quirós in collaboration with the [DEAL research gr
 
 ## License
 
-The Cocos source code is free software under the [GNU General Public License v3](LICENSE). The AMRF vocabulary and its SHACL shapes (`app/semantics/vocab/`) are published under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The Cocos source code is free software under the [GNU General Public License v3](LICENSE). The AMRF vocabulary and its SHACL shapes (`app/semantics/vocab/`) are published under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The registry served by an instance (`/registry/`, `/sparql`), which copies labels of EDAM, is published under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

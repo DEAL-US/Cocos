@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from pyparsing import ParseException
 from rdflib import BNode, Graph, Literal, URIRef
-from rdflib.namespace import RDF, RDFS
+from rdflib.namespace import DCTERMS, RDF, RDFS
 from rdflib.plugins.sparql import prepareQuery
 from rdflib.plugins.sparql.parserutils import CompValue
 
@@ -28,6 +28,7 @@ from prediction.services import assess_predictions
 from .flow import registry_flow, sample_flow, tool_node_id
 from .model_page import model_page
 from .namespaces import AMRF, BSC, COCOS, PREFIXES, SCHEMA, bind_prefixes
+from .registry.description import REGISTRY
 from .registry.graph import registry_graph
 from .registry.vocabulary import load_vocabulary
 from .provenance import task_iri
@@ -232,6 +233,19 @@ def registry_view(request):
     })
 
 
+def void_view(request):
+    """The VoID description of the registry, where VoID clients look for it (/.well-known/void).
+    Turtle unless a browser asks for HTML."""
+    return _resource(request, registry_graph(), REGISTRY, default='turtle')
+
+
+def registry_dump_view(request):
+    """The whole registry as a Turtle file: its void:dataDump."""
+    response = rdf_response(registry_graph(), 'turtle')
+    response['Content-Disposition'] = 'inline; filename="cocos-registry.ttl"'
+    return response
+
+
 def step_view(request, key):
     return _resource(request, registry_graph(), COCOS[f'step/{key}'], flow_node=tool_node_id(key, is_model=False))
 
@@ -275,14 +289,15 @@ def shapes_view(request):
     })
 
 
-def _resource(request, graph, iri, flow_node=None, is_model=False):
-    """The page or the RDF of `iri`. `flow_node` is its node in the data flow of the registry, if any.
+def _resource(request, graph, iri, flow_node=None, is_model=False, default='html'):
+    """The page or the RDF of `iri` (`default` when the request does not say which). `flow_node` is
+    its node in the data flow of the registry, if any.
     The page of a model shows how it was built, its quality and its files in their own sections, and
     only its inputs and outputs among its parts; the RDF has all of them."""
     description = describe(graph, iri)
     if not len(description):
         raise Http404(f'{iri} is not in the registry')
-    rdf = rdf_format(request, default='html')
+    rdf = rdf_format(request, default=default)
     if rdf != 'html':
         return rdf_response(description, rdf)
     if is_model:
@@ -294,7 +309,8 @@ def _resource(request, graph, iri, flow_node=None, is_model=False):
         for predicate in MODEL_SECTIONS:
             subjects[0]['properties'].pop(predicate, None)
     return render(request, 'semantics/resource.html', {
-        'title': str(graph.value(iri, SCHEMA.name) or graph.value(iri, RDFS.label) or iri),
+        'title': str(graph.value(iri, SCHEMA.name) or graph.value(iri, RDFS.label) or graph.value(iri, DCTERMS.title)
+                     or iri),
         'iri': str(iri),
         'filename': str(iri).rstrip('/').rsplit('/', 1)[-1],
         'subjects': subjects,

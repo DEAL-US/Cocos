@@ -1,8 +1,9 @@
 from django.test import SimpleTestCase
-from rdflib import URIRef
+from rdflib import Graph, URIRef
 
 from semantics.flow import registry_flow, sample_flow
 from semantics.namespaces import EDAM, OBO
+from semantics.registry.description import REGISTRY
 from semantics.registry.graph import build_registry_graph
 from semantics.tests.test_discovery import ANNOTATION, NANOPORE, READS, add_model, sample
 
@@ -28,6 +29,13 @@ class RegistryFlowTests(SimpleTestCase):
         assembly = self.node(self.flow, type='data', label='Sequence assembly')
         self.assertEqual(assembly['detail'], 'FASTA')
         self.assertEqual([term['iri'] for term in assembly['terms']], [str(EDAM.data_0925), str(EDAM.format_1929)])
+
+    def test_the_description_of_the_registry_is_not_drawn(self):
+        registry = build_registry_graph()
+        without_description = Graph() + registry
+        without_description.remove((REGISTRY, None, None))
+
+        self.assertEqual(registry_flow(registry), registry_flow(without_description))
 
     def test_reads_are_told_apart_by_their_sequencing_technique(self):
         nanopore = self.node(self.flow, type='data', detail='FASTQ · Nanopore Sequencing')['id']

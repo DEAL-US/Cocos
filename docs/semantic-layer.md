@@ -37,6 +37,8 @@ The registry (steps, models, the AMRF vocabulary and shapes) is public; the data
 | `/amrf/`, `/amrf/<term>`       | the AMRF vocabulary and its terms                                         |
 | `/amrf/shapes`                 | the AMRF SHACL shapes                                                     |
 | `/sparql`                      | read-only SPARQL endpoint over the registry                               |
+| `/.well-known/void`            | the [VoID](https://www.w3.org/TR/void/) description of the registry (Turtle by default) |
+| `/registry.ttl`                | the whole registry as a Turtle file (its `void:dataDump`)                 |
 
 Without a browser, ask for the format you want:
 
@@ -48,6 +50,8 @@ curl "http://localhost:8080/registry/?format=jsonld" -o registry.jsonld        #
 RDF libraries send that `Accept` header themselves, so in Python `rdflib.Graph().parse("http://localhost:8080/registry/")` is enough.
 
 The registry page draws the **data flow** of the registry (`semantics/flow.py`, drawn with Cytoscape.js and dagre): the kinds of data (EDAM data and format, and the sequencing technique of reads), the steps and the models, with an arrow from each kind of data to every step or model it can feed and from each step to what it produces. It is built with the same reading and matching as the discovery, so it shows the paths the discovery can take. Selecting a box highlights everything that leads to it and everything it leads to, and lists what it needs and produces; the page of each step and model links to its box (`/registry/?focus=model-base_bakta_50`). The graph can be downloaded as a PNG.
+
+The registry describes itself as a `void:Dataset` (`https://w3id.org/cocos/registry/`, `semantics/registry/description.py`): its license (CC BY-SA 4.0, since it copies labels of EDAM), its SPARQL endpoint, where to download it, the RDF formats its IRIs give, its models as example resources, the vocabularies whose terms it uses (not those of RDF, RDFS and OWL) and how many triples, entities, classes and properties it has, counted without that description. The description is part of the registry, so it can be queried too, and it is not a step or model, so the data flows do not show it.
 
 The SPARQL endpoint follows the SPARQL 1.1 protocol (`GET ?query=...`, or `POST` as a form or as `application/sparql-query`) and allows cross-origin requests. `SELECT` and `ASK` results are JSON (default), XML or CSV; `CONSTRUCT` and `DESCRIBE` results are Turtle or JSON-LD. The prefixes `schema:`, `edam:`, `obo:`, `bsc:`, `amrf:` and `rdfs:` are predefined. Updates, `SERVICE` and queries longer than 10,000 characters are refused. For example, the models and the antibiotics they predict:
 

@@ -4,7 +4,7 @@ Cocos reuses existing ontologies wherever a term exists and only defines its own
 AMRF vocabulary (AntiMicrobial Resistance Framework) when none fits.
 """
 from rdflib import Namespace
-from rdflib.namespace import DCTERMS, OWL, PROV, RDF, RDFS, SKOS, XSD
+from rdflib.namespace import DCTERMS, OWL, PROV, RDF, RDFS, SKOS, VOID, XSD
 
 # Own vocabulary and the resources of this Cocos instance (steps, models, samples).
 AMRF = Namespace('https://w3id.org/amrf/')
@@ -28,6 +28,8 @@ PPLAN = Namespace('http://purl.org/net/p-plan#')
 DQV = Namespace('http://www.w3.org/ns/dqv#')
 # Web Annotation (W3C), which DQV uses for quality annotations: the trust of a prediction.
 OA = Namespace('http://www.w3.org/ns/oa#')
+# The registry describes itself with VoID (imported above), with the W3C IRIs of media types.
+FORMATS = Namespace('http://www.w3.org/ns/formats/')
 
 PREFIXES = {
     'amrf': AMRF,
@@ -42,6 +44,8 @@ PREFIXES = {
     'p-plan': PPLAN,
     'dqv': DQV,
     'oa': OA,
+    'void': VOID,
+    'formats': FORMATS,
     'dcterms': DCTERMS,
     'owl': OWL,
     'rdf': RDF,

@@ -2,7 +2,7 @@
 
 It joins the AMRF vocabulary, the steps of the framework (generated from the code), the
 descriptors of the parsers and models (written by hand) and the labels and hierarchy of the
-reused ontology terms (terms.ttl).
+reused ontology terms (terms.ttl), and describes itself with VoID (description.py).
 
 Code that queries the registry (the discovery, the SPARQL endpoint) gets the graph from
 registry_graph(), so the graph could later be served from a triplestore by changing only
@@ -17,6 +17,7 @@ from conversion.parsers import PARSERS
 from core.steps import list_steps
 from prediction.adapters.registry import list_registered_models
 
+from .description import dataset_description
 from .descriptors import load_descriptor, model_descriptor_path, model_iri, parser_descriptor_path
 from ..namespaces import bind_prefixes
 from .steps import step_iri, steps_graph
@@ -51,6 +52,7 @@ def build_registry_graph(include_terms=True):
         graph += load_descriptor(model_descriptor_path(name))
     if include_terms and TERMS_FILE.exists():
         graph.parse(TERMS_FILE, format='turtle')
+    graph += dataset_description(graph)
     return graph
 
 

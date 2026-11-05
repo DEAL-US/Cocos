@@ -8,7 +8,9 @@ from rdflib.namespace import RDF
 
 from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
 from core.testing import FakeBioService
-from semantics.namespaces import AMRF, COCOS, DQV, EDAM, SCHEMA
+from semantics.namespaces import AMRF, COCOS, DQV, EDAM, SCHEMA, VOID
+from semantics.registry.description import REGISTRY, SPARQL_ENDPOINT
+from semantics.registry.graph import registry_graph
 
 MODEL = COCOS['model/base_bakta_50']
 
@@ -73,6 +75,21 @@ class ResourcePagesTests(TestCase):
         self.assertContains(self.client.get('/step/bakta_annotation', HTTP_ACCEPT='text/html'),
                             '/registry/?focus=step-bakta_annotation#data-flow')
 
+    def test_the_void_description_of_the_registry_is_well_known(self):
+        void = Graph().parse(data=self.client.get('/.well-known/void', HTTP_ACCEPT='text/turtle').content,
+                             format='turtle')
+        self.assertIn((REGISTRY, RDF.type, VOID.Dataset), void)
+        self.assertEqual(void.value(REGISTRY, VOID.sparqlEndpoint), SPARQL_ENDPOINT)
+
+        self.assertContains(self.client.get('/.well-known/void', HTTP_ACCEPT='text/html'), 'Cocos registry')
+        any_client = self.client.get('/.well-known/void')  # VoID clients may not say what they accept
+        self.assertEqual(any_client['Content-Type'], 'text/turtle; charset=utf-8')
+
+    def test_the_registry_can_be_downloaded_as_its_void_says(self):
+        response = self.client.get('/registry.ttl')
+        dump = Graph().parse(data=response.content, format='turtle')
+        self.assertEqual(len(dump), len(registry_graph()))
+
     def test_unknown_resources_are_not_found(self):
         self.assertEqual(self.client.get('/model/no_such_model').status_code, 404)
         self.assertEqual(self.client.get('/amrf/noSuchTerm').status_code, 404)
@@ -106,6 +123,11 @@ class SparqlEndpointTests(ConversionFlowMixin, TestCase):
         construct = self.query(f'CONSTRUCT {{ ?s ?p ?o }} WHERE {{ ?s ?p ?o FILTER(?s = <{MODEL}>) }}',
                                method='post', content_type='application/sparql-query')
         self.assertIn((MODEL, SCHEMA.taxonomicRange, None), Graph().parse(data=construct.content, format='turtle'))
+
+    def test_its_void_description_can_be_queried(self):
+        response = self.query('SELECT ?endpoint WHERE { ?registry a void:Dataset ; void:sparqlEndpoint ?endpoint }')
+        rows = json.loads(response.content)['results']['bindings']
+        self.assertEqual([row['endpoint']['value'] for row in rows], [str(SPARQL_ENDPOINT)])
 
     def test_refused_queries(self):
         cases = {
