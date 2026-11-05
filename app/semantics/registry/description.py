@@ -1,13 +1,13 @@
-"""What the registry is: its VoID description.
+"""What the registry is (VoID) and what its SPARQL endpoint offers (SPARQL 1.1 Service Description).
 
 The VoID description is part of the registry graph, so it can be queried like the rest; it is a
 void:Dataset, not a step or model, so the data flow and the discovery do not see it. Its numbers
 (triples, classes, entities...) are counted on the registry without the description itself.
 """
-from rdflib import Graph, Literal, URIRef
+from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, OWL, RDF, RDFS, XSD
 
-from ..namespaces import COCOS, FORMATS, PREFIXES, SCHEMA, VOID, bind_prefixes
+from ..namespaces import COCOS, FORMATS, PREFIXES, SCHEMA, SD, VOID, bind_prefixes
 
 REGISTRY = COCOS['registry/']
 # VoID asks for a dump other than the IRI of the dataset, which gives a page to browsers.
@@ -16,6 +16,9 @@ SPARQL_ENDPOINT = COCOS['sparql']
 # The registry copies labels of EDAM, which is CC BY-SA 4.0 (like terms.ttl).
 REGISTRY_LICENSE = URIRef('https://creativecommons.org/licenses/by-sa/4.0/')
 PUBLISHER = URIRef('https://deal.us.es')
+# What the endpoint answers: SELECT and ASK results, and the graphs of CONSTRUCT and DESCRIBE.
+RESULT_FORMATS = (FORMATS.SPARQL_Results_JSON, FORMATS.SPARQL_Results_XML, FORMATS.SPARQL_Results_CSV,
+                  FORMATS.Turtle, FORMATS['JSON-LD'])
 NOT_LISTED = (COCOS, RDF, RDFS, OWL, XSD)  # as vocabularies of the registry
 
 
@@ -49,6 +52,23 @@ def dataset_description(registry):
     }
     for predicate, count in counts.items():
         graph.add((REGISTRY, predicate, Literal(count)))
+    return graph
+
+
+def service_description(registry):
+    """The Service Description of the SPARQL endpoint, with the VoID description of its data."""
+    graph = bind_prefixes(Graph())
+    graph.add((SPARQL_ENDPOINT, RDF.type, SD.Service))
+    graph.add((SPARQL_ENDPOINT, SD.endpoint, SPARQL_ENDPOINT))
+    graph.add((SPARQL_ENDPOINT, SD.supportedLanguage, SD.SPARQL11Query))
+    for result_format in RESULT_FORMATS:
+        graph.add((SPARQL_ENDPOINT, SD.resultFormat, result_format))
+    dataset = BNode()
+    graph.add((SPARQL_ENDPOINT, SD.defaultDataset, dataset))
+    graph.add((dataset, RDF.type, SD.Dataset))
+    graph.add((dataset, SD.defaultGraph, REGISTRY))
+    graph.add((REGISTRY, RDF.type, SD.Graph))
+    graph += registry.triples((REGISTRY, None, None))
     return graph
 
 

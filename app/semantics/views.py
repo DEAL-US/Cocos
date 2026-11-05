@@ -28,7 +28,7 @@ from prediction.services import assess_predictions
 from .flow import registry_flow, sample_flow, tool_node_id
 from .model_page import model_page
 from .namespaces import AMRF, BSC, COCOS, PREFIXES, SCHEMA, bind_prefixes
-from .registry.description import REGISTRY
+from .registry.description import REGISTRY, SPARQL_ENDPOINT, service_description
 from .registry.graph import registry_graph
 from .registry.vocabulary import load_vocabulary
 from .provenance import task_iri
@@ -155,12 +155,14 @@ def _latest_tasks(process):
 def sparql_view(request):
     """Read-only SPARQL endpoint over the registry (SPARQL 1.1 protocol: GET ?query= or POST).
 
-    SELECT and ASK results are JSON (default), XML or CSV; CONSTRUCT and DESCRIBE results are
-    Turtle (default) or JSON-LD. The usual prefixes (schema, edam, obo, amrf...) are predefined.
+    A GET with no query gets the Service Description of the endpoint. SELECT and ASK results are
+    JSON (default), XML or CSV; CONSTRUCT and DESCRIBE results are Turtle (default) or JSON-LD. The usual prefixes (schema, edam, obo, amrf...) are predefined.
     Updates, SERVICE (queries to other endpoints) and queries over MAX_QUERY_LENGTH are refused.
     """
     if request.method == 'OPTIONS':
         return _cors(HttpResponse())
+    if request.method == 'GET' and 'query' not in request.GET:
+        return _service_description(request)
     if request.method == 'GET':
         query = request.GET.get('query', '')
     elif request.method == 'POST':
@@ -187,6 +189,18 @@ def sparql_view(request):
         return _cors(HttpResponse(result.serialize(format=RESULT_FORMATS[media_type]), content_type=f'{media_type}; charset=utf-8'))
     graph = bind_prefixes(Graph()) + result.graph
     return rdf_response(graph, 'json-ld' if JSON_LD in accept else 'turtle')
+
+
+def _service_description(request):
+    """What the endpoint offers (SPARQL 1.1 Service Description): RDF, or its Turtle for browsers."""
+    graph = service_description(registry_graph())
+    rdf = rdf_format(request)
+    if rdf != 'html':
+        return _cors(rdf_response(graph, rdf))
+    return render(request, 'semantics/resource.html', {
+        'title': 'Cocos SPARQL endpoint', 'iri': str(SPARQL_ENDPOINT), 'filename': 'sparql',
+        'turtle': graph.serialize(format='turtle'),
+    })
 
 
 def _uses_service(node):

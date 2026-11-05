@@ -28,7 +28,9 @@ PPLAN = Namespace('http://purl.org/net/p-plan#')
 DQV = Namespace('http://www.w3.org/ns/dqv#')
 # Web Annotation (W3C), which DQV uses for quality annotations: the trust of a prediction.
 OA = Namespace('http://www.w3.org/ns/oa#')
-# The registry describes itself with VoID (imported above), with the W3C IRIs of media types.
+# What the registry is (VoID, imported above) and what the SPARQL endpoint offers (SPARQL 1.1
+# Service Description, with the W3C IRIs of media types).
+SD = Namespace('http://www.w3.org/ns/sparql-service-description#')
 FORMATS = Namespace('http://www.w3.org/ns/formats/')
 
 PREFIXES = {
@@ -45,6 +47,7 @@ PREFIXES = {
     'dqv': DQV,
     'oa': OA,
     'void': VOID,
+    'sd': SD,
     'formats': FORMATS,
     'dcterms': DCTERMS,
     'owl': OWL,

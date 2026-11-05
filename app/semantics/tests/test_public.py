@@ -8,9 +8,10 @@ from rdflib.namespace import RDF
 
 from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
 from core.testing import FakeBioService
-from semantics.namespaces import AMRF, COCOS, DQV, EDAM, SCHEMA, VOID
+from semantics.namespaces import AMRF, COCOS, DQV, EDAM, SCHEMA, SD, VOID
 from semantics.registry.description import REGISTRY, SPARQL_ENDPOINT
 from semantics.registry.graph import registry_graph
+from semantics.views import RESULT_FORMATS
 
 MODEL = COCOS['model/base_bakta_50']
 
@@ -123,6 +124,20 @@ class SparqlEndpointTests(ConversionFlowMixin, TestCase):
         construct = self.query(f'CONSTRUCT {{ ?s ?p ?o }} WHERE {{ ?s ?p ?o FILTER(?s = <{MODEL}>) }}',
                                method='post', content_type='application/sparql-query')
         self.assertIn((MODEL, SCHEMA.taxonomicRange, None), Graph().parse(data=construct.content, format='turtle'))
+
+    def test_without_a_query_it_describes_itself(self):
+        response = self.client.get(reverse('semantics:sparql'), HTTP_ACCEPT='text/turtle')
+
+        self.assertEqual(response['Access-Control-Allow-Origin'], '*')
+        description = Graph().parse(data=response.content, format='turtle')
+        self.assertEqual(description.value(SPARQL_ENDPOINT, SD.endpoint), SPARQL_ENDPOINT)
+        formats = set(description.objects(SPARQL_ENDPOINT, SD.resultFormat))
+        self.assertEqual(len(formats), len(RESULT_FORMATS) + 2)  # and Turtle and JSON-LD for graphs
+        dataset = description.value(SPARQL_ENDPOINT, SD.defaultDataset)
+        self.assertEqual(description.value(dataset, SD.defaultGraph), REGISTRY)
+        self.assertIn((REGISTRY, VOID.triples, None), description)
+
+        self.assertContains(self.client.get(reverse('semantics:sparql'), HTTP_ACCEPT='text/html'), 'sd:Service')
 
     def test_its_void_description_can_be_queried(self):
         response = self.query('SELECT ?endpoint WHERE { ?registry a void:Dataset ; void:sparqlEndpoint ?endpoint }')
