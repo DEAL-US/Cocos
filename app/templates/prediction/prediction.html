@@ -35,7 +35,9 @@
         <legend class="fieldset-legend text-base font-semibold">Sample selection</legend>
         <p class="text-sm opacity-70 mb-3">Select one of your samples. Samples still being processed can be used once they finish.</p>
 
-        <select id="sample-select" class="select select-bordered w-full source-job-select">
+        <select id="sample-select" class="select select-bordered w-full source-job-select"
+                data-models-url="{% url 'prediction:sample_models' 0 %}"
+                data-process-url="{% url 'conversion:process_status' 0 %}">
           <option value="">Select a sample</option>
 
           {% for sample in sample_options %}
@@ -129,7 +131,7 @@
       </fieldset>
 
       <div>
-        <button id="compute-matrix" class="btn btn-primary">Compute Prediction</button>
+        <button id="compute-matrix" class="btn btn-primary" data-matrix-url="{% url 'prediction:prediction_matrix' %}">Compute Prediction</button>
       </div>
 
       <div id="prediction-status" role="alert" class="alert alert-error alert-soft hidden"></div>

@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', function () {
     return el ? el.value : null;
   })();
 
+  // The template renders these URLs with the id 0, so they keep any subpath the app is served under
+  const sampleUrl = (template, id) => template.replace('/0/', `/${id}/`);
+
   // What the discovery says about each model for the selected sample
   let models = [];
   let loading = false;
@@ -40,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     try {
-      const response = await fetch(`/prediction/samples/${sampleId}/models/`);
+      const response = await fetch(sampleUrl(sampleSelect.dataset.modelsUrl, sampleId));
       const data = await response.json();
       if (request !== sampleRequest) {
         return;  // another sample was selected meanwhile
@@ -69,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
     sampleOrganism.classList.toggle('hidden', !sampleId);
     if (sampleId) {
       sampleOrganism.querySelector('[data-organism-name]').textContent = organism || 'unknown';
-      sampleOrganism.querySelector('[data-organism-link]').href = `/processes/${sampleId}/#organism`;
+      sampleOrganism.querySelector('[data-organism-link]').href = `${sampleUrl(sampleSelect.dataset.processUrl, sampleId)}#organism`;
     }
   }
 
@@ -199,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function () {
     hideError();
 
     try {
-      const response = await fetch('/prediction/matrix/', {
+      const response = await fetch(computeBtn.dataset.matrixUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -215,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      window.location.href = `/processes/${data.process_id}/`;
+      window.location.href = sampleUrl(sampleSelect.dataset.processUrl, data.process_id);
 
     } catch (error) {
       console.error('Error during fetch:', error);
