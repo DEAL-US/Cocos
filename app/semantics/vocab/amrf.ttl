@@ -1,4 +1,5 @@
 @prefix amrf:    <https://w3id.org/amrf/> .
+@prefix bibo:    <http://purl.org/ontology/bibo/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix edam:    <http://edamontology.org/> .
 @prefix mod:     <https://w3id.org/mod#> .
@@ -22,6 +23,8 @@
     dcterms:publisher <https://deal.us.es> ;
     dcterms:created "2026-10-15"^^xsd:date ;
     dcterms:issued "2026-10-20"^^xsd:date ;
+    bibo:doi "10.5281/zenodo.24083396" ;
+    dcterms:bibliographicCitation "Quirós Quiroga, M. (2026). AMRF: AntiMicrobial Resistance Framework vocabulary and SHACL shapes (0.1.0). Zenodo. https://doi.org/10.5281/zenodo.24083396" ;
     dcterms:source <https://github.com/DEAL-US/Cocos> ;
     mod:status "Released"@en ;
     schema:logo <https://raw.githubusercontent.com/DEAL-US/Cocos/main/app/static/images/logo.svg> ;

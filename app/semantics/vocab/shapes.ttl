@@ -2,6 +2,7 @@
 @prefix amrfsh:     <https://w3id.org/amrf/shapes#> .
 @prefix bioschemas: <https://bioschemas.org/> .
 @prefix bsc:        <https://bioschemas.org/properties/> .
+@prefix bibo:       <http://purl.org/ontology/bibo/> .
 @prefix dcterms:    <http://purl.org/dc/terms/> .
 @prefix dqv:        <http://www.w3.org/ns/dqv#> .
 @prefix edam:       <http://edamontology.org/> .
@@ -28,6 +29,8 @@ amrfsh:
     dcterms:creator <https://orcid.org/0009-0005-7434-9883> ;
     dcterms:publisher <https://deal.us.es> ;
     dcterms:created "2026-10-16"^^xsd:date ;
+    bibo:doi "10.5281/zenodo.24083396" ;
+    dcterms:bibliographicCitation "Quirós Quiroga, M. (2026). AMRF: AntiMicrobial Resistance Framework vocabulary and SHACL shapes (0.1.0). Zenodo. https://doi.org/10.5281/zenodo.24083396" ;
     owl:versionInfo "0.1.0" ;
     rdfs:seeAlso amrf: .
 
