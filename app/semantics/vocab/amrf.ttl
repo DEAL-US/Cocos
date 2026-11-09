@@ -1,9 +1,11 @@
 @prefix amrf:    <https://w3id.org/amrf/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix edam:    <http://edamontology.org/> .
+@prefix mod:     <https://w3id.org/mod#> .
 @prefix obo:     <http://purl.obolibrary.org/obo/> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema:  <https://schema.org/> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix vann:    <http://purl.org/vocab/vann/> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
@@ -19,6 +21,10 @@
     dcterms:creator <https://orcid.org/0009-0005-7434-9883> ;
     dcterms:publisher <https://deal.us.es> ;
     dcterms:created "2026-10-15"^^xsd:date ;
+    dcterms:issued "2026-10-20"^^xsd:date ;
+    dcterms:source <https://github.com/DEAL-US/Cocos> ;
+    mod:status "Released"@en ;
+    schema:logo <https://raw.githubusercontent.com/DEAL-US/Cocos/main/app/static/images/logo.svg> ;
     owl:versionInfo "0.1.0" ;
     owl:versionIRI <https://w3id.org/amrf/0.1.0> ;
     vann:preferredNamespacePrefix "amrf" ;
