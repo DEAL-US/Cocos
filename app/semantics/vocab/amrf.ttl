@@ -25,6 +25,7 @@
     dcterms:source <https://github.com/DEAL-US/Cocos> ;
     mod:status "Released"@en ;
     schema:logo <https://raw.githubusercontent.com/DEAL-US/Cocos/main/app/static/images/logo.svg> ;
+    schema:includedInDataCatalog <https://bioportal.bioontology.org/ontologies/AMRF> ;
     owl:versionInfo "0.1.0" ;
     owl:versionIRI <https://w3id.org/amrf/0.1.0> ;
     vann:preferredNamespacePrefix "amrf" ;
