@@ -78,6 +78,14 @@ class ModelQualityTests(SimpleTestCase):
         self.assertIn((str(f1), 'dqv:value'), problems)
         self.assertIn((str(f1), 'dqv:computedOn'), problems)
 
+    def test_a_measurement_is_about_an_antibiotic_or_an_organism(self):
+        graph = load_descriptor(model_descriptor_path('base_bakta_50'))
+        f1 = self.measurement(graph, 'base_bakta_50', OBO.STATO_0000628)
+        graph.set((f1, OBO.IAO_0000136, OBO.STATO_0000628))  # a metric, neither an antibiotic nor an organism
+
+        problems = {(problem.focus, problem.path, problem.severity) for problem in violations(validate(graph))}
+        self.assertIn((str(f1), 'obo:IAO_0000136', 'Violation'), problems)
+
     def test_how_many_labelled_isolates_there_are_for_an_antibiotic_and_a_species(self):
         graph = load_descriptor(model_descriptor_path('base_bakta_50'))
         query = '''SELECT ?value WHERE {

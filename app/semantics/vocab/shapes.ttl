@@ -308,7 +308,8 @@ amrfsh:QualityMeasurementShape
         sh:message "A measurement says on which data it was computed (dqv:computedOn): training, validation..."@en ;
     ] , [
         sh:path obo:IAO_0000136 ; sh:nodeKind sh:IRI ;
-        sh:message "What a measurement is about (obo:IAO_0000136, e.g. an antibiotic of ARO or an organism of NCBITaxon) are terms."@en ;
+        sh:or ( [ sh:node amrfsh:Antibiotic ] [ sh:node amrfsh:Taxon ] ) ;
+        sh:message "What a measurement is about (obo:IAO_0000136) is an antibiotic (ARO) or an organism (NCBITaxon)."@en ;
     ] .
 
 # --- Files a plug-in depends on (schema:hasPart of a model: e.g. its weights), optional
