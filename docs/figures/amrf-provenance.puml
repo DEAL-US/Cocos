@@ -1,0 +1,108 @@
+@startuml amrf-provenance
+' UML class diagram of the provenance and trust Cocos records for a sample. Sources:
+' app/semantics/provenance.py, trust.py and vocab/shapes.ttl. Shown in docs/semantic-layer.md and,
+' simplified, in the ESWC paper (Fig. 2).
+' Render with: java -jar plantuml.jar -tsvg docs/figures/*.puml
+' $FIG1 names the descriptions diagram; the paper sets it to "Fig. 1".
+!if %not(%variable_exists("$FIG1"))
+!$FIG1 = "descriptions diagram"
+!endif
+!pragma layout smetana
+hide circle
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 11
+skinparam ArrowFontSize 10
+skinparam ArrowColor #333333
+skinparam ClassBorderColor #333333
+skinparam stereotypeFontSize 9
+skinparam LegendBackgroundColor #FFFFFF
+skinparam LegendBorderColor #999999
+skinparam LegendFontSize 10
+
+' --- the plan Cocos composed (P-Plan)
+class "p-plan:Plan" as Plan #E6DAF2
+class "p-plan:Step" as Step #E6DAF2
+
+' --- what was run, on what, by whom (PROV-O)
+class "prov:Activity" as Act <<a task: a step or a model run>> #E6DAF2 {
+  schema:name [1]
+  schema:actionStatus [1] : Potential | Active | Completed | FailedActionStatus
+  prov:startedAtTime : xsd:dateTime [0..1]
+  prov:endedAtTime : xsd:dateTime [0..1]
+}
+class "prov:Person" as User <<user>> #E6DAF2
+class "prov:SoftwareAgent" as Agent <<tool or model, with its version>> #E6DAF2 {
+  schema:name [1]
+  schema:softwareVersion [1]
+  {field} prov:specializationOf (bio.tools entry of a tool)
+}
+class "prov:Entity" as Db <<database>> #E6DAF2 {
+  schema:name
+  schema:version
+}
+class "prov:Entity" as Weights <<weights of the model>> #E6DAF2 {
+  schema:sha256
+}
+class "schema:DataDownload" as Data <<data of the sample ($FIG1)>> #D6E4F5
+class "schema:SoftwareApplication" as Desc <<step or model of the registry ($FIG1)>> #D6E4F5
+
+' --- results of a prediction
+class "prov:Entity" as Res <<prediction result>> #E6DAF2 {
+  {field} schema:value : xsd:decimal [0..1] (0 to 1)
+}
+class "prov:Entity" as Ev <<evidence: a determinant found by a tool>> #E6DAF2 {
+  {field} schema:name (gene)
+  {field} dcterms:identifier (rule that interpreted it)
+}
+class "obo:ARO_1000003" as Aro <<antibiotic or drug class>> #FCE6C9
+class "obo:NCIT_C85562, _C85560, _C85563,\n_C206382, _C191300" as Ncit <<verdict>> #FCE6C9
+
+' --- trust of a prediction (DQV, Web Annotation)
+class "dqv:QualityAnnotation" as Ann <<trust of a prediction>> #E6DAF2 {
+  oa:motivatedBy = dqv:qualityAssessment
+  {field} oa:bodyValue : rdf:langString (trust level)
+}
+class "oa:TextualBody" as Body <<one piece of evidence>> #E6DAF2 {
+  {field} rdf:value : rdf:langString (explanation)
+  {field} dcterms:identifier : xsd:string (rule)
+  {field} dcterms:type : xsd:string (judgement)
+}
+
+Step --> "1" Plan : p-plan:isStepOfPlan
+Step --> Step : p-plan:isPrecededBy
+Step --> Desc : dcterms:type
+Act --> Step : p-plan:correspondsToStep
+
+Act --> User : prov:wasAssociatedWith
+Act --> Desc : prov:wasAssociatedWith
+Act --> Agent : prov:wasAssociatedWith
+Agent --> Desc : prov:specializationOf (models)
+Act --> Data : prov:used
+Act --> Db : prov:used
+Act --> Weights : prov:used
+Data --> Act : prov:wasGeneratedBy (outputs)
+Data --> User : prov:wasAttributedTo (uploaded)
+
+Res --> "1" Act : prov:wasGeneratedBy
+Res --> "1" Aro : obo:IAO_0000136 (is about)
+Res --> "0..1" Ncit : rdf:type (verdict)
+Res --> Ev : prov:wasDerivedFrom
+Res --> Res : prov:wasDerivedFrom (result about a drug class)
+
+Ann --> Res : oa:hasTarget
+Ann --> Aro : obo:IAO_0000136 (is about)
+Ann --> Body : oa:hasBody
+
+!if %not(%variable_exists("$PAPER"))
+legend bottom left
+  Colours and term boxes as in the $FIG1 (a box stands for any subclass of the term shown).
+  Multiplicities are those required by the AMRF SHACL shapes; links without one are not constrained, except as stated below.
+  An activity has at least one prov:wasAssociatedWith; a finished one also has prov:endedAtTime and a prov:SoftwareAgent.
+  A result has a verdict (one of the NCIt terms: resistance, intermediate or susceptibility result, presumptive positive, not detected),
+  a probability (schema:value) or both. oa:hasTarget is the activity when there is no result entity. Some properties are omitted.
+endlegend
+!endif
+@enduml

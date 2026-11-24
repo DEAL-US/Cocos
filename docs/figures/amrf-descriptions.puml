@@ -1,0 +1,125 @@
+@startuml amrf-descriptions
+' UML class diagram of the AMRF application profile: descriptions of samples, processing steps
+' and models. Multiplicities are those of app/semantics/vocab/shapes.ttl. Shown in
+' docs/semantic-layer.md and, simplified, in the ESWC paper (Fig. 1).
+' Render with: java -jar plantuml.jar -tsvg docs/figures/*.puml
+!pragma layout smetana
+hide circle
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 11
+skinparam ArrowFontSize 10
+skinparam ArrowColor #333333
+skinparam ClassBorderColor #333333
+skinparam stereotypeFontSize 9
+skinparam LegendBackgroundColor #FFFFFF
+skinparam LegendBorderColor #999999
+skinparam LegendFontSize 10
+
+' --- schema.org / Bioschemas (blue)
+class "schema:Dataset" as Sample <<sample>> $a #D6E4F5 {
+  schema:identifier [1]
+  schema:name [1..*]
+}
+class "schema:DataDownload" as File <<data of the sample>> $a #D6E4F5 {
+  schema:name [1]
+  schema:sha256 : xsd:string [0..1]
+  {field} schema:measurementTechnique (NCIt)
+}
+class "bioschemas:FormalParameter" as Param <<input or output>> $a #D6E4F5 {
+  schema:name [1]
+  dcterms:conformsTo = Bioschemas FormalParameter 1.0
+  {field} schema:measurementTechnique (NCIt, inputs only)
+}
+class "schema:SoftwareApplication" as App <<model or processing step>> #D6E4F5 {
+  schema:identifier [1]
+  schema:name [1..*]
+  schema:description [1..*]
+  schema:url [1..*]
+  dcterms:conformsTo = Bioschemas ComputationalTool 1.0
+  {field} schema:softwareVersion [1..*] (m)
+  {field} schema:author, schema:license, schema:citation (m, recommended)
+}
+class "schema:MediaObject" as Weights <<file of the model, e.g. weights>> $b #D6E4F5 {
+  schema:name [1]
+  schema:sha256 [1]
+}
+
+' --- EDAM (green)
+class "edam:operation_0004" as Op <<operation>> $a #D9F0D3
+class "edam:data_0006" as Data <<data>> $a #D9F0D3
+class "edam:format_1915" as Format <<format>> $a #D9F0D3
+class "edam:format_3464" as Json <<JSON>> $a #D9F0D3
+
+' --- OBO: ARO, NCBITaxon, STATO, NCIt (orange)
+class "obo:ARO_1000003" as Aro <<antibiotic molecule>> $b #FCE6C9
+class "obo:NCBITaxon_1" as Tax <<organism>> #FCE6C9
+class "STATO or NCIt term" as Metric <<metric>> $b #FCE6C9
+
+' --- PROV-O / P-Plan / DQV / Web Annotation (purple)
+class "dqv:QualityMeasurement" as QM $b #E6DAF2 {
+  dqv:value : xsd:decimal | xsd:integer | xsd:double [1]
+}
+class "prov:Entity" as Train <<training, test or validation data>> $b #E6DAF2
+class "prov:Activity" as TrainAct <<e.g. annotation of the training data>> $b #E6DAF2
+class "prov:SoftwareAgent" as TrainAgent <<tool and version>> $b #E6DAF2 {
+  schema:name [1]
+  schema:softwareVersion [1]
+  {field} prov:specializationOf (bio.tools entry)
+}
+class "prov:Entity" as TrainDb <<database>> $b #E6DAF2
+
+' --- AMRF (red)
+class "amrf:BaktaJSON" as Bakta $a #F4B6B6
+
+' --- the sample and its data
+Sample -down-> File : schema:hasPart
+Sample -right-> Tax : schema:taxonomicRange
+File -down-> "1" Data : schema:additionalType
+File -down-> "0..1" Format : schema:encodingFormat
+
+' --- models and steps
+App -up-> "1..*" Op : schema:featureList
+App -down-> "1..*" Param : bsc:input
+App -down-> "1..*" Param : bsc:output
+Param -down-> "1" Data : schema:additionalType
+Param -down-> "0..1" Format : schema:encodingFormat
+App -[#9E1B1B,thickness=2]right-> "1..*" Aro : amrf:predictsResistanceTo (m)
+App -right-> "1..*" Tax : schema:taxonomicRange (m)
+App -down-> Weights : schema:hasPart (m)
+Weights --> Aro : obo:IAO_0000136 (is about)
+
+' --- the format hierarchy, with the own format
+Json -up-|> Format : rdfs:subClassOf
+Bakta -[#9E1B1B,thickness=2]up-|> Json : rdfs:subClassOf
+
+' --- quality and training data of a model
+App -down-> QM : dqv:hasQualityMeasurement
+QM -down-> "1" Metric : dqv:isMeasurementOf
+QM -down-> "1" Train : dqv:computedOn
+QM -right-> Aro : obo:IAO_0000136 (is about)
+QM -right-> Tax : obo:IAO_0000136 (is about)
+App -down-> Train : prov:wasDerivedFrom (m)
+Train -right-> Train : prov:wasDerivedFrom
+Train -down-> TrainAct : prov:wasGeneratedBy
+TrainAct -down-> TrainAgent : prov:wasAssociatedWith
+TrainAct -right-> TrainDb : prov:used
+
+' --- not RDF: what Cocos matches when it plans the steps
+File .right.> Param : <<matched by Cocos>>
+Param ..> Param : <<output matched to an input by Cocos>>
+
+!if %not(%variable_exists("$PAPER"))
+legend bottom left
+  Colours: <back:#D6E4F5> schema.org / Bioschemas </back> <back:#D9F0D3> EDAM </back> <back:#FCE6C9> OBO (ARO, NCBITaxon, STATO, NCIt) </back> <back:#E6DAF2> PROV-O / P-Plan / DQV / Web Annotation </back> <back:#F4B6B6> AMRF </back>
+  Multiplicities are those required by the AMRF SHACL shapes; links without one are not constrained.
+  (m): only for models, i.e. tools whose schema:featureList includes edam:operation_3482. Recommended: a warning if missing.
+  schema:encodingFormat is required unless the data is a gene report (edam:data_0916).
+  The EDAM, ARO and NCBITaxon boxes stand for any subclass of the term shown (rdfs:subClassOf*).
+  Dashed arrows are not RDF properties: Cocos matches data and inputs by their EDAM data, format and sequencing technique.
+  Some properties are omitted.
+endlegend
+!endif
+@enduml
