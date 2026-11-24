@@ -18,6 +18,14 @@ app/semantics/
 └── discovery/      which models can run on a sample
 ```
 
+## The AMRF Application Profile
+
+The descriptions follow AMRF, the application profile of Cocos: the terms it reuses from schema.org and Bioschemas, EDAM, ARO, NCBITaxon, NCIt, STATO, PROV-O and DQV, two terms of its own (`amrf:predictsResistanceTo` and `amrf:BaktaJSON`, in `vocab/amrf.ttl`) and the SHACL shapes (`vocab/shapes.ttl`) that say what each resource must have.
+
+The diagram shows what the shapes require of a sample and its data, of every processing step and model (what it does, as an EDAM operation, and its inputs and outputs) and, only for models, of the rest of their description: the antibiotics and organisms they are for, their files, and how their training data was obtained. Quality measurements are optional, for any step or model. Samples, steps and models describe their data with the same EDAM data and format terms (and the sequencing technique of reads), which is what lets Cocos match the data of a sample with the inputs of a step or model, and the outputs of one step with the inputs of the next (the dashed arrows, see [Discovery](#discovery)). The legend of the diagram explains its notation.
+
+![UML class diagram of the AMRF application profile: samples, processing steps and models](figures/amrf-descriptions.svg)
+
 ## Discovery
 
 `semantics.discovery.discover(registry, sample, antibiotics=None)` decides, for every model, whether a sample is **ready** (it has every input of the model), **reachable** (some preparation steps, such as assembly, annotation or gene extraction, produce the missing inputs; it returns them, with the file of the sample that feeds each step) or **incompatible** (with the reasons: no steps can produce the inputs, the model is not for the organism of the sample, or it predicts none of the requested antibiotics). It only reads the RDF graphs, with SPARQL: what steps and models consume and produce (EDAM data and format, and the sequencing technique of reads), and the hierarchy of the terms, so a Bakta JSON file is accepted where any JSON is. Among the shortest preparations it chooses the one that recomputes the least data the sample already has, then the one that runs the fewest jobs in the bio service.
@@ -85,6 +93,10 @@ The description also says how the data of the sample was obtained, with [PROV-O]
 - **User**: an anonymous `prov:Person` per sample, which uploaded the files (`prov:wasAttributedTo`) and asked for the activities. Who the user is never appears.
 - **Plan**: what the orchestrator and the discovery decided to run is a `p-plan:Plan` whose `p-plan:Step`s say which step of the registry they run (`dcterms:type`) and which steps come before them (`p-plan:isPrecededBy`); each activity says which step it carried out (`p-plan:correspondsToStep`). A step with no activity was cancelled because a step before it failed.
 - **Results**: each result of a completed prediction is a `prov:Entity` it generated, about (`obo:IAO_0000136`) its antibiotic in ARO. Its verdict is its type, an [NCIT](https://obofoundry.org/ontology/ncit.html) result: _Antimicrobial Resistance Result_ (`NCIT:C85562`), _Antimicrobial Intermediate Susceptibility Result_ (`NCIT:C85560`), _Antimicrobial Susceptibility Result_ (`NCIT:C85563`), _Presumptive Positive_ (`NCIT:C206382`, a possible resistance) or _Not Detected_ (`NCIT:C191300`); its probability, if it has one, is its `schema:value`. What a tool found is the evidence the result is derived from (`prov:wasDerivedFrom`): a determinant with its gene (`schema:name`), its NCBI protein (`rdfs:seeAlso`) and the rules that interpreted it (`dcterms:identifier`). A verdict a tool gave about a class of antibiotics, which Cocos applies to an antibiotic under it, is a result about that class, from which the result about the antibiotic is derived. No term of the AMRF vocabulary is needed for them.
+
+The diagram shows these resources, with what the AMRF shapes require of them, and the trust of the predictions (see [Trust of the Predictions](#trust-of-the-predictions)):
+
+![UML class diagram of the provenance and trust that Cocos records for a sample](figures/amrf-provenance.svg)
 
 For example, with SPARQL over the description of a sample: which software produced its genes, through which steps, starting from which uploaded files.
 
