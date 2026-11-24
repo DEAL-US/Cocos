@@ -203,8 +203,11 @@ class TrustTests(ConversionFlowMixin, TestCase):
         self.assertEqual(str(graph.value(annotation, OA.hasTarget)).rsplit('#', 1)[1], f'task-{task.pk}')
         self.assertEqual(graph.value(annotation, OA.motivatedBy), DQV.qualityAssessment)
         self.assertEqual(graph.value(annotation, OBO.IAO_0000136), AMIKACIN)
-        self.assertEqual(graph.value(annotation, OA.bodyValue), Literal('With reservations', lang='en'))
-        bodies = {str(graph.value(body, DCTERMS.identifier)): body for body in graph.objects(annotation, OA.hasBody)}
+        self.assertNotIn(OA.bodyValue, set(graph.predicates(annotation)))  # not with oa:hasBody (Web Annotation)
+        [level] = [body for body in graph.objects(annotation, OA.hasBody) if graph.value(body, OA.purpose) == OA.assessing]
+        self.assertEqual(graph.value(level, RDF.value), Literal('With reservations', lang='en'))
+        bodies = {str(graph.value(body, DCTERMS.identifier)): body for body in graph.objects(annotation, OA.hasBody)
+                  if graph.value(body, DCTERMS.identifier) is not None}
         self.assertEqual(len(bodies), 8)
         self.assertEqual(graph.value(bodies['class_balance'], DCTERMS.type), Literal('caution'))
         self.assertIn('8%', str(graph.value(bodies['class_balance'], RDF.value)))

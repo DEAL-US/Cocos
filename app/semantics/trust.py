@@ -340,8 +340,9 @@ CHECKS = {
 def add_trust(graph, activity, model_name, antibiotic, term, trust):
     """Add to `graph` the trust of the prediction of `antibiotic` (ARO `term`, or None) by
     `model_name` in `activity`: a dqv:QualityAnnotation of its result (or of the activity, if the
-    graph has no result of it) whose bodies are the level (oa:bodyValue) and each piece of evidence
-    (an oa:TextualBody with its rule and judgement)."""
+    graph has no result of it) whose bodies are the level (an oa:TextualBody with oa:purpose oa:assessing; oa:bodyValue
+    cannot be used together with oa:hasBody) and each piece of evidence (an oa:TextualBody with
+    its rule and judgement)."""
     annotation = URIRef(f'{activity}-trust-{_slug(antibiotic)}')
     graph.add((annotation, RDF.type, DQV.QualityAnnotation))
     graph.add((annotation, RDFS.label, Literal(f'Trust of the prediction of {antibiotic} by {model_name}', lang='en')))
@@ -350,7 +351,11 @@ def add_trust(graph, activity, model_name, antibiotic, term, trust):
     graph.add((annotation, OA.hasTarget, result if (result, RDF.type, PROV.Entity) in graph else activity))
     if term is not None:
         graph.add((annotation, IS_ABOUT, term))
-    graph.add((annotation, OA.bodyValue, Literal(trust['level'], lang='en')))
+    level = BNode()
+    graph.add((annotation, OA.hasBody, level))
+    graph.add((level, RDF.type, OA.TextualBody))
+    graph.add((level, RDF.value, Literal(trust['level'], lang='en')))
+    graph.add((level, OA.purpose, OA.assessing))
     for item in trust['evidence']:
         body = BNode()
         graph.add((annotation, OA.hasBody, body))
