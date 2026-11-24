@@ -63,12 +63,12 @@ class "obo:NCIT_C85562, _C85560, _C85563,\n_C206382, _C191300" as Ncit <<verdict
 ' --- trust of a prediction (DQV, Web Annotation)
 class "dqv:QualityAnnotation" as Ann <<trust of a prediction>> #E6DAF2 {
   oa:motivatedBy = dqv:qualityAssessment
-  {field} oa:bodyValue : rdf:langString (trust level)
 }
-class "oa:TextualBody" as Body <<one piece of evidence>> #E6DAF2 {
-  {field} rdf:value : rdf:langString (explanation)
-  {field} dcterms:identifier : xsd:string (rule)
-  {field} dcterms:type : xsd:string (judgement)
+class "oa:TextualBody" as Body <<trust level, or one piece of evidence>> #E6DAF2 {
+  {field} rdf:value : rdf:langString (level, or explanation)
+  {field} oa:purpose : oa:assessing (level only)
+  {field} dcterms:identifier : xsd:string (rule; evidence only)
+  {field} dcterms:type : xsd:string (judgement; evidence only)
 }
 
 Step --> "1" Plan : p-plan:isStepOfPlan
