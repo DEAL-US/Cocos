@@ -36,7 +36,7 @@ class "prov:Activity" as Act <<a task: a step or a model run>> #E6DAF2 {
 class "prov:Person" as User <<user>> #E6DAF2
 class "prov:SoftwareAgent" as Agent <<tool or model, with its version>> #E6DAF2 {
   schema:name [1]
-  schema:softwareVersion [1]
+  schema:softwareVersion [0..1] (recommended)
   {field} prov:specializationOf (bio.tools entry of a tool)
 }
 class "prov:Entity" as Db <<database>> #E6DAF2 {
