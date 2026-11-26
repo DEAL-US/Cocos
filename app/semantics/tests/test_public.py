@@ -1,7 +1,7 @@
 import json
 
 from django.test import TestCase
-from django.urls import reverse
+from django.urls import reverse, set_script_prefix
 from rdflib import Graph, Literal, URIRef
 from rdflib.compare import isomorphic
 from rdflib.namespace import RDF
@@ -26,6 +26,14 @@ class ResourcePagesTests(TestCase):
         self.assertContains(response, str(MODEL))
         self.assertContains(response, 'Gene report')                      # label of its input data
         self.assertContains(response, 'href="/model/base_bakta_50#genes"')  # its input, on the same page
+
+    def test_links_between_pages_keep_the_path_the_server_is_deployed_under(self):
+        set_script_prefix('/cocos/')  # what the WSGI handler does with SCRIPT_NAME; the test client does not
+        self.addCleanup(set_script_prefix, '/')
+
+        response = self.client.get('/model/base_bakta_50', HTTP_ACCEPT='text/html')
+
+        self.assertContains(response, 'href="/cocos/model/base_bakta_50#genes"')
 
     def test_the_page_of_a_model_says_how_it_was_built_how_well_it_works_and_its_data(self):
         response = self.client.get('/model/base_bakta_50', HTTP_ACCEPT='text/html')

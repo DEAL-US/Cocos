@@ -11,7 +11,7 @@ import zipfile
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
+from django.urls import get_script_prefix, reverse
 from django.views.decorators.csrf import csrf_exempt
 from pyparsing import ParseException
 from rdflib import BNode, Graph, Literal, URIRef
@@ -370,9 +370,10 @@ def _value(graph, value):
 
 
 def local_url(iri):
-    """The page of this server for a registry IRI (what w3id will redirect to), or the IRI itself."""
+    """The page of this server for a registry IRI (what w3id will redirect to), under the path the
+    server is deployed at, or the IRI itself."""
     iri = str(iri)
-    for namespace, prefix in ((str(COCOS), '/'), (str(AMRF), '/amrf/')):
+    for namespace, path in ((str(COCOS), ''), (str(AMRF), 'amrf/')):
         if iri.startswith(namespace):
-            return prefix + iri[len(namespace):]
+            return get_script_prefix() + path + iri[len(namespace):]
     return iri
