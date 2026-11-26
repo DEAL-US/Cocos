@@ -5,6 +5,7 @@ AMRF term and the shapes, so that their IRIs (https://w3id.org/cocos/..., https:
 resolve once w3id redirects them here. Browsers get HTML; RDF clients get Turtle or JSON-LD.
 """
 import os
+import re
 import tempfile
 import zipfile
 
@@ -371,9 +372,13 @@ def _value(graph, value):
 
 def local_url(iri):
     """The page of this server for a registry IRI (what w3id will redirect to), under the path the
-    server is deployed at, or the IRI itself."""
+    server is deployed at, or the IRI itself. Version IRIs of the vocabulary (e.g. amrf:0.1.0) stay
+    as they are: w3id redirects them to the archived release, not to this server."""
     iri = str(iri)
     for namespace, path in ((str(COCOS), ''), (str(AMRF), 'amrf/')):
         if iri.startswith(namespace):
-            return get_script_prefix() + path + iri[len(namespace):]
+            rest = iri[len(namespace):]
+            if namespace == str(AMRF) and re.fullmatch(r'\d+(\.\d+)*', rest):
+                return iri
+            return get_script_prefix() + path + rest
     return iri

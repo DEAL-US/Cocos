@@ -35,6 +35,12 @@ class ResourcePagesTests(TestCase):
 
         self.assertContains(response, 'href="/cocos/model/base_bakta_50#genes"')
 
+    def test_version_iris_of_the_vocabulary_are_not_pages_of_this_server(self):
+        response = self.client.get('/amrf/', HTTP_ACCEPT='text/html')
+
+        self.assertContains(response, 'href="https://w3id.org/amrf/0.1.0"')
+        self.assertNotContains(response, 'href="/amrf/0.1.0"')
+
     def test_the_page_of_a_model_says_how_it_was_built_how_well_it_works_and_its_data(self):
         response = self.client.get('/model/base_bakta_50', HTTP_ACCEPT='text/html')
 
