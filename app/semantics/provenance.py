@@ -135,15 +135,17 @@ def add_software(graph, sample, activity, entry):
     """Add an entry of Task.software, which `activity` used: a tool or model is one of its agents,
     a database (and the weights of a model) something it used."""
     label = Literal(software_label(entry))
+    version = entry.get('version') or ''  # a service may not report it: then it is left out
     if entry.get('type') == 'database':
         if entry.get('doi'):
             database = URIRef(f"https://doi.org/{entry['doi']}")
         else:
-            database = URIRef(f"{sample}#database-{_slug(entry['name'])}-{entry.get('version', '')}")
+            database = URIRef(f"{sample}#database-{_slug(entry['name'])}{'-' + version if version else ''}")
         graph.add((database, RDF.type, PROV.Entity))
         graph.add((database, RDFS.label, label))
         graph.add((database, SCHEMA.name, Literal(entry['name'])))
-        graph.add((database, SCHEMA.version, Literal(entry.get('version', ''))))
+        if version:
+            graph.add((database, SCHEMA.version, Literal(version)))
         if entry.get('date'):
             graph.add((database, SCHEMA.datePublished, Literal(entry['date'], datatype=XSD.date)))
         graph.add((activity, PROV.used, database))
@@ -151,11 +153,12 @@ def add_software(graph, sample, activity, entry):
 
     # A model and a tool may share a name and version (the model amrfinderplus runs the tool AMRFinderPlus)
     kind = 'model' if entry.get('type') == 'model' else 'software'
-    agent = URIRef(f"{sample}#{kind}-{_slug(entry['name'])}-{entry.get('version', '')}")
+    agent = URIRef(f"{sample}#{kind}-{_slug(entry['name'])}{'-' + version if version else ''}")
     graph.add((agent, RDF.type, PROV.SoftwareAgent))
     graph.add((agent, RDFS.label, label))
     graph.add((agent, SCHEMA.name, Literal(entry['name'])))
-    graph.add((agent, SCHEMA.softwareVersion, Literal(entry.get('version', ''))))
+    if version:
+        graph.add((agent, SCHEMA.softwareVersion, Literal(version)))
     if entry.get('biotools'):
         graph.add((agent, PROV.specializationOf, URIRef(f"https://bio.tools/{entry['biotools']}")))
     if entry.get('type') == 'model':

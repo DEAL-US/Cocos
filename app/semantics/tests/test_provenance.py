@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
-from rdflib import Literal, URIRef
+from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, PROV, RDF, RDFS
 
 from conversion.tests.test_flows import ConversionFlowMixin, bakta_json
@@ -13,7 +13,7 @@ from core.testing import FakeBioService
 from prediction.models import PredictionRun, PredictionTask
 from semantics.namespaces import COCOS, OA, OBO, PPLAN, SCHEMA
 from prediction.results import CALLS
-from semantics.provenance import VERDICTS, result_iri
+from semantics.provenance import VERDICTS, add_software, result_iri
 from semantics.sample import sample_graph
 from semantics.trust import add_trust
 from semantics.validation import validate, violations
@@ -230,15 +230,46 @@ class ProvenanceShapesTests(ConversionFlowMixin, TestCase):
         self.graph.remove((self.assembly, PROV.endedAtTime, None))
         self.assertViolation(self.assembly, '')  # the sh:or of the activity shape
 
-    def test_software_without_version(self):
+    def test_software_without_version_is_only_a_warning(self):
         raven = next(self.graph.subjects(SCHEMA.name, Literal('Raven')))
         self.graph.remove((raven, SCHEMA.softwareVersion, None))
+        problems = {(problem.focus, problem.path, problem.severity) for problem in validate(self.graph)}
+        self.assertIn((str(raven), 'schema:softwareVersion', 'Warning'), problems)
+        self.assertNotIn((str(raven), 'schema:softwareVersion', 'Violation'), problems)
+
+    def test_software_with_an_empty_version(self):
+        raven = next(self.graph.subjects(SCHEMA.name, Literal('Raven')))
+        self.graph.set((raven, SCHEMA.softwareVersion, Literal('')))
         self.assertViolation(raven, 'schema:softwareVersion')
 
     def test_a_malformed_checksum(self):
         reads = next(part for part in self.graph.objects(SAMPLE, SCHEMA.hasPart) if self.graph.value(part, SCHEMA.sha256))
         self.graph.set((reads, SCHEMA.sha256, Literal('not a sha256')))
         self.assertViolation(reads, 'schema:sha256')
+
+
+class SoftwareWithoutVersionTests(SimpleTestCase):
+    """A service may report a tool or a database without its version: it is left out, never empty."""
+
+    def setUp(self):
+        self.graph = Graph()
+        self.activity = URIRef(f'{SAMPLE}#task-1')
+
+    def test_a_tool_without_version(self):
+        add_software(self.graph, SAMPLE, self.activity, {'name': 'Flye', 'type': 'tool'})
+        agent = self.graph.value(self.activity, PROV.wasAssociatedWith)
+
+        self.assertEqual(agent, URIRef(f'{SAMPLE}#software-flye'))
+        self.assertIsNone(self.graph.value(agent, SCHEMA.softwareVersion))
+        self.assertEqual(self.graph.value(agent, RDFS.label), Literal('Flye'))
+        self.assertEqual(violations(validate(self.graph)), [])
+
+    def test_a_database_without_version(self):
+        add_software(self.graph, SAMPLE, self.activity, {'name': 'AMRFinderPlus database', 'type': 'database'})
+        database = self.graph.value(self.activity, PROV.used)
+
+        self.assertEqual(database, URIRef(f'{SAMPLE}#database-amrfinderplus-database'))
+        self.assertIsNone(self.graph.value(database, SCHEMA.version))
 
 
 class VerdictTermsTests(SimpleTestCase):
