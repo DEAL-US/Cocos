@@ -66,7 +66,7 @@ class "prov:Entity" as Train <<training, test or validation data>> $b #E6DAF2
 class "prov:Activity" as TrainAct <<e.g. annotation of the training data>> $b #E6DAF2
 class "prov:SoftwareAgent" as TrainAgent <<tool and version>> $b #E6DAF2 {
   schema:name [1]
-  schema:softwareVersion [1]
+  schema:softwareVersion [0..1] (recommended)
   {field} prov:specializationOf (bio.tools entry)
 }
 class "prov:Entity" as TrainDb <<database>> $b #E6DAF2
@@ -74,22 +74,27 @@ class "prov:Entity" as TrainDb <<database>> $b #E6DAF2
 ' --- AMRF (red)
 class "amrf:BaktaJSON" as Bakta $a #F4B6B6
 
+' --- placement (hidden links only fix the grid; they are not drawn)
+Tax -[hidden]right-> Op
+Sample -[hidden]right-> App
+File -[hidden]right-> Param
+
 ' --- the sample and its data
 Sample -down-> File : schema:hasPart
-Sample -right-> Tax : schema:taxonomicRange
+Sample -up-> Tax : schema:taxonomicRange
 File -down-> "1" Data : schema:additionalType
-File -down-> "0..1" Format : schema:encodingFormat
+File --> "0..1" Format : schema:encodingFormat
 
 ' --- models and steps
 App -up-> "1..*" Op : schema:featureList
 App -down-> "1..*" Param : bsc:input
 App -down-> "1..*" Param : bsc:output
-Param -down-> "1" Data : schema:additionalType
+Param --> "1" Data : schema:additionalType
 Param -down-> "0..1" Format : schema:encodingFormat
-App -[#9E1B1B,thickness=2]right-> "1..*" Aro : amrf:predictsResistanceTo (m)
-App -right-> "1..*" Tax : schema:taxonomicRange (m)
+App -[#9E1B1B,thickness=2]down-> "1..*" Aro : amrf:predictsResistanceTo (m)
+App -up-> "1..*" Tax : schema:taxonomicRange (m)
 App -down-> Weights : schema:hasPart (m)
-Weights --> Aro : obo:IAO_0000136 (is about)
+Weights -down-> Aro : obo:IAO_0000136 (is about)
 
 ' --- the format hierarchy, with the own format
 Json -up-|> Format : rdfs:subClassOf
@@ -100,7 +105,7 @@ App -down-> QM : dqv:hasQualityMeasurement
 QM -down-> "1" Metric : dqv:isMeasurementOf
 QM -down-> "1" Train : dqv:computedOn
 QM -right-> Aro : obo:IAO_0000136 (is about)
-QM -right-> Tax : obo:IAO_0000136 (is about)
+QM -up-> Tax : obo:IAO_0000136 (is about)
 App -down-> Train : prov:wasDerivedFrom (m)
 Train -right-> Train : prov:wasDerivedFrom
 Train -down-> TrainAct : prov:wasGeneratedBy
